@@ -4,14 +4,38 @@ import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 
 const partners = [
-  { id: 1, name: "Google", logo: "/placeholder.svg?height=60&width=120" },
-  { id: 2, name: "Microsoft", logo: "/placeholder.svg?height=60&width=120" },
-  { id: 3, name: "Amazon", logo: "/placeholder.svg?height=60&width=120" },
-  { id: 4, name: "Apple", logo: "/placeholder.svg?height=60&width=120" },
-  { id: 5, name: "Meta", logo: "/placeholder.svg?height=60&width=120" },
-  { id: 6, name: "Netflix", logo: "/placeholder.svg?height=60&width=120" },
-  { id: 7, name: "Spotify", logo: "/placeholder.svg?height=60&width=120" },
-  { id: 8, name: "Airbnb", logo: "/placeholder.svg?height=60&width=120" },
+  {
+    id: 1,
+    name: "Google",
+    logo: "/images/logos/google.png?height=60&width=120",
+  },
+  {
+    id: 2,
+    name: "Digicel",
+    logo: "/images/logos/digicel.png?height=100&width=120",
+  },
+  { id: 3, name: "Flow", logo: "/images/logos/flow.png?height=60&width=120" },
+  { id: 4, name: "ECCB", logo: "/images/logos/eccb.png?height=60&width=120" },
+  {
+    id: 5,
+    name: "Caricom",
+    logo: "/images/logos/caricom.png?height=60&width=120",
+  },
+  {
+    id: 6,
+    name: "Microsoft",
+    logo: "/images/logos/microsoft.png?height=200&width=120",
+  },
+  {
+    id: 7,
+    name: "Spotify",
+    logo: "/images/logos/spotify.png?height=60&width=120",
+  },
+  {
+    id: 8,
+    name: "Airbnb",
+    logo: "/images/logos/airbnb.png?height=60&width=120",
+  },
 ];
 
 export default function PartnerLogos() {

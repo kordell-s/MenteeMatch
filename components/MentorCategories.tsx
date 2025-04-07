@@ -8,28 +8,28 @@ const categories = [
     name: "Technology",
     description:
       "Software engineering, data science, product management, and more",
-    image: "/placeholder.svg?height=300&width=400",
+    image: "/images/tech.jpg?height=300&width=400",
     mentorCount: 245,
   },
   {
     id: 2,
     name: "Design",
     description: "UX/UI design, graphic design, product design, and more",
-    image: "/placeholder.svg?height=300&width=400",
+    image: "/images/design.jpg?height=300&width=400",
     mentorCount: 187,
   },
   {
     id: 3,
     name: "Business",
     description: "Marketing, entrepreneurship, finance, and more",
-    image: "/placeholder.svg?height=300&width=400",
+    image: "/images/business.jpg?height=300&width=400",
     mentorCount: 203,
   },
   {
     id: 4,
     name: "Creative",
     description: "Writing, photography, filmmaking, and more",
-    image: "/placeholder.svg?height=300&width=400",
+    image: "/images/creative.jpg?height=300&width=400",
     mentorCount: 156,
   },
 ];

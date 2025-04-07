@@ -23,14 +23,13 @@ export default function HeroSection() {
               </Button>
             </div>
             <p className="text-sm text-gray-500">
-              Join over 10,000 professionals already growing with MentorMatch
+              Join over 10,000 professionals already growing with MenteeMatch
             </p>
           </div>
 
           <div className="relative h-[400px] md:h-[500px] rounded-xl overflow-hidden shadow-2xl">
-            {/* You can replace this with a video component if preferred */}
             <Image
-              src="/placeholder.svg?height=500&width=600"
+              src="/images/hero.jpg?height=500&width=600"
               alt="Mentorship in action"
               fill
               className="object-cover"

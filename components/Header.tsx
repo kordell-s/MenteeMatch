@@ -6,7 +6,7 @@ export default function Header() {
     <header className="bg-white shadow-sm">
       <div className="container mx-auto px-4 py-4 flex items-center justify-between">
         <Link href="/" className="text-2xl font-bold text-gray-900">
-          MentorMatch
+          MenteeMatch
         </Link>
         <nav>
           <ul className="flex items-center space-x-6">

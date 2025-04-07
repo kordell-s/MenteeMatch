@@ -308,8 +308,10 @@ export default function MentorBrowser() {
         <TabsContent value="recommended" className="mt-6">
           <RecommendedMentors
             mentors={filteredMentors.filter(
-              (mentor): mentor is Mentor => !!mentor.image
-            )}
+              (mentor): mentor is Mentor => 
+                !!mentor.image && 
+                typeof mentor.availability === 'string'
+            ) as Mentor[]}
           />
         </TabsContent>
 

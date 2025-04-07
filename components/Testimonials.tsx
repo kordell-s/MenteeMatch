@@ -64,7 +64,10 @@ export default function Testimonials() {
               <div className="flex items-center">
                 <div className="relative h-16 w-16 rounded-full overflow-hidden mr-4">
                   <Image
-                    src={testimonials[activeIndex].image || "/placeholder.svg"}
+                    src={
+                      "/images/avatar.png"
+                      // testimonials[activeIndex].image || ""
+                    }
                     alt={testimonials[activeIndex].name}
                     fill
                     className="object-cover"
