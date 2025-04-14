@@ -5,20 +5,7 @@ import { Mentor } from "@/app/types/mentor";
 import { Star, Clock, MessageCircle, Calendar, Bookmark } from "lucide-react";
 
 interface MentorCardProps {
-  mentor: {
-    id: string;
-    name: string;
-    title: string;
-    company: string;
-    rating: number;
-    reviews: number;
-    availability?: string;
-    image: string;
-    tags: string[];
-    category?: string;
-    bio: string;
-    expertise: string[];
-  };
+  mentor: Mentor;
   recommended?: boolean;
 }
 
@@ -39,7 +26,7 @@ export default function MentorCard({
           </div>
         )}
         <Image
-          src={mentor.image || "/placeholder.svg"}
+          src={mentor.profilePicture || "/placeholder.svg"}
           alt={mentor.name}
           width={400}
           height={400}
@@ -54,14 +41,14 @@ export default function MentorCard({
         <div className="flex justify-between items-start mb-2">
           <div>
             <h3 className="font-bold text-lg">{mentor.name}</h3>
-            <p className="text-gray-600">{mentor.title}</p>
+            <p className="text-gray-600">{mentor.location}</p>
             <p className="text-gray-500 text-sm">{mentor.company}</p>
           </div>
           <div className="flex items-center">
             <Star className="text-yellow-400 h-4 w-4 mr-1" />
             <span className="font-medium">{mentor.rating}</span>
             <span className="text-gray-500 text-sm ml-1">
-              ({mentor.reviews})
+              ({mentor.rating} ratings)
             </span>
           </div>
         </div>
@@ -69,9 +56,9 @@ export default function MentorCard({
         <p className="text-sm text-gray-700 mb-4 line-clamp-2">{mentor.bio}</p>
 
         <div className="flex flex-wrap gap-2 mb-4">
-          {mentor.tags.map((tag, index) => (
+          {mentor.skills.map((skill, index) => (
             <Badge key={index} variant="secondary" className="font-normal">
-              {tag}
+              {skill.replaceAll("_", " ")}
             </Badge>
           ))}
         </div>

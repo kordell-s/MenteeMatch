@@ -1,15 +1,20 @@
-export interface Mentor {
+export type Mentor = {
     id: string;
     name: string;
-    title: string;
-    company: string;
-    rating: number;
-    reviews: number;
-    hourlyRate?: number;
+    email: string;
+    profilePicture?: string;
     availability?: string;
-    image: string;
-    tags: string[];
-    category?: string;
-    bio: string;
-    expertise: string[];
-}
+    location?: string;
+    rating?: number;
+    skills: string[];
+    experience: string[];
+    languages: string[];
+    company?: string;
+    bio?: string;
+    role: "MENTOR";
+    mentor: {
+      specialization: string[];
+      pricing: number | null;
+    };
+  };
+  
