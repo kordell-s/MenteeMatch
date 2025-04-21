@@ -2,7 +2,8 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Mentor } from "@/app/types/mentor";
-import { Star, Clock, MessageCircle, Calendar, Bookmark } from "lucide-react";
+import { Star, Clock, MessageCircle, Bookmark, UserRound } from "lucide-react";
+import Link from "next/link";
 
 interface MentorCardProps {
   mentor: Mentor;
@@ -42,7 +43,8 @@ export default function MentorCard({
           <div>
             <h3 className="font-bold text-lg">{mentor.name}</h3>
             <p className="text-gray-600">{mentor.location}</p>
-            <p className="text-gray-500 text-sm">{mentor.company}</p>
+            <p className="text-gray-500 text-sm">{mentor.experience}</p>
+            <p className="text-sm font-bold">{mentor.company}</p>
           </div>
           <div className="flex items-center">
             <Star className="text-yellow-400 h-4 w-4 mr-1" />
@@ -57,7 +59,7 @@ export default function MentorCard({
 
         <div className="flex flex-wrap gap-2 mb-4">
           {mentor.skills.map((skill, index) => (
-            <Badge key={index} variant="secondary" className="font-normal">
+            <Badge key={index} variant="secondary" className="font-medium">
               {skill.replaceAll("_", " ")}
             </Badge>
           ))}
@@ -69,10 +71,12 @@ export default function MentorCard({
         </div>
 
         <div className="flex gap-2">
-          <Button className="flex-1">
-            <Calendar className="h-4 w-4 mr-2" />
-            Book Session
-          </Button>
+          <Link href={`/mentors/${mentor.id}`}>
+            <Button className="flex-1">
+              <UserRound className="h-4 w-4 mr-2" />
+              View Profile
+            </Button>
+          </Link>
           <Button variant="outline" className="flex-1">
             <MessageCircle className="h-4 w-4 mr-2" />
             Message

@@ -24,6 +24,9 @@ model User {
   experience     String[] // Can hold multiple values
   languages      String[] // Can hold multiple values
   location       String?
+  company        String?
+  booking        String?
+  bio            String?
   availability   String?
   rating         Float?
   verified       Boolean  @default(false)
