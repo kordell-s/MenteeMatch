@@ -228,7 +228,7 @@ export default function MentorsPage() {
                     <div className="flex items-start justify-between">
                       <div className="flex items-start space-x-4">
                         <Image
-                          src={mentor.avatar || "/placeholder.svg"}
+                          src={"/images/avatar.png"}
                           alt={mentor.name}
                           width={60}
                           height={60}
@@ -332,7 +332,7 @@ export default function MentorsPage() {
                       <div className="flex items-start justify-between">
                         <div className="flex items-start space-x-4">
                           <Image
-                            src={mentor.avatar || "/placeholder.svg"}
+                            src={"/images/avatar.png"}
                             alt={mentor.name}
                             width={60}
                             height={60}
@@ -438,7 +438,7 @@ export default function MentorsPage() {
                       <div className="flex items-start justify-between">
                         <div className="flex items-start space-x-4">
                           <Image
-                            src={mentor.avatar || "/placeholder.svg"}
+                            src={"/images/avatar.png"}
                             alt={mentor.name}
                             width={60}
                             height={60}

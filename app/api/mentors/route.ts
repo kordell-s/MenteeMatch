@@ -9,6 +9,11 @@ export async function GET() {
         },
       include: {
         mentor:true,
+        mentorshipsAsMentor:{
+          include:{
+            mentee:true,
+          },
+        },
       },
     });
 

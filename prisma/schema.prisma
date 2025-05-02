@@ -51,6 +51,10 @@ model User {
   bookingsAsMentor Booking[] @relation("BookingsAsMentor")
   bookingsAsMentee Booking[] @relation("BookingsAsMentee")
 
+  mentorshipsAsMentor Mentorship[] @relation("MentorshipMentor")
+  mentorshipsAsMentee Mentorship[] @relation("MentorshipMentee")
+
+
   createdAt DateTime @default(now())
 }
 
@@ -119,6 +123,17 @@ model Session {
 
   booking Booking? @relation("SessionBooking")
 }
+
+model Mentorship {
+  id        String   @id @default(uuid())
+  mentorId  String
+  menteeId  String
+  createdAt DateTime @default(now())
+
+  mentor User @relation("MentorshipMentor", fields: [mentorId], references: [id])
+  mentee User @relation("MentorshipMentee", fields: [menteeId], references: [id])
+}
+
 
 model Rating {
   id          String   @id @default(uuid())

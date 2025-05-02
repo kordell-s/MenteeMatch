@@ -358,7 +358,7 @@ export default function MyMenteesPage() {
                     <div className="flex items-start justify-between">
                       <div className="flex items-start space-x-4">
                         <Image
-                          src={mentee.avatar || "/placeholder.svg"}
+                          src={"/images/avatar.png"}
                           alt={mentee.name}
                           width={60}
                           height={60}
@@ -473,7 +473,7 @@ export default function MyMenteesPage() {
                       <div className="flex items-start justify-between">
                         <div className="flex items-start space-x-4">
                           <Image
-                            src={mentee.avatar || "/placeholder.svg"}
+                            src={"/images/avatar.png"}
                             alt={mentee.name}
                             width={60}
                             height={60}
@@ -694,7 +694,7 @@ export default function MyMenteesPage() {
               >
                 <div className="flex items-start">
                   <Image
-                    src={session.mentee.avatar || "/placeholder.svg"}
+                    src={"/images/avatar.png"}
                     alt={session.mentee.name}
                     width={40}
                     height={40}
