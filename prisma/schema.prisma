@@ -56,6 +56,9 @@ model User {
   mentorshipsAsMentor Mentorship[] @relation("MentorshipMentor")
   mentorshipsAsMentee Mentorship[] @relation("MentorshipMentee")
 
+  tasksAsMentor Task[] @relation("TasksAsMentor")
+  tasksAsMentee Task[] @relation("TasksAsMentee")
+
   createdAt DateTime @default(now())
 }
 
@@ -146,6 +149,31 @@ model Rating {
   user    User @relation("RatingsReceived", fields: [userId], references: [id])
   ratedBy User @relation("RatingsGiven", fields: [ratedById], references: [id])
 }
+
+model Task {
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  dueDate     DateTime?
+  completed   Boolean  @default(false)
+  status      TaskStatus
+
+  goalTag     String?
+  menteeId    String
+  mentorId    String
+
+  mentee      User     @relation("TasksAsMentee", fields: [menteeId], references: [id])
+  mentor      User     @relation("TasksAsMentor", fields: [mentorId], references: [id])
+
+  createdAt   DateTime @default(now())
+}
+
+enum TaskStatus{
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+}
+
 
 enum Role {
   MENTOR
