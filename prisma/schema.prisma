@@ -14,22 +14,24 @@ datasource db {
 }
 
 model User {
-  id             String   @id @default(uuid())
-  name           String
-  email          String   @unique
-  password       String
-  role           Role // Either "MENTOR" or "MENTEE"
-  profilePicture String?
-  skills         Skill[] // Can hold multiple values
-  experience     String[] // Can hold multiple values
-  languages      String[] // Can hold multiple values
-  location       String?
-  company        String?
-  booking        String?
-  bio            String?
-  availability   String?
-  rating         Float?
-  verified       Boolean  @default(false)
+  id              String          @id @default(uuid())
+  name            String
+  title           String?
+  email           String          @unique
+  password        String
+  role            Role // Either "MENTOR" or "MENTEE"
+  profilePicture  String?
+  skills          Skill[] // Can hold multiple values
+  experienceLevel ExperienceLevel @default(ENTRY)
+  languages       String[] // Can hold multiple values
+  location        String?
+  company         String?
+  school          String?
+  booking         String?
+  bio             String
+  availability    String?
+  rating          Float?
+  verified        Boolean         @default(false)
 
   // One-to-one: A user can be a mentor or mentee
   mentor Mentor?
@@ -54,7 +56,6 @@ model User {
   mentorshipsAsMentor Mentorship[] @relation("MentorshipMentor")
   mentorshipsAsMentee Mentorship[] @relation("MentorshipMentee")
 
-
   createdAt DateTime @default(now())
 }
 
@@ -68,8 +69,8 @@ model Mentor {
 }
 
 model Mentee {
-  userId String  @id
-  goals  String?
+  userId String @id
+  goals  Goal[]
   rating Float?
 
   // One-to-one relation back to User
@@ -133,7 +134,6 @@ model Mentorship {
   mentor User @relation("MentorshipMentor", fields: [mentorId], references: [id])
   mentee User @relation("MentorshipMentee", fields: [menteeId], references: [id])
 }
-
 
 model Rating {
   id          String   @id @default(uuid())
@@ -210,4 +210,25 @@ enum Skill {
   NETWORKING
   LEADERSHIP
   TEAM_MANAGEMENT
+}
+
+enum Goal {
+  GET_INTO_TECH
+  TRANSITION_CAREER
+  BUILD_PROJECTS
+  FIND_MENTOR
+  INTERVIEW_PREP
+  RESUME_REVIEW
+  CAREER_GUIDANCE
+  LEARN_CODING
+  PUBLIC_SPEAKING
+  NETWORKING
+}
+
+enum ExperienceLevel {
+  STUDENT
+  ENTRY
+  MID
+  SENIOR
+  LEAD
 }

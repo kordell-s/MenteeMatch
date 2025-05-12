@@ -1,6 +1,5 @@
 "use client";
-
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -31,180 +30,49 @@ import {
   BarChart,
   FileText,
 } from "lucide-react";
-
-// Mock data for mentees
-const myMentees = [
-  {
-    id: 1,
-    name: "Emma Wilson",
-    title: "Product Designer",
-    company: "Startup Inc",
-    avatar: "/placeholder.svg",
-    goals: [
-      "Career transition to UX",
-      "Portfolio improvement",
-      "Leadership skills",
-    ],
-    lastSession: "2 days ago",
-    nextSession: "May 15, 2023, 10:00 AM",
-    bio: "Transitioning from graphic design to UX/UI design. Looking to improve portfolio and interview skills.",
-    progress: 75,
-    status: "active",
-    joinedDate: "March 15, 2023",
-    sessionsCompleted: 6,
-  },
-  {
-    id: 2,
-    name: "James Rodriguez",
-    title: "Junior Developer",
-    company: "Tech Corp",
-    avatar: "/placeholder.svg",
-    goals: [
-      "Technical interview prep",
-      "System design skills",
-      "Career advancement",
-    ],
-    lastSession: "1 week ago",
-    nextSession: "May 18, 2023, 2:00 PM",
-    bio: "Software engineer with 2 years of experience looking to advance to a mid-level position and improve technical skills.",
-    progress: 60,
-    status: "active",
-    joinedDate: "February 8, 2023",
-    sessionsCompleted: 8,
-  },
-  {
-    id: 3,
-    name: "Sophia Lee",
-    title: "Marketing Specialist",
-    company: "Growth Co",
-    avatar: "/placeholder.svg",
-    goals: [
-      "Transition to product management",
-      "Leadership development",
-      "Strategic thinking",
-    ],
-    lastSession: "2 weeks ago",
-    nextSession: null,
-    bio: "Marketing professional with 5 years of experience looking to transition into a product management role.",
-    progress: 40,
-    status: "active",
-    joinedDate: "April 3, 2023",
-    sessionsCompleted: 4,
-  },
-  {
-    id: 4,
-    name: "Daniel Kim",
-    title: "Frontend Developer",
-    company: "WebTech Ltd",
-    avatar: "/placeholder.svg",
-    goals: ["Resume review", "Interview preparation", "Portfolio feedback"],
-    lastSession: "3 weeks ago",
-    nextSession: null,
-    bio: "Frontend developer looking to improve resume and interview skills to land a senior position.",
-    progress: 30,
-    status: "active",
-    joinedDate: "April 20, 2023",
-    sessionsCompleted: 3,
-  },
-  {
-    id: 5,
-    name: "Olivia Martinez",
-    title: "Data Analyst",
-    company: "Analytics Inc",
-    avatar: "/placeholder.svg",
-    goals: ["Career guidance", "Technical skill development", "Leadership"],
-    lastSession: "1 month ago",
-    nextSession: null,
-    bio: "Data analyst with 3 years of experience seeking guidance on career growth and technical skill development.",
-    progress: 20,
-    status: "inactive",
-    joinedDate: "January 15, 2023",
-    sessionsCompleted: 2,
-  },
-];
-
-// Past sessions data
-const pastSessions = [
-  {
-    id: 1,
-    mentee: {
-      id: 1,
-      name: "Emma Wilson",
-      avatar: "/placeholder.svg",
-    },
-    date: "May 2, 2023",
-    time: "10:00 AM - 11:00 AM",
-    sessionType: "Portfolio Review",
-    notes:
-      "Reviewed portfolio and provided feedback on case studies. Suggested improvements for user flow documentation.",
-    rating: 5,
-  },
-  {
-    id: 2,
-    mentee: {
-      id: 2,
-      name: "James Rodriguez",
-      avatar: "/placeholder.svg",
-    },
-    date: "April 25, 2023",
-    time: "2:00 PM - 3:00 PM",
-    sessionType: "Technical Interview Prep",
-    notes:
-      "Practiced system design questions and provided feedback on communication. Recommended resources for further study.",
-    rating: 5,
-  },
-  {
-    id: 3,
-    mentee: {
-      id: 3,
-      name: "Sophia Lee",
-      avatar: "/placeholder.svg",
-    },
-    date: "April 18, 2023",
-    time: "11:00 AM - 12:00 PM",
-    sessionType: "Career Transition",
-    notes:
-      "Discussed strategy for transitioning from marketing to product management. Created action plan with specific steps.",
-    rating: 4,
-  },
-  {
-    id: 4,
-    mentee: {
-      id: 4,
-      name: "Daniel Kim",
-      avatar: "/placeholder.svg",
-    },
-    date: "April 5, 2023",
-    time: "3:00 PM - 4:00 PM",
-    sessionType: "Resume Review",
-    notes:
-      "Reviewed resume and suggested improvements to highlight achievements and technical skills more effectively.",
-    rating: 5,
-  },
-];
+import type { DashboardData } from "@/app/types/dashboardData";
 
 export default function MyMenteesPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("all");
   const [goalFilter, setGoalFilter] = useState("all");
 
+  const mentorId = "23d6c35a-3c3f-4d7f-a6fc-95ba7da4c216";
+  const [dashboardData, setDashboardData] = useState<DashboardData | null>(
+    null
+  );
+  const myMentees = dashboardData?.confirmedMentees || [];
+
+  useEffect(() => {
+    async function fetchDashboard() {
+      try {
+        const res = await fetch(`/api/dashboard/mentor?id=${mentorId}`);
+        const data = await res.json();
+        setDashboardData(data);
+      } catch (error) {
+        console.error("Error fetching dashboard data:", error);
+      }
+    }
+    fetchDashboard();
+  }, []);
+
   // Get unique goals for filter dropdown
   const allGoals = Array.from(
-    new Set(myMentees.flatMap((mentee) => mentee.goals))
+    new Set(myMentees.flatMap((mentee) => mentee.goals).filter(Boolean))
   );
 
   // Filter mentees based on search query, active tab, and goal filter
   const filteredMentees = myMentees.filter((mentee) => {
+    const goalsArray = mentee.goals || [];
     // Filter by search query
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       const nameMatch = mentee.name.toLowerCase().includes(query);
-      const titleMatch = mentee.title.toLowerCase().includes(query);
-      const goalsMatch = mentee.goals.some((goal) =>
+      const goalsMatch = mentee.goals?.some((goal) =>
         goal.toLowerCase().includes(query)
       );
 
-      if (!(nameMatch || titleMatch || goalsMatch)) {
+      if (!(nameMatch || goalsMatch)) {
         return false;
       }
     }
