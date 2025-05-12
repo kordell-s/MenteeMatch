@@ -23,6 +23,19 @@ export interface DashboardData {
       profilePicture: string | null;
     };
   }[];
+
+  completedSessions: {
+    id: string;
+    date: string;
+    time: string;
+    sessionType: string;
+    notes: string;
+    rating: number;
+    mentee: {
+      name: string;
+      profilePicture: string | null;
+    };
+  }[];
   completedSessionsCount: number;
   mentorshipRequests: {
     id: string;
@@ -51,3 +64,21 @@ export interface DashboardData {
   }[];
   totalMentees: number;
 }
+
+export type MenteeCardData = {
+  id: string;
+  name: string;
+  profilePicture: string | null;
+  bio: string | null;
+  company?: string | null;
+  school?: string | null;
+  title?: string | null; 
+  goals: string[];
+  progress?: number;
+  status: "active" | "inactive";
+  sessionsCompleted: number;
+  joinedDate: string | null;
+  lastSession: string | null;
+  nextSession: string | null;
+};
+

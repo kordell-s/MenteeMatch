@@ -30,7 +30,7 @@ import {
   BarChart,
   FileText,
 } from "lucide-react";
-import type { DashboardData } from "@/app/types/dashboardData";
+import type { DashboardData, MenteeCardData } from "@/app/types/dashboardData";
 
 export default function MyMenteesPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -41,7 +41,7 @@ export default function MyMenteesPage() {
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(
     null
   );
-  const myMentees = dashboardData?.confirmedMentees || [];
+  const myMentees: MenteeCardData[] = dashboardData?.confirmedMentees || [];
 
   useEffect(() => {
     async function fetchDashboard() {
@@ -158,7 +158,7 @@ export default function MyMenteesPage() {
                 <div className="text-2xl font-bold">
                   {Math.round(
                     myMentees.reduce(
-                      (sum, mentee) => sum + mentee.progress,
+                      (sum, mentee) => sum + (mentee.progress ?? 0),
                       0
                     ) / myMentees.length
                   )}
@@ -455,7 +455,7 @@ export default function MyMenteesPage() {
                       <div className="flex items-start justify-between">
                         <div className="flex items-start space-x-4">
                           <Image
-                            src={mentee.avatar || "/placeholder.svg"}
+                            src={mentee.profilePicture || "/placeholder.svg"}
                             alt={mentee.name}
                             width={60}
                             height={60}
@@ -555,7 +555,7 @@ export default function MyMenteesPage() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {pastSessions.map((session) => (
+            {dashboardData?.completedSessions?.map((session) => (
               <div
                 key={session.id}
                 className="p-4 border rounded-lg hover:bg-gray-50 transition-colors"

@@ -50,11 +50,22 @@ export async function GET(request: Request) {
 
     // Completed sessions
     const completedSessions = await prisma.session.findMany({
-      where: {
-        mentorId: userId,
-        status: "COMPLETED",
-      },
-    });
+        where: {
+          mentorId: userId,
+          status: "COMPLETED",
+        },
+        orderBy: {
+          date: "desc",
+        },
+        include: {
+          mentee: {
+            select: {
+              name: true,
+              profilePicture: true,
+            },
+          },
+        },
+      });
 
     // Mentorship requests (pending bookings)
     const mentorshipRequests = await prisma.booking.findMany({
@@ -75,28 +86,27 @@ export async function GET(request: Request) {
 
     // Confirmed mentees (established mentorships)
     const confirmedMenteesRaw = await prisma.mentorship.findMany({
-      where: {
-        mentorId: userId,
-      },
-      include: {
-        mentee: {
-          select: {
-            id: true,
-            name: true,
-            title: true,
-            profilePicture: true,
-            bio: true,
-            company:true,
-            school:true,
-            mentee: {
-              select: {
-                goals: true,
+        where: { mentorId: userId },
+        include: {
+          mentee: {
+            select: {
+              id: true,
+              name: true,
+              title: true,
+              profilePicture: true,
+              bio: true,
+              company: true,
+              school: true,
+              mentee: {
+                select: {
+                  goals: true,
+                },
               },
             },
           },
         },
-      },
-    });
+      });
+      
 
     const confirmedMentees = await Promise.all(
       confirmedMenteesRaw.map(async (entry) => {
@@ -110,6 +120,9 @@ export async function GET(request: Request) {
 
         const completed = sessions.filter((s) => s.status === "COMPLETED");
         const upcoming = sessions.find((s) => s.status === "UPCOMING");
+        const progress = Math.min((completed.length / 10) * 100, 100); 
+
+        
 
         return {
           id: entry.mentee.id,
@@ -124,6 +137,7 @@ export async function GET(request: Request) {
           joinedDate: sessions.at(-1)?.date || null,
           lastSession: completed.at(0)?.date || null,
           nextSession: upcoming?.date || null,
+          progress :completed.length * 10,
         };
       })
     );
@@ -133,6 +147,7 @@ export async function GET(request: Request) {
     return NextResponse.json({
       mentorInfo,
       upcomingSessions,
+      completedSessions,
       completedSessionsCount: completedSessions.length,
       confirmedMentees,
       mentorshipRequests,
