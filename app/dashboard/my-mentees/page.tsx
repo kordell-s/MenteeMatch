@@ -30,7 +30,11 @@ import {
   BarChart,
   FileText,
 } from "lucide-react";
-import type { DashboardData, MenteeCardData } from "@/app/types/dashboardData";
+import type {
+  DashboardData,
+  MenteeCardData,
+} from "@/app/types/dashboard/mentorDashboardData";
+import type { MenteeDashboardData } from "@/app/types/dashboard/menteeDashboardData";
 
 export default function MyMenteesPage() {
   const [searchQuery, setSearchQuery] = useState("");

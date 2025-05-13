@@ -1,3 +1,5 @@
+import { TaskStatus } from "@prisma/client";
+
 export interface DashboardData {
   mentorInfo: {
     id: string;
@@ -81,4 +83,13 @@ export type MenteeCardData = {
   lastSession: string | null;
   nextSession: string | null;
 };
+
+export type TaskData = {
+  id: string;
+  title: string;
+  description: string;
+  status: TaskStatus;
+  dueDate: string;
+};
+
 
