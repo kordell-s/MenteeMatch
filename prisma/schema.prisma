@@ -66,6 +66,7 @@ model Mentor {
   userId         String   @id
   specialization String[] // Multi-value field
   pricing        Float?
+  category       MentorCategory @default(OTHER)
 
   // One-to-one relation back to User
   user User @relation(fields: [userId], references: [id])
@@ -166,6 +167,18 @@ model Task {
   mentor      User     @relation("TasksAsMentor", fields: [mentorId], references: [id])
 
   createdAt   DateTime @default(now())
+}
+
+
+enum MentorCategory {
+  TECHNOLOGY
+  BUSINESS
+  DESIGN
+  MARKETING
+  CREATIVE
+  HEALTH
+  MUSIC
+  OTHER
 }
 
 enum TaskStatus{
