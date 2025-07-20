@@ -38,8 +38,9 @@ export default function MentorBrowser() {
   const [activeCategory, setActiveCategory] = useState("recommended");
   const [searchQuery, setSearchQuery] = useState("");
   const [recommendedMentors, setRecommendedMentors] = useState<Mentor[]>([]);
+  const [filteredMentors, setFilteredMentors] = useState<Mentor[]>([]);
   const [sortOption, setSortOption] = useState("recommended");
-  const userId = "3459d90e-8bd8-43f2-9b17-b40b16625668";
+  const userId = "345d90de-8bd8-4312-9b91-5cfe3b9e77cd"; // Alex James (mentee)
 
   // Fetch mentor data from API
   useEffect(() => {
@@ -56,7 +57,13 @@ export default function MentorBrowser() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ menteeId: userId }),
         });
+
         const matched = await matchRes.json();
+        if (!matchRes.ok || !Array.isArray(matched)) {
+          console.error("Matching API did not return an array", matched);
+          setRecommendedMentors([]);
+          return;
+        }
 
         // Now match mentorData with matched IDs
         const recommended = matched
@@ -64,7 +71,6 @@ export default function MentorBrowser() {
             data.find((m: Mentor) => m.id === match.mentorId)
           )
           .filter(Boolean);
-
         setRecommendedMentors(recommended);
       } catch (err) {
         console.error("Error fetching mentors:", err);
@@ -79,11 +85,11 @@ export default function MentorBrowser() {
   // Filter mentors based on active category and search query
   useEffect(() => {
     let result = mentorData;
-
-    // Filter by category if not on recommended tab
-    // if (activeCategory !== "recommended") {
-    //   result = result.filter((mentor) => mentor.spe === activeCategory);
-    // }
+    if (activeCategory !== "recommended") {
+      result = result.filter(
+        (mentor) => mentor.category?.toLowerCase() === activeCategory
+      );
+    }
 
     // Filter by search query
     if (searchQuery) {
@@ -101,8 +107,9 @@ export default function MentorBrowser() {
     if (sortOption === "rating") {
       result = [...result].sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0));
     }
-    // For 'recommended', we use the default order
-  }, [activeCategory, searchQuery, sortOption, mentorData]);
+
+    setFilteredMentors(result);
+  }, [mentorData, activeCategory, searchQuery, sortOption]);
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -181,20 +188,11 @@ export default function MentorBrowser() {
         {categories.slice(1).map((category) => (
           <TabsContent key={category.id} value={category.id} className="mt-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {mentorData
+              {filteredMentors
                 .filter(
                   (mentor) =>
                     mentor.category?.toLowerCase() === category.id &&
-                    !!mentor.profilePicture &&
-                    (!searchQuery ||
-                      mentor.name
-                        ?.toLowerCase()
-                        .includes(searchQuery.toLowerCase()))
-                )
-                .sort((a, b) =>
-                  sortOption === "rating"
-                    ? (b.rating ?? 0) - (a.rating ?? 0)
-                    : 0
+                    !!mentor.profilePicture
                 )
                 .map((mentor) => (
                   <MentorCard key={mentor.id} mentor={mentor} />

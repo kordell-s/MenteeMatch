@@ -1,90 +1,55 @@
-
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma"; 
-import {
-  preprocess,
-  buildVocabulary,
-  vectorize,
-  cosineSimilarity,
-} from "@/lib/matching";
+import { matchBySkillsIoU } from "@/lib/iouMatching";
+import { prisma } from "@/lib/prisma";
 
-export async function POST(req: NextRequest) {
-  const { menteeId } = await req.json();
+export async function POST (req: NextRequest){
+  try{
+    const { menteeId } = await req.json();
+    if (!menteeId) {
+      console.warn("Mentee ID is required for matching");
+      return NextResponse.json([], { status: 200 });
+    }
 
-  if (!menteeId) {
-    return NextResponse.json({ error: "menteeId is required" }, { status: 400 });
-  }
-
-  // 1. Load mentee with user info
-  const mentee = await prisma.mentee.findUnique({
-    where: { userId: menteeId },
-    include: {
-      user: {
-        select: {
-          bio: true,
-          languages: true,
-          location: true,
-        },
-      },
+    //Fetch mentee skills
+    const mentee = await prisma.user.findUnique({
+      where: { 
+        id: menteeId,
+        role: "MENTEE",
     },
-  });
-
-  if (!mentee) {
-    return NextResponse.json({ error: "Mentee not found" }, { status: 404 });
-  }
-
-  // 2. Load mentors with user info
-  const mentors = await prisma.mentor.findMany({
-    include: {
-      user: {
-        select: {
-          id: true,
-          bio: true,
-          skills: true,
-          languages: true,
-          location: true,
-          company: true,
-        },
+      select: {
+        id: true,
+        skills: true,
       },
-    },
-  });
+    });
 
-  // 3. Combine mentee goals and bio into one string
-  const menteeText = [
-    ...mentee.goals,                    // enums
-    mentee.user.bio || "",
-    ...(mentee.user.languages || []),
-    mentee.user.location || ""
-  ].join(" ");
+    if (!mentee) {
+      return NextResponse.json({ error: "Mentee not found" }, { status: 404 });
+    }
 
-  const menteeTokens = preprocess(menteeText);
+    if (!mentee.skills || mentee.skills.length === 0) {
+      console.warn("Mentee has no skills, returning empty match list");
+      return NextResponse.json([], {status:200});
+    }
 
-  // 4. Build mentor documents
-  const mentorDocs = mentors.map((mentor) => {
-    return [
-      ...mentor.specialization,               
-      mentor.user.bio || "",
-      ...(mentor.user.skills || []),          
-      ...(mentor.user.languages || []),
-      mentor.user.company || "",
-      mentor.user.location || ""
-    ].join(" ");
-  });
+    //Fetch mentors and skills
+    const mentors = await prisma.user.findMany({
+      where: { role: "MENTOR" },
+      select: {
+        id: true,
+        skills: true,
+      },
+    });
+    if (!mentors || mentors.length === 0) {
+      console.warn("No mentors found for matching");
+      return NextResponse.json([], { status: 200 });
 
-  const mentorTokensList = mentorDocs.map(preprocess);
+    }
 
-  // 5. Vectorize using shared vocab
-  const vocab = buildVocabulary([menteeTokens, ...mentorTokensList]);
-  const menteeVector = vectorize(menteeTokens, vocab);
-  const mentorVectors = mentorTokensList.map((tokens) => vectorize(tokens, vocab));
-
-  // 6. Score and rank mentors
-  const rankedMatches = mentors
-    .map((mentor, index) => ({
-      mentorId: mentor.user.id,
-      similarityScore: cosineSimilarity(menteeVector, mentorVectors[index]),
-    }))
-    .sort((a, b) => b.similarityScore - a.similarityScore);
-
-  return NextResponse.json(rankedMatches);
+    //match mentee with mentors using IoU - call function
+    const rankedMatches = matchBySkillsIoU(mentee, mentors);
+    return NextResponse.json(rankedMatches, { status: 200 });
+  } catch (error) {
+    console.error("Error in matching API:", error);
+return NextResponse.json([], {status:200});
+  }
 }
