@@ -40,7 +40,7 @@ export default function MentorBrowser() {
   const [recommendedMentors, setRecommendedMentors] = useState<Mentor[]>([]);
   const [filteredMentors, setFilteredMentors] = useState<Mentor[]>([]);
   const [sortOption, setSortOption] = useState("recommended");
-  const userId = "345d90de-8bd8-4312-9b91-5cfe3b9e77cd"; // Alex James (mentee)
+  const userId = "3459d90e-8bd8-43f2-9b17-b40b16625668"; // Alex James (mentee)
 
   // Fetch mentor data from API
   useEffect(() => {

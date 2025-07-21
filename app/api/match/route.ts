@@ -14,15 +14,15 @@ export async function POST (req: NextRequest){
     const mentee = await prisma.user.findUnique({
       where: { 
         id: menteeId,
-        role: "MENTEE",
     },
       select: {
         id: true,
+        role: true,
         skills: true,
       },
     });
 
-    if (!mentee) {
+    if (!mentee || mentee.role !== "MENTEE") {
       return NextResponse.json({ error: "Mentee not found" }, { status: 404 });
     }
 
