@@ -1,9 +1,11 @@
+"use client";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Mentor } from "@/app/types/mentor";
 import { Star, Clock, MessageCircle, Bookmark, UserRound } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 interface MentorCardProps {
   mentor: Mentor;
@@ -14,6 +16,25 @@ export default function MentorCard({
   mentor,
   recommended = false,
 }: MentorCardProps) {
+  const router = useRouter();
+
+  const handleViewProfile = () => {
+    console.log("Storing mentor data:", mentor); // Debug log
+    // Store mentor data in sessionStorage for the profile page
+    sessionStorage.setItem("selectedMentor", JSON.stringify(mentor));
+    console.log("Stored data:", sessionStorage.getItem("selectedMentor")); // Debug log
+    // Navigate to profile page without ID in URL
+    router.push("/mentor-profile");
+  };
+
+  // Debug log to check mentor data structure
+  console.log("Mentor data in card:", {
+    name: mentor.name,
+    title: mentor.title,
+    company: mentor.company,
+    location: mentor.location,
+  });
+
   return (
     <div
       className={`bg-white rounded-xl shadow-md overflow-hidden transition-all hover:shadow-lg ${
@@ -42,11 +63,17 @@ export default function MentorCard({
 
       <div className="p-5">
         <div className="flex justify-between items-start mb-2">
-          <div>
+          <div className="flex-1">
             <h3 className="font-bold text-lg">{mentor.name}</h3>
-            <p className="text-gray-600">{mentor.location}</p>
-            <p className="text-gray-500 text-sm">{mentor.experience}</p>
-            <p className="text-sm font-bold">{mentor.company}</p>
+            {mentor.title && (
+              <p className="text-primary text-base font-semibold mb-1">
+                {mentor.title}
+              </p>
+            )}
+            <p className="text-gray-700 text-sm font-medium mb-1">
+              {mentor.company}
+            </p>
+            <p className="text-gray-600 text-sm">{mentor.location}</p>
           </div>
           <div className="flex items-center">
             <Star className="text-yellow-400 h-4 w-4 mr-1" />
@@ -73,12 +100,10 @@ export default function MentorCard({
         </div>
 
         <div className="flex gap-2">
-          <Link href={`/mentors/${mentor.id}`}>
-            <Button className="flex-1">
-              <UserRound className="h-4 w-4 mr-2" />
-              View Profile
-            </Button>
-          </Link>
+          <Button onClick={handleViewProfile} className="w-full">
+            <UserRound className="h-4 w-4 mr-2" />
+            View Profile
+          </Button>
           <Button variant="outline" className="flex-1">
             <MessageCircle className="h-4 w-4 mr-2" />
             Message

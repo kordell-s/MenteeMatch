@@ -35,6 +35,7 @@ const categories = [
 export default function MentorBrowser() {
   const [mentorData, setMentorData] = useState<Mentor[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [activeCategory, setActiveCategory] = useState("recommended");
   const [searchQuery, setSearchQuery] = useState("");
   const [recommendedMentors, setRecommendedMentors] = useState<Mentor[]>([]);
@@ -46,37 +47,59 @@ export default function MentorBrowser() {
   useEffect(() => {
     async function fetchMentors() {
       try {
+        setError(null);
         // 1. Get all mentors
         const res = await fetch("/api/mentors");
+        if (!res.ok) {
+          throw new Error(`Failed to fetch mentors: ${res.status}`);
+        }
         const data = await res.json();
-        setMentorData(Array.isArray(data) ? data : []);
+        const mentors = Array.isArray(data) ? data : [];
+
+        // Debug: Log the full structure of the first mentor
+        console.log("Raw API response:", data);
+        console.log("First mentor structure:", mentors[0]);
+        console.log(
+          "First mentor keys:",
+          mentors[0] ? Object.keys(mentors[0]) : "No mentors"
+        );
+
+        setMentorData(mentors);
 
         // 2. Get AI-matched mentors
-        const matchRes = await fetch("/api/match", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ menteeId: userId }),
-        });
+        try {
+          const matchRes = await fetch("/api/match", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ menteeId: userId }),
+          });
 
-        const matched = await matchRes.json();
-        if (!matchRes.ok || !Array.isArray(matched)) {
-          console.error("Matching API did not return an array", matched);
+          if (matchRes.ok) {
+            const matched = await matchRes.json();
+            if (Array.isArray(matched)) {
+              const recommended = matched
+                .map((match: { mentorId: string }) =>
+                  mentors.find((m: Mentor) => m.id === match.mentorId)
+                )
+                .filter(Boolean);
+              setRecommendedMentors(recommended);
+            } else {
+              console.warn("Match API returned non-array:", matched);
+              setRecommendedMentors([]);
+            }
+          } else {
+            console.warn("Match API failed:", matchRes.status);
+            setRecommendedMentors([]);
+          }
+        } catch (matchError) {
+          console.warn("Match API error:", matchError);
           setRecommendedMentors([]);
-          return;
         }
-
-        console.log("Raw Match Scores:");
-        matched.forEach((m) => console.log(m));
-
-        // Now match mentorData with matched IDs
-        const recommended = matched
-          .map((match: { mentorId: string }) =>
-            data.find((m: Mentor) => m.id === match.mentorId)
-          )
-          .filter(Boolean);
-        setRecommendedMentors(recommended);
       } catch (err) {
         console.error("Error fetching mentors:", err);
+        setError(err instanceof Error ? err.message : "Failed to load mentors");
+        setMentorData([]);
+        setRecommendedMentors([]);
       } finally {
         setLoading(false);
       }
@@ -88,10 +111,48 @@ export default function MentorBrowser() {
   // Filter mentors based on active category and search query
   useEffect(() => {
     let result = mentorData;
-    if (activeCategory !== "recommended") {
-      result = result.filter(
-        (mentor) => mentor.category?.toLowerCase() === activeCategory
-      );
+
+    console.log("Filtering - activeCategory:", activeCategory);
+    console.log("Total mentors:", mentorData.length);
+    console.log(
+      "Sample mentor categories:",
+      mentorData
+        .slice(0, 3)
+        .map((m) => ({ name: m.name, category: m.category }))
+    );
+
+    if (activeCategory === "recommended") {
+      // For recommended tab, use recommended mentors as base
+      result =
+        recommendedMentors.length > 0
+          ? recommendedMentors
+          : mentorData.slice(0, 6);
+    } else {
+      // Map frontend category IDs to database enum values
+      const categoryMapping: { [key: string]: string } = {
+        technology: "TECHNOLOGY",
+        business: "BUSINESS",
+        design: "DESIGN",
+        marketing: "MARKETING",
+        creative: "CREATIVE",
+        music: "MUSIC",
+        health: "HEALTH",
+      };
+
+      const dbCategory = categoryMapping[activeCategory];
+      console.log("Mapped category:", activeCategory, "->", dbCategory);
+
+      if (dbCategory) {
+        result = mentorData.filter((mentor) => mentor.category === dbCategory);
+        console.log("Filtered mentors for", dbCategory, ":", result.length);
+        console.log("Available categories in data:", [
+          ...new Set(mentorData.map((m) => m.category)),
+        ]);
+      } else {
+        // Fallback - if category not found, show all mentors
+        console.warn(`Unknown category: ${activeCategory}`);
+        result = mentorData;
+      }
     }
 
     // Filter by search query
@@ -99,9 +160,8 @@ export default function MentorBrowser() {
       const query = searchQuery.toLowerCase();
       result = result.filter(
         (mentor: Mentor) =>
-          (mentor.name && mentor.name.toLowerCase().includes(query)) ||
-          (mentor.name ?? "").toLowerCase().includes(query) ||
-          (mentor.company ?? "").toLowerCase().includes(query) ||
+          mentor.name?.toLowerCase().includes(query) ||
+          mentor.company?.toLowerCase().includes(query) ||
           mentor.skills?.some((skill) => skill.toLowerCase().includes(query))
       );
     }
@@ -111,8 +171,30 @@ export default function MentorBrowser() {
       result = [...result].sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0));
     }
 
+    console.log("Final filtered mentors:", result.length);
     setFilteredMentors(result);
-  }, [mentorData, activeCategory, searchQuery, sortOption]);
+  }, [mentorData, activeCategory, searchQuery, sortOption, recommendedMentors]);
+
+  if (loading) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="text-center">
+          <p>Loading mentors...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="text-center">
+          <p className="text-red-500">Error: {error}</p>
+          <Button onClick={() => window.location.reload()}>Retry</Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -184,32 +266,38 @@ export default function MentorBrowser() {
 
         {/* Recommended tab content */}
         <TabsContent value="recommended" className="mt-6">
-          <RecommendedMentors mentors={recommendedMentors} />
+          {searchQuery ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredMentors.map((mentor) => (
+                <MentorCard key={mentor.id} mentor={mentor} />
+              ))}
+            </div>
+          ) : (
+            <RecommendedMentors mentors={recommendedMentors} />
+          )}
+
+          {searchQuery && filteredMentors.length === 0 && (
+            <div className="text-center py-12">
+              <p className="text-gray-500">
+                No mentors found matching your search.
+              </p>
+              <Button variant="link" onClick={() => setSearchQuery("")}>
+                Clear search
+              </Button>
+            </div>
+          )}
         </TabsContent>
 
         {/* Other category tabs */}
         {categories.slice(1).map((category) => (
           <TabsContent key={category.id} value={category.id} className="mt-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredMentors
-                .filter(
-                  (mentor) =>
-                    mentor.category?.toLowerCase() === category.id &&
-                    !!mentor.profilePicture
-                )
-                .map((mentor) => (
-                  <MentorCard key={mentor.id} mentor={mentor} />
-                ))}
+              {filteredMentors.map((mentor) => (
+                <MentorCard key={mentor.id} mentor={mentor} />
+              ))}
             </div>
 
-            {mentorData.filter(
-              (mentor) =>
-                mentor.category?.toLowerCase() === category.id &&
-                (!searchQuery ||
-                  mentor.name
-                    ?.toLowerCase()
-                    .includes(searchQuery.toLowerCase()))
-            ).length === 0 && (
+            {filteredMentors.length === 0 && (
               <div className="text-center py-12">
                 <p className="text-gray-500">
                   No mentors found matching your criteria.
