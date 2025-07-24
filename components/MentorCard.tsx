@@ -21,11 +21,13 @@ export default function MentorCard({
       }`}
     >
       <div className="relative">
-        {recommended && (
+        {/* {recommended && (
           <div className="absolute top-3 right-3 z-10">
-            <Badge className="bg-primary text-white">Best Match</Badge>
+            {recommended && (
+              <Badge className="bg-primary text-white">Best Match</Badge>
+            )}
           </div>
-        )}
+        )} */}
         <Image
           src={mentor.profilePicture || "/placeholder.svg"}
           alt={mentor.name}

@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
+import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -17,168 +18,116 @@ import {
   MessageSquare,
 } from "lucide-react";
 
-// Mock data for conversations
-const conversations = [
-  {
-    id: 1,
-    person: {
-      id: 101,
-      name: "Emma Wilson",
-      avatar: "/placeholder.svg",
-      role: "mentee",
-      title: "Product Designer",
-    },
-    lastMessage: {
-      text: "Thanks for the feedback on my portfolio! I've made the changes you suggested.",
-      time: "10:32 AM",
-      isRead: true,
-      sender: "them",
-    },
-    unread: 0,
-    online: true,
-  },
-  {
-    id: 2,
-    person: {
-      id: 102,
-      name: "David Chen",
-      avatar: "/placeholder.svg",
-      role: "mentor",
-      title: "Senior Product Manager",
-    },
-    lastMessage: {
-      text: "Let's schedule our next session to discuss your career transition plan.",
-      time: "Yesterday",
-      isRead: false,
-      sender: "them",
-    },
-    unread: 2,
-    online: false,
-  },
-  {
-    id: 3,
-    person: {
-      id: 103,
-      name: "Sophia Lee",
-      avatar: "/placeholder.svg",
-      role: "mentee",
-      title: "Marketing Specialist",
-    },
-    lastMessage: {
-      text: "I've attached my resume for your review. Looking forward to your feedback!",
-      time: "Yesterday",
-      isRead: true,
-      sender: "them",
-    },
-    unread: 0,
-    online: true,
-  },
-  {
-    id: 4,
-    person: {
-      id: 104,
-      name: "Michael Brown",
-      avatar: "/placeholder.svg",
-      role: "mentor",
-      title: "Engineering Manager",
-    },
-    lastMessage: {
-      text: "Great job on the mock interview! Here are some areas to focus on for next time.",
-      time: "Monday",
-      isRead: true,
-      sender: "them",
-    },
-    unread: 0,
-    online: false,
-  },
-  {
-    id: 5,
-    person: {
-      id: 105,
-      name: "Olivia Martinez",
-      avatar: "/placeholder.svg",
-      role: "mentee",
-      title: "Frontend Developer",
-    },
-    lastMessage: {
-      text: "I implemented your suggestions and my code is much cleaner now. Thank you!",
-      time: "Last week",
-      isRead: true,
-      sender: "them",
-    },
-    unread: 0,
-    online: false,
-  },
-];
+interface Message {
+  id: string;
+  sender: "me" | "them";
+  text: string;
+  time: string;
+  isRead: boolean;
+}
 
-// Mock messages for a conversation
-const mockMessages = [
-  {
-    id: 1,
-    sender: "them",
-    text: "Hi there! I'm looking forward to our mentoring session.",
-    time: "Monday, 10:30 AM",
-    isRead: true,
-  },
-  {
-    id: 2,
-    sender: "me",
-    text: "Hello! Yes, I'm excited to help you with your career transition questions.",
-    time: "Monday, 10:35 AM",
-    isRead: true,
-  },
-  {
-    id: 3,
-    sender: "them",
-    text: "Great! I've been working in marketing for 5 years and I'm interested in moving into product management. Do you have any advice on how to make this transition?",
-    time: "Monday, 10:40 AM",
-    isRead: true,
-  },
-  {
-    id: 4,
-    sender: "me",
-    text: "That's a common transition path! First, I'd recommend learning about product management fundamentals through courses on Coursera or Product School. Also, try to get involved in product-related projects in your current role to build relevant experience.",
-    time: "Monday, 10:45 AM",
-    isRead: true,
-  },
-  {
-    id: 5,
-    sender: "me",
-    text: "Would you like me to recommend some specific resources to help you get started?",
-    time: "Monday, 10:46 AM",
-    isRead: true,
-  },
-  {
-    id: 6,
-    sender: "them",
-    text: "Yes, that would be very helpful! I've already started taking a few online courses, but I'm not sure which skills I should focus on developing first.",
-    time: "Monday, 11:00 AM",
-    isRead: true,
-  },
-  {
-    id: 7,
-    sender: "me",
-    text: "I think these would be most valuable for you:\n\n1. User research and customer interviews\n2. Data analysis and metrics\n3. Prioritization frameworks\n4. Agile methodologies\n5. Stakeholder management\n\nFocusing on these areas will help you build a strong foundation.",
-    time: "Monday, 11:15 AM",
-    isRead: true,
-  },
-  {
-    id: 8,
-    sender: "them",
-    text: "Thanks for the feedback on my portfolio! I've made the changes you suggested.",
-    time: "Today, 10:32 AM",
-    isRead: true,
-  },
-];
+interface Conversation {
+  id: string;
+  person: {
+    id: string;
+    name: string;
+    avatar: string;
+    role: string;
+    title: string;
+  };
+  lastMessage: {
+    text: string;
+    time: string;
+    isRead: boolean;
+  };
+  unread: number;
+  online: boolean;
+}
 
 export default function MessagesPage() {
-  const [activeConversation, setActiveConversation] = useState(
-    conversations[0]
-  );
-  const [messages, setMessages] = useState(mockMessages);
+  const { data: session, status } = useSession();
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [activeConversation, setActiveConversation] =
+    useState<Conversation | null>(null);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
+  const [loading, setLoading] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
+
+  // Load conversations on component mount
+  useEffect(() => {
+    if (status === "authenticated") {
+      loadConversations();
+    }
+  }, [status]);
+
+  // Load messages when active conversation changes
+  useEffect(() => {
+    if (activeConversation) {
+      loadMessages(activeConversation.id);
+    }
+  }, [activeConversation]);
+
+  // Scroll to bottom of messages
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  const loadConversations = async () => {
+    try {
+      const response = await fetch("/api/messages/conversations");
+      if (response.ok) {
+        const data = await response.json();
+        setConversations(data);
+        if (data.length > 0 && !activeConversation) {
+          setActiveConversation(data[0]);
+        }
+      }
+    } catch (error) {
+      console.error("Error loading conversations:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadMessages = async (conversationId: string) => {
+    try {
+      const response = await fetch(`/api/messages/${conversationId}`);
+      if (response.ok) {
+        const data = await response.json();
+        setMessages(data);
+        // Refresh conversations to update unread counts
+        loadConversations();
+      }
+    } catch (error) {
+      console.error("Error loading messages:", error);
+    }
+  };
+
+  const handleSendMessage = async () => {
+    if (!newMessage.trim() || !activeConversation) return;
+
+    try {
+      const response = await fetch(`/api/messages/${activeConversation.id}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ content: newMessage.trim() }),
+      });
+
+      if (response.ok) {
+        const newMsg = await response.json();
+        setMessages((prev) => [...prev, newMsg]);
+        setNewMessage("");
+        // Refresh conversations to update last message
+        loadConversations();
+      }
+    } catch (error) {
+      console.error("Error sending message:", error);
+    }
+  };
 
   // Filter conversations based on search query
   const filteredConversations = conversations.filter((conversation) => {
@@ -188,32 +137,31 @@ export default function MessagesPage() {
       .includes(searchQuery.toLowerCase());
   });
 
-  // Scroll to bottom of messages
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  if (status === "loading" || loading) {
+    return (
+      <div className="bg-white rounded-lg shadow overflow-hidden h-[calc(100vh-12rem)] flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
+          <p className="text-gray-500">Loading messages...</p>
+        </div>
+      </div>
+    );
+  }
 
-  // Send a new message
-  const handleSendMessage = () => {
-    if (!newMessage.trim()) return;
-
-    const newMsg = {
-      id: messages.length + 1,
-      sender: "me",
-      text: newMessage,
-      time: "Just now",
-      isRead: false,
-    };
-
-    setMessages([...messages, newMsg]);
-    setNewMessage("");
-  };
+  if (status === "unauthenticated") {
+    return (
+      <div className="bg-white rounded-lg shadow overflow-hidden h-[calc(100vh-12rem)] flex items-center justify-center">
+        <p className="text-gray-500">Please log in to access messages</p>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white rounded-lg shadow overflow-hidden h-[calc(100vh-12rem)]">
       <div className="flex h-full">
         {/* Conversations sidebar */}
         <div className="w-full sm:w-80 md:w-96 border-r border-gray-200 flex flex-col">
+          {/* ...existing search header code... */}
           <div className="p-4 border-b border-gray-200">
             <div className="relative">
               <Search
@@ -254,12 +202,13 @@ export default function MessagesPage() {
                     <div
                       key={conversation.id}
                       className={`p-4 hover:bg-gray-50 cursor-pointer ${
-                        activeConversation.id === conversation.id
+                        activeConversation?.id === conversation.id
                           ? "bg-gray-50"
                           : ""
                       }`}
                       onClick={() => setActiveConversation(conversation)}
                     >
+                      {/* ...existing conversation item code... */}
                       <div className="flex items-center">
                         <div className="relative">
                           <Image
@@ -298,8 +247,6 @@ export default function MessagesPage() {
                                   : "text-gray-500"
                               }`}
                             >
-                              {conversation.lastMessage.sender === "me" &&
-                                "You: "}
                               {conversation.lastMessage.text}
                             </p>
                             {conversation.unread > 0 && (
@@ -315,13 +262,18 @@ export default function MessagesPage() {
 
                   {filteredConversations.length === 0 && (
                     <div className="p-6 text-center">
-                      <p className="text-gray-500">No conversations found</p>
+                      <p className="text-gray-500">
+                        {conversations.length === 0
+                          ? "No conversations yet. Start messaging mentors or mentees!"
+                          : "No conversations found"}
+                      </p>
                     </div>
                   )}
                 </div>
               </TabsContent>
 
               <TabsContent value="unread" className="p-0 mt-0">
+                {/* ...existing unread tab code... */}
                 <div className="divide-y">
                   {filteredConversations
                     .filter((conversation) => conversation.unread > 0)
@@ -329,7 +281,7 @@ export default function MessagesPage() {
                       <div
                         key={conversation.id}
                         className={`p-4 hover:bg-gray-50 cursor-pointer ${
-                          activeConversation.id === conversation.id
+                          activeConversation?.id === conversation.id
                             ? "bg-gray-50"
                             : ""
                         }`}
@@ -361,8 +313,6 @@ export default function MessagesPage() {
                             </div>
                             <div className="flex items-center justify-between">
                               <p className="text-sm font-medium truncate">
-                                {conversation.lastMessage.sender === "me" &&
-                                  "You: "}
                                 {conversation.lastMessage.text}
                               </p>
                               <Badge className="bg-primary text-white">
@@ -390,7 +340,7 @@ export default function MessagesPage() {
         {/* Chat area */}
         {activeConversation ? (
           <div className="hidden sm:flex flex-col flex-1">
-            {/* Chat header */}
+            {/* ...existing chat header code... */}
             <div className="p-4 border-b border-gray-200 flex items-center justify-between">
               <div className="flex items-center">
                 <div className="relative">

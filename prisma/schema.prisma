@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -14,71 +8,54 @@ datasource db {
 }
 
 model User {
-  id              String          @id @default(uuid())
-  name            String
-  title           String?
-  email           String          @unique
-  password        String
-  role            Role // Either "MENTOR" or "MENTEE"
-  profilePicture  String?
-  skills          Skill[] // Can hold multiple values
-  experienceLevel ExperienceLevel @default(ENTRY)
-  languages       String[] // Can hold multiple values
-  location        String?
-  company         String?
-  school          String?
-  booking         String?
-  bio             String
-  availability    String?
-  rating          Float?
-  verified        Boolean         @default(false)
-
-  // One-to-one: A user can be a mentor or mentee
-  mentor Mentor?
-  mentee Mentee?
-
-  // One-to-many: A user can send and receive many messages
-  sentMessages     Message[] @relation("SentMessages")
-  receivedMessages Message[] @relation("ReceivedMessages")
-
-  // Ratings the user has given and received
-  ratingsGiven    Rating[] @relation("RatingsGiven")
-  ratingsReceived Rating[] @relation("RatingsReceived")
-
-  // Sessions the user has participated in (either role)
-  sessionsAsMentor Session[] @relation("SessionsAsMentor")
-  sessionsAsMentee Session[] @relation("SessionsAsMentee")
-
-  // Bookings the user has created/received
-  bookingsAsMentor Booking[] @relation("BookingsAsMentor")
-  bookingsAsMentee Booking[] @relation("BookingsAsMentee")
-
-  mentorshipsAsMentor Mentorship[] @relation("MentorshipMentor")
-  mentorshipsAsMentee Mentorship[] @relation("MentorshipMentee")
-
-  tasksAsMentor Task[] @relation("TasksAsMentor")
-  tasksAsMentee Task[] @relation("TasksAsMentee")
-
-  createdAt DateTime @default(now())
+  id                  String          @id @default(uuid())
+  name                String
+  email               String          @unique
+  password            String
+  role                Role
+  profilePicture      String?
+  languages           String[]
+  location            String?
+  availability        String?
+  rating              Float?
+  verified            Boolean         @default(false)
+  createdAt           DateTime        @default(now())
+  skills              Skill[]
+  bio                 String
+  booking             String?
+  company             String?
+  experienceLevel     ExperienceLevel @default(ENTRY)
+  school              String?
+  title               String?
+  bookingsAsMentee    Booking[]       @relation("BookingsAsMentee")
+  bookingsAsMentor    Booking[]       @relation("BookingsAsMentor")
+  mentee              Mentee?
+  mentor              Mentor?
+  mentorshipsAsMentee Mentorship[]    @relation("MentorshipMentee")
+  mentorshipsAsMentor Mentorship[]    @relation("MentorshipMentor")
+  receivedMessages    Message[]       @relation("ReceivedMessages")
+  sentMessages        Message[]       @relation("SentMessages")
+  ratingsGiven        Rating[]        @relation("RatingsGiven")
+  ratingsReceived     Rating[]        @relation("RatingsReceived")
+  sessionsAsMentee    Session[]       @relation("SessionsAsMentee")
+  sessionsAsMentor    Session[]       @relation("SessionsAsMentor")
+  tasksAsMentee       Task[]          @relation("TasksAsMentee")
+  tasksAsMentor       Task[]          @relation("TasksAsMentor")
 }
 
 model Mentor {
-  userId         String   @id
-  specialization String[] // Multi-value field
+  userId         String         @id
+  specialization String[]
   pricing        Float?
   category       MentorCategory @default(OTHER)
-
-  // One-to-one relation back to User
-  user User @relation(fields: [userId], references: [id])
+  user           User           @relation(fields: [userId], references: [id])
 }
 
 model Mentee {
   userId String @id
-  goals  Goal[]
   rating Float?
-
-  // One-to-one relation back to User
-  user User @relation(fields: [userId], references: [id])
+  goals  Goal[]
+  user   User   @relation(fields: [userId], references: [id])
 }
 
 model Message {
@@ -89,26 +66,21 @@ model Message {
   timestamp  DateTime @default(now())
   attachment String?
   status     String?
-
-  // Many-to-one: messages are linked to one sender and one receiver
-  sender   User @relation("SentMessages", fields: [senderId], references: [id])
-  receiver User @relation("ReceivedMessages", fields: [receiverId], references: [id])
+  receiver   User     @relation("ReceivedMessages", fields: [receiverId], references: [id])
+  sender     User     @relation("SentMessages", fields: [senderId], references: [id])
 }
 
 model Booking {
   id        String   @id @default(uuid())
   mentorId  String
   menteeId  String
-  sessionId String?  @unique //to link session to booking
+  sessionId String?  @unique
   status    String
   date      DateTime
   time      String
-
-  // Booking belongs to a mentor, a mentee, and optionally a session
-  mentor User @relation("BookingsAsMentor", fields: [mentorId], references: [id])
-  mentee User @relation("BookingsAsMentee", fields: [menteeId], references: [id])
-
-  session Session? @relation("SessionBooking", fields: [sessionId], references: [id])
+  mentee    User     @relation("BookingsAsMentee", fields: [menteeId], references: [id])
+  mentor    User     @relation("BookingsAsMentor", fields: [mentorId], references: [id])
+  session   Session? @relation("SessionBooking", fields: [sessionId], references: [id])
 }
 
 model Session {
@@ -121,12 +93,9 @@ model Session {
   status   String
   feedback String?
   rating   Float?
-
-  // Many-to-one: each session has one mentor and one mentee
-  mentor User @relation("SessionsAsMentor", fields: [mentorId], references: [id])
-  mentee User @relation("SessionsAsMentee", fields: [menteeId], references: [id])
-
-  booking Booking? @relation("SessionBooking")
+  booking  Booking? @relation("SessionBooking")
+  mentee   User     @relation("SessionsAsMentee", fields: [menteeId], references: [id])
+  mentor   User     @relation("SessionsAsMentor", fields: [mentorId], references: [id])
 }
 
 model Mentorship {
@@ -134,41 +103,45 @@ model Mentorship {
   mentorId  String
   menteeId  String
   createdAt DateTime @default(now())
-
-  mentor User @relation("MentorshipMentor", fields: [mentorId], references: [id])
-  mentee User @relation("MentorshipMentee", fields: [menteeId], references: [id])
+  mentee    User     @relation("MentorshipMentee", fields: [menteeId], references: [id])
+  mentor    User     @relation("MentorshipMentor", fields: [mentorId], references: [id])
 }
 
 model Rating {
   id          String   @id @default(uuid())
-  userId      String // Who is being rated
-  ratedById   String // Who gave the rating
+  userId      String
+  ratedById   String
   ratingValue Float
   date        DateTime @default(now())
-
-  // Many-to-one: a user can receive many ratings
-  user    User @relation("RatingsReceived", fields: [userId], references: [id])
-  ratedBy User @relation("RatingsGiven", fields: [ratedById], references: [id])
+  ratedBy     User     @relation("RatingsGiven", fields: [ratedById], references: [id])
+  user        User     @relation("RatingsReceived", fields: [userId], references: [id])
 }
 
 model Task {
-  id          String   @id @default(uuid())
+  id          String     @id @default(uuid())
   title       String
   description String?
   dueDate     DateTime?
-  completed   Boolean  @default(false)
-  status      TaskStatus
-
+  completed   Boolean    @default(false)
   goalTag     String?
   menteeId    String
   mentorId    String
-
-  mentee      User     @relation("TasksAsMentee", fields: [menteeId], references: [id])
-  mentor      User     @relation("TasksAsMentor", fields: [mentorId], references: [id])
-
-  createdAt   DateTime @default(now())
+  createdAt   DateTime   @default(now())
+  status      TaskStatus
+  mentee      User       @relation("TasksAsMentee", fields: [menteeId], references: [id])
+  mentor      User       @relation("TasksAsMentor", fields: [mentorId], references: [id])
 }
 
+model Conversation {
+  id              String    @id @default(uuid())
+  participantIds  String[]
+  lastMessage     String?
+  lastMessageTime DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@map("conversations")
+}
 
 enum MentorCategory {
   TECHNOLOGY
@@ -181,12 +154,11 @@ enum MentorCategory {
   OTHER
 }
 
-enum TaskStatus{
+enum TaskStatus {
   PENDING
   IN_PROGRESS
   COMPLETED
 }
-
 
 enum Role {
   MENTOR

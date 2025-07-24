@@ -65,6 +65,9 @@ export default function MentorBrowser() {
           return;
         }
 
+        console.log("Raw Match Scores:");
+        matched.forEach((m) => console.log(m));
+
         // Now match mentorData with matched IDs
         const recommended = matched
           .map((match: { mentorId: string }) =>
