@@ -19,11 +19,16 @@ import {
   CheckCircle,
   Mail,
 } from "lucide-react";
+import MentorshipRequestForm from "@/components/MentorshipRequestForm";
+import SessionSchedulingModal from "@/components/SessionSchedulingModal";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 
 function MentorProfilePage() {
   const router = useRouter();
   const [mentor, setMentor] = useState<Mentor | null>(null);
   const [loading, setLoading] = useState(true);
+  const [hasMentorship, setHasMentorship] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   useEffect(() => {
     // Get mentor data from sessionStorage (set during navigation)
@@ -33,7 +38,8 @@ function MentorProfilePage() {
         const parsedMentor = JSON.parse(mentorData);
         console.log("Parsed mentor data:", parsedMentor); // Debug log
         setMentor(parsedMentor);
-        // Don't clear immediately - wait for component to mount
+        // Check if mentorship exists
+        checkMentorshipStatus(parsedMentor.id);
       } catch (error) {
         console.error("Error parsing mentor data:", error);
         router.push("/");
@@ -41,12 +47,29 @@ function MentorProfilePage() {
       }
     } else {
       console.log("No mentor data found in sessionStorage"); // Debug log
-      // If no data found, redirect back to mentor browser instead of home
       router.push("/");
       return;
     }
     setLoading(false);
   }, [router]);
+
+  const checkMentorshipStatus = async (mentorId: string) => {
+    try {
+      const userId =
+        localStorage.getItem("userId") ||
+        "3459d90e-8bd8-43f2-9b17-b40b16625668";
+      const response = await fetch(
+        `/api/mentorships?userId=${userId}&role=MENTEE`
+      );
+      if (response.ok) {
+        const mentorships = await response.json();
+        const exists = mentorships.some((m: any) => m.mentorId === mentorId);
+        setHasMentorship(exists);
+      }
+    } catch (error) {
+      console.error("Error checking mentorship status:", error);
+    }
+  };
 
   // Clear sessionStorage after component has mounted and data is loaded
   useEffect(() => {
@@ -109,9 +132,8 @@ function MentorProfilePage() {
                     <CheckCircle className="text-green-400" size={24} />
                   )}
                 </h1>
-                <p className="text-xl mb-2">
-                  {mentor.title || "Professional Mentor"}
-                </p>
+
+                <p className="text-xl mb-2">{mentor.title}</p>
 
                 <div className="flex flex-wrap items-center gap-4 mb-4">
                   {mentor.company && (
@@ -140,13 +162,47 @@ function MentorProfilePage() {
                 </div>
 
                 <div className="flex gap-4">
-                  <Button
-                    variant="secondary"
-                    className="flex items-center gap-2 text-black"
-                  >
-                    <Calendar size={16} />
-                    Request Mentorship
-                  </Button>
+                  {hasMentorship ? (
+                    <SessionSchedulingModal
+                      mentorId={mentor.id}
+                      mentorName={mentor.name}
+                      onSuccess={() => {
+                        alert("Session scheduled successfully!");
+                      }}
+                    >
+                      <Button
+                        variant="secondary"
+                        className="flex items-center gap-2 text-black"
+                      >
+                        <Calendar size={16} />
+                        Schedule Session
+                      </Button>
+                    </SessionSchedulingModal>
+                  ) : (
+                    <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                      <DialogTrigger asChild>
+                        <Button
+                          variant="secondary"
+                          className="flex items-center gap-2 text-black"
+                        >
+                          <Calendar size={16} />
+                          Request Mentorship
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                        <div className="p-2">
+                          <MentorshipRequestForm
+                            mentorId={mentor.id}
+                            mentorName={mentor.name}
+                            onSuccess={() => {
+                              checkMentorshipStatus(mentor.id);
+                              setIsDialogOpen(false);
+                            }}
+                          />
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                  )}
                   <Button
                     variant="outline"
                     className="flex items-center gap-2 text-black border-white hover:bg-white hover:text-gray-800"
@@ -410,14 +466,50 @@ function MentorProfilePage() {
                     Start your mentorship journey with {mentor.name}
                   </p>
                   <div className="space-y-2">
-                    <Button className="w-full">
-                      <Calendar className="mr-2" size={16} />
-                      Request Mentorship
-                    </Button>
-                    <Button variant="outline" className="w-full">
-                      <MessageCircle className="mr-2" size={16} />
-                      Send Message
-                    </Button>
+                    {hasMentorship ? (
+                      <>
+                        <SessionSchedulingModal
+                          mentorId={mentor.id}
+                          mentorName={mentor.name}
+                          onSuccess={() => {
+                            alert("Session scheduled successfully!");
+                          }}
+                        >
+                          <Button className="w-full">
+                            <Calendar className="mr-2" size={16} />
+                            Schedule Session
+                          </Button>
+                        </SessionSchedulingModal>
+                        <Button variant="outline" className="w-full">
+                          <MessageCircle className="mr-2" size={16} />
+                          Send Message
+                        </Button>
+                      </>
+                    ) : (
+                      <Dialog
+                        open={isDialogOpen}
+                        onOpenChange={setIsDialogOpen}
+                      >
+                        <DialogTrigger asChild>
+                          <Button className="w-full">
+                            <Calendar className="mr-2" size={16} />
+                            Request Mentorship
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                          <div className="p-2">
+                            <MentorshipRequestForm
+                              mentorId={mentor.id}
+                              mentorName={mentor.name}
+                              onSuccess={() => {
+                                checkMentorshipStatus(mentor.id);
+                                setIsDialogOpen(false);
+                              }}
+                            />
+                          </div>
+                        </DialogContent>
+                      </Dialog>
+                    )}
                   </div>
                 </div>
               </div>

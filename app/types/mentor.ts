@@ -14,7 +14,7 @@ export type MentorCategory =
 export type Mentor = {
   id: string;
   name: string;
-  title?: string;
+  title: string;
   email: string;
   profilePicture?: string;
   availability?: string;

@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma"; 
 import { NextResponse } from "next/server";
+import { title } from "process";
 
 export async function GET() {
   try {
@@ -9,6 +10,7 @@ export async function GET() {
           select: {
             id: true,
             name: true,
+            title: true, 
             email: true,
             profilePicture: true,
             availability: true,
@@ -20,7 +22,7 @@ export async function GET() {
             bio: true,
             role: true,
             experienceLevel: true, 
-            title: true, 
+           
           }
         },
         // Remove mentorships relation if not needed to simplify the query
@@ -31,6 +33,7 @@ export async function GET() {
     const transformedMentors = mentors.map(mentor => ({
       id: mentor.user.id,
       name: mentor.user.name,
+      title: mentor.user.title,
       email: mentor.user.email,
       profilePicture: mentor.user.profilePicture,
       availability: mentor.user.availability,

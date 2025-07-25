@@ -8,39 +8,41 @@ datasource db {
 }
 
 model User {
-  id                  String          @id @default(uuid())
-  name                String
-  email               String          @unique
-  password            String
-  role                Role
-  profilePicture      String?
-  languages           String[]
-  location            String?
-  availability        String?
-  rating              Float?
-  verified            Boolean         @default(false)
-  createdAt           DateTime        @default(now())
-  skills              Skill[]
-  bio                 String
-  booking             String?
-  company             String?
-  experienceLevel     ExperienceLevel @default(ENTRY)
-  school              String?
-  title               String?
-  bookingsAsMentee    Booking[]       @relation("BookingsAsMentee")
-  bookingsAsMentor    Booking[]       @relation("BookingsAsMentor")
-  mentee              Mentee?
-  mentor              Mentor?
-  mentorshipsAsMentee Mentorship[]    @relation("MentorshipMentee")
-  mentorshipsAsMentor Mentorship[]    @relation("MentorshipMentor")
-  receivedMessages    Message[]       @relation("ReceivedMessages")
-  sentMessages        Message[]       @relation("SentMessages")
-  ratingsGiven        Rating[]        @relation("RatingsGiven")
-  ratingsReceived     Rating[]        @relation("RatingsReceived")
-  sessionsAsMentee    Session[]       @relation("SessionsAsMentee")
-  sessionsAsMentor    Session[]       @relation("SessionsAsMentor")
-  tasksAsMentee       Task[]          @relation("TasksAsMentee")
-  tasksAsMentor       Task[]          @relation("TasksAsMentor")
+  id                        String               @id @default(uuid())
+  name                      String
+  email                     String               @unique
+  password                  String
+  role                      Role
+  profilePicture            String?
+  languages                 String[]
+  location                  String?
+  availability              String?
+  rating                    Float?
+  verified                  Boolean              @default(false)
+  createdAt                 DateTime             @default(now())
+  skills                    Skill[]
+  bio                       String
+  booking                   String?
+  company                   String?
+  experienceLevel           ExperienceLevel      @default(ENTRY)
+  school                    String?
+  title                     String?
+  bookingsAsMentee          Booking[]            @relation("BookingsAsMentee")
+  bookingsAsMentor          Booking[]            @relation("BookingsAsMentor")
+  mentee                    Mentee?
+  mentor                    Mentor?
+  mentorshipsAsMentee       Mentorship[]         @relation("MentorshipMentee")
+  mentorshipsAsMentor       Mentorship[]         @relation("MentorshipMentor")
+  receivedMessages          Message[]            @relation("ReceivedMessages")
+  sentMessages              Message[]            @relation("SentMessages")
+  ratingsGiven              Rating[]             @relation("RatingsGiven")
+  ratingsReceived           Rating[]             @relation("RatingsReceived")
+  sessionsAsMentee          Session[]            @relation("SessionsAsMentee")
+  sessionsAsMentor          Session[]            @relation("SessionsAsMentor")
+  tasksAsMentee             Task[]               @relation("TasksAsMentee")
+  tasksAsMentor             Task[]               @relation("TasksAsMentor")
+  mentorshipRequestsMentee  MentorshipRequest[]  @relation("MentorshipRequestsMentee")
+  mentorshipRequestsMentor  MentorshipRequest[]  @relation("MentorshipRequestsMentor")
 }
 
 model Mentor {
@@ -71,16 +73,20 @@ model Message {
 }
 
 model Booking {
-  id        String   @id @default(uuid())
-  mentorId  String
-  menteeId  String
-  sessionId String?  @unique
-  status    String
-  date      DateTime
-  time      String
-  mentee    User     @relation("BookingsAsMentee", fields: [menteeId], references: [id])
-  mentor    User     @relation("BookingsAsMentor", fields: [mentorId], references: [id])
-  session   Session? @relation("SessionBooking", fields: [sessionId], references: [id])
+  id          String   @id @default(uuid())
+  mentorId    String
+  menteeId    String
+  sessionId   String?  @unique
+  status      String
+  date        DateTime
+  time        String
+  duration    Int      
+  title       String   
+  description String?  
+  offeringType String? 
+  mentee      User     @relation("BookingsAsMentee", fields: [menteeId], references: [id])
+  mentor      User     @relation("BookingsAsMentor", fields: [mentorId], references: [id])
+  session     Session? @relation("SessionBooking", fields: [sessionId], references: [id])
 }
 
 model Session {
@@ -89,6 +95,7 @@ model Session {
   menteeId String
   date     DateTime
   time     String
+  title    String
   duration Int
   status   String
   feedback String?
@@ -132,6 +139,19 @@ model Task {
   mentor      User       @relation("TasksAsMentor", fields: [mentorId], references: [id])
 }
 
+model MentorshipRequest {
+  id           String                   @id @default(uuid())
+  menteeId     String
+  mentorId     String
+  offeringType String
+  message      String
+  status       MentorshipRequestStatus  @default(PENDING)
+  createdAt    DateTime                 @default(now())
+  updatedAt    DateTime                 @updatedAt
+  mentee       User                     @relation("MentorshipRequestsMentee", fields: [menteeId], references: [id])
+  mentor       User                     @relation("MentorshipRequestsMentor", fields: [mentorId], references: [id])
+}
+
 model Conversation {
   id              String    @id @default(uuid())
   participantIds  String[]
@@ -152,6 +172,12 @@ enum MentorCategory {
   HEALTH
   MUSIC
   OTHER
+}
+
+enum MentorshipRequestStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
 }
 
 enum TaskStatus {

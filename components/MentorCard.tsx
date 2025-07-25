@@ -104,10 +104,6 @@ export default function MentorCard({
             <UserRound className="h-4 w-4 mr-2" />
             View Profile
           </Button>
-          <Button variant="outline" className="flex-1">
-            <MessageCircle className="h-4 w-4 mr-2" />
-            Message
-          </Button>
         </div>
       </div>
     </div>
