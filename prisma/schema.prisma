@@ -8,41 +8,45 @@ datasource db {
 }
 
 model User {
-  id                        String               @id @default(uuid())
-  name                      String
-  email                     String               @unique
-  password                  String
-  role                      Role
-  profilePicture            String?
-  languages                 String[]
-  location                  String?
-  availability              String?
-  rating                    Float?
-  verified                  Boolean              @default(false)
-  createdAt                 DateTime             @default(now())
-  skills                    Skill[]
-  bio                       String
-  booking                   String?
-  company                   String?
-  experienceLevel           ExperienceLevel      @default(ENTRY)
-  school                    String?
-  title                     String?
-  bookingsAsMentee          Booking[]            @relation("BookingsAsMentee")
-  bookingsAsMentor          Booking[]            @relation("BookingsAsMentor")
-  mentee                    Mentee?
-  mentor                    Mentor?
-  mentorshipsAsMentee       Mentorship[]         @relation("MentorshipMentee")
-  mentorshipsAsMentor       Mentorship[]         @relation("MentorshipMentor")
-  receivedMessages          Message[]            @relation("ReceivedMessages")
-  sentMessages              Message[]            @relation("SentMessages")
-  ratingsGiven              Rating[]             @relation("RatingsGiven")
-  ratingsReceived           Rating[]             @relation("RatingsReceived")
-  sessionsAsMentee          Session[]            @relation("SessionsAsMentee")
-  sessionsAsMentor          Session[]            @relation("SessionsAsMentor")
-  tasksAsMentee             Task[]               @relation("TasksAsMentee")
-  tasksAsMentor             Task[]               @relation("TasksAsMentor")
-  mentorshipRequestsMentee  MentorshipRequest[]  @relation("MentorshipRequestsMentee")
-  mentorshipRequestsMentor  MentorshipRequest[]  @relation("MentorshipRequestsMentor")
+  id                       String              @id @default(uuid())
+  name                     String
+  email                    String              @unique
+  password                 String
+  role                     Role
+  profilePicture           String?
+  languages                String[]
+  location                 String?
+  availability             DayOfWeek[]
+  timeAvailability         TimeSlot[]
+  rating                   Float?
+  verified                 Boolean             @default(false)
+  createdAt                DateTime            @default(now())
+  skills                   Skill[]
+  bio                      String
+  booking                  String?
+  company                  String?
+  experienceLevel          ExperienceLevel     @default(ENTRY)
+  school                   String?
+  title                    String?
+  bookingsAsMentee         Booking[]           @relation("BookingsAsMentee")
+  bookingsAsMentor         Booking[]           @relation("BookingsAsMentor")
+  mentee                   Mentee?
+  mentor                   Mentor?
+  mentorshipsAsMentee      Mentorship[]        @relation("MentorshipMentee")
+  mentorshipsAsMentor      Mentorship[]        @relation("MentorshipMentor")
+  mentorshipRequestsMentee MentorshipRequest[] @relation("MentorshipRequestsMentee")
+  mentorshipRequestsMentor MentorshipRequest[] @relation("MentorshipRequestsMentor")
+  receivedMessages         Message[]           @relation("ReceivedMessages")
+  sentMessages             Message[]           @relation("SentMessages")
+  ratingsGiven             Rating[]            @relation("RatingsGiven")
+  ratingsReceived          Rating[]            @relation("RatingsReceived")
+  sessionsAsMentee         Session[]           @relation("SessionsAsMentee")
+  sessionsAsMentor         Session[]           @relation("SessionsAsMentor")
+  tasksAsMentee            Task[]              @relation("TasksAsMentee")
+  tasksAsMentor            Task[]              @relation("TasksAsMentor")
+  profileComplete          Boolean             @default(false)
+  conversationsAsMentee    Conversation[]      @relation("ConversationsAsMentee")
+  conversationsAsMentor    Conversation[]      @relation("ConversationsAsMentor")
 }
 
 model Mentor {
@@ -61,32 +65,34 @@ model Mentee {
 }
 
 model Message {
-  id         String   @id @default(uuid())
-  senderId   String
-  receiverId String
-  content    String
-  timestamp  DateTime @default(now())
-  attachment String?
-  status     String?
-  receiver   User     @relation("ReceivedMessages", fields: [receiverId], references: [id])
-  sender     User     @relation("SentMessages", fields: [senderId], references: [id])
+  id             String       @id @default(uuid())
+  conversationId String
+  senderId       String
+  receiverId     String
+  content        String
+  timestamp      DateTime     @default(now())
+  attachment     String?
+  status         String?
+  conversation   Conversation @relation(fields: [conversationId], references: [id])
+  receiver       User         @relation("ReceivedMessages", fields: [receiverId], references: [id])
+  sender         User         @relation("SentMessages", fields: [senderId], references: [id])
 }
 
 model Booking {
-  id          String   @id @default(uuid())
-  mentorId    String
-  menteeId    String
-  sessionId   String?  @unique
-  status      String
-  date        DateTime
-  time        String
-  duration    Int      
-  title       String   
-  description String?  
-  offeringType String? 
-  mentee      User     @relation("BookingsAsMentee", fields: [menteeId], references: [id])
-  mentor      User     @relation("BookingsAsMentor", fields: [mentorId], references: [id])
-  session     Session? @relation("SessionBooking", fields: [sessionId], references: [id])
+  id           String   @id @default(uuid())
+  mentorId     String
+  menteeId     String
+  sessionId    String?  @unique
+  status       String
+  date         DateTime
+  time         String
+  description  String?
+  offeringType String?
+  title        String
+  duration     Int
+  mentee       User     @relation("BookingsAsMentee", fields: [menteeId], references: [id])
+  mentor       User     @relation("BookingsAsMentor", fields: [mentorId], references: [id])
+  session      Session? @relation("SessionBooking", fields: [sessionId], references: [id])
 }
 
 model Session {
@@ -95,11 +101,11 @@ model Session {
   menteeId String
   date     DateTime
   time     String
-  title    String
   duration Int
   status   String
   feedback String?
   rating   Float?
+  title    String
   booking  Booking? @relation("SessionBooking")
   mentee   User     @relation("SessionsAsMentee", fields: [menteeId], references: [id])
   mentor   User     @relation("SessionsAsMentor", fields: [mentorId], references: [id])
@@ -140,27 +146,30 @@ model Task {
 }
 
 model MentorshipRequest {
-  id           String                   @id @default(uuid())
+  id           String                  @id @default(uuid())
   menteeId     String
   mentorId     String
   offeringType String
   message      String
-  status       MentorshipRequestStatus  @default(PENDING)
-  createdAt    DateTime                 @default(now())
-  updatedAt    DateTime                 @updatedAt
-  mentee       User                     @relation("MentorshipRequestsMentee", fields: [menteeId], references: [id])
-  mentor       User                     @relation("MentorshipRequestsMentor", fields: [mentorId], references: [id])
+  status       MentorshipRequestStatus @default(PENDING)
+  createdAt    DateTime                @default(now())
+  updatedAt    DateTime                @updatedAt
+  mentee       User                    @relation("MentorshipRequestsMentee", fields: [menteeId], references: [id])
+  mentor       User                    @relation("MentorshipRequestsMentor", fields: [mentorId], references: [id])
 }
 
 model Conversation {
-  id              String    @id @default(uuid())
-  participantIds  String[]
-  lastMessage     String?
-  lastMessageTime DateTime?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  id            String       @id @default(uuid())
+  mentorId      String
+  menteeId      String
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  lastMessageAt DateTime?
+  mentor        User         @relation("ConversationsAsMentor", fields: [mentorId], references: [id])
+  mentee        User         @relation("ConversationsAsMentee", fields: [menteeId], references: [id])
+  messages      Message[]
 
-  @@map("conversations")
+  @@unique([mentorId, menteeId])
 }
 
 enum MentorCategory {
@@ -174,16 +183,16 @@ enum MentorCategory {
   OTHER
 }
 
-enum MentorshipRequestStatus {
-  PENDING
-  ACCEPTED
-  REJECTED
-}
-
 enum TaskStatus {
   PENDING
   IN_PROGRESS
   COMPLETED
+}
+
+enum MentorshipRequestStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
 }
 
 enum Role {
@@ -270,4 +279,22 @@ enum ExperienceLevel {
   MID
   SENIOR
   LEAD
+}
+
+enum DayOfWeek {
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+  SUNDAY
+}
+
+enum TimeSlot {
+  EARLY_MORNING   // 6-9 AM
+  MORNING         // 9-12 PM
+  AFTERNOON       // 12-5 PM
+  EVENING         // 5-8 PM
+  LATE_EVENING    // 8-11 PM
 }

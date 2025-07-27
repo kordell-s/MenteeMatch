@@ -1,91 +1,117 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import Image from "next/image";
-import { useSession } from "next-auth/react";
+import { useState, useEffect, useRef } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  Search,
+  MessageSquare,
   Send,
-  Paperclip,
-  MoreVertical,
+  User,
+  Clock,
+  Search,
   Phone,
   Video,
   Calendar,
-  MessageSquare,
+  MoreVertical,
+  Paperclip,
 } from "lucide-react";
+import Image from "next/image";
 
 interface Message {
   id: string;
-  sender: "me" | "them";
-  text: string;
-  time: string;
-  isRead: boolean;
+  content: string;
+  createdAt: string;
+  senderId: string;
+  sender: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    profilePicture?: string;
+  };
 }
 
 interface Conversation {
   id: string;
-  person: {
-    id: string;
-    name: string;
-    avatar: string;
-    role: string;
-    title: string;
+  messages: Message[];
+  mentorship: {
+    mentee: {
+      id: string;
+      firstName: string;
+      lastName: string;
+      profilePicture?: string;
+    };
+    mentor: {
+      id: string;
+      firstName: string;
+      lastName: string;
+      profilePicture?: string;
+    };
   };
-  lastMessage: {
-    text: string;
-    time: string;
-    isRead: boolean;
-  };
-  unread: number;
-  online: boolean;
+  updatedAt: string;
 }
 
 export default function MessagesPage() {
-  const { data: session, status } = useSession();
   const [conversations, setConversations] = useState<Conversation[]>([]);
-  const [activeConversation, setActiveConversation] =
+  const [selectedConversation, setSelectedConversation] =
     useState<Conversation | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
-  const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
-  const messagesEndRef = useRef<HTMLDivElement | null>(null);
+  const [sending, setSending] = useState(false);
+  const [userRole, setUserRole] = useState<"mentor" | "mentee" | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Load conversations on component mount
-  useEffect(() => {
-    if (status === "authenticated") {
-      loadConversations();
-    }
-  }, [status]);
+  // Replace with actual user ID from authentication
+  const userId = "3459d90e-8bd8-43f2-9b17-b40b16625668";
 
-  // Load messages when active conversation changes
   useEffect(() => {
-    if (activeConversation) {
-      loadMessages(activeConversation.id);
-    }
-  }, [activeConversation]);
+    fetchUserRoleAndConversations();
+  }, []);
 
-  // Scroll to bottom of messages
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    scrollToBottom();
   }, [messages]);
 
-  const loadConversations = async () => {
+  useEffect(() => {
+    if (selectedConversation) {
+      loadMessages(selectedConversation.id);
+    }
+  }, [selectedConversation]);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  const fetchUserRoleAndConversations = async () => {
     try {
-      const response = await fetch("/api/messages/conversations");
-      if (response.ok) {
-        const data = await response.json();
-        setConversations(data);
-        if (data.length > 0 && !activeConversation) {
-          setActiveConversation(data[0]);
-        }
+      setLoading(true);
+
+      // Determine user role
+      const mentorResponse = await fetch(`/api/dashboard/mentor?id=${userId}`);
+      let role: "mentor" | "mentee" = "mentee";
+
+      if (mentorResponse.ok) {
+        role = "mentor";
+      }
+
+      setUserRole(role);
+
+      // Fetch conversations
+      const conversationsResponse = await fetch(
+        `/api/messages?userId=${userId}&role=${role.toUpperCase()}`
+      );
+
+      if (conversationsResponse.ok) {
+        const conversationsData = await conversationsResponse.json();
+        setConversations(conversationsData);
       }
     } catch (error) {
-      console.error("Error loading conversations:", error);
+      console.error("Error fetching conversations:", error);
     } finally {
       setLoading(false);
     }
@@ -97,8 +123,6 @@ export default function MessagesPage() {
       if (response.ok) {
         const data = await response.json();
         setMessages(data);
-        // Refresh conversations to update unread counts
-        loadConversations();
       }
     } catch (error) {
       console.error("Error loading messages:", error);
@@ -106,15 +130,19 @@ export default function MessagesPage() {
   };
 
   const handleSendMessage = async () => {
-    if (!newMessage.trim() || !activeConversation) return;
+    if (!newMessage.trim() || !selectedConversation || sending) return;
 
     try {
-      const response = await fetch(`/api/messages/${activeConversation.id}`, {
+      setSending(true);
+      const response = await fetch(`/api/messages/${selectedConversation.id}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ content: newMessage.trim() }),
+        body: JSON.stringify({
+          content: newMessage.trim(),
+          senderId: userId,
+        }),
       });
 
       if (response.ok) {
@@ -122,22 +150,47 @@ export default function MessagesPage() {
         setMessages((prev) => [...prev, newMsg]);
         setNewMessage("");
         // Refresh conversations to update last message
-        loadConversations();
+        fetchUserRoleAndConversations();
       }
     } catch (error) {
       console.error("Error sending message:", error);
+    } finally {
+      setSending(false);
     }
+  };
+
+  const getOtherPerson = (conversation: Conversation) => {
+    if (userRole === "mentor") {
+      return conversation.mentorship.mentee;
+    } else {
+      return conversation.mentorship.mentor;
+    }
+  };
+
+  const getLastMessage = (conversation: Conversation) => {
+    if (conversation.messages.length > 0) {
+      const lastMsg = conversation.messages[0];
+      return {
+        text: lastMsg.content,
+        time: new Date(lastMsg.createdAt).toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+        senderId: lastMsg.senderId,
+      };
+    }
+    return { text: "No messages yet", time: "", senderId: "" };
   };
 
   // Filter conversations based on search query
   const filteredConversations = conversations.filter((conversation) => {
     if (!searchQuery) return true;
-    return conversation.person.name
-      .toLowerCase()
-      .includes(searchQuery.toLowerCase());
+    const otherPerson = getOtherPerson(conversation);
+    const fullName = `${otherPerson.firstName} ${otherPerson.lastName}`;
+    return fullName.toLowerCase().includes(searchQuery.toLowerCase());
   });
 
-  if (status === "loading" || loading) {
+  if (loading) {
     return (
       <div className="bg-white rounded-lg shadow overflow-hidden h-[calc(100vh-12rem)] flex items-center justify-center">
         <div className="text-center">
@@ -148,20 +201,12 @@ export default function MessagesPage() {
     );
   }
 
-  if (status === "unauthenticated") {
-    return (
-      <div className="bg-white rounded-lg shadow overflow-hidden h-[calc(100vh-12rem)] flex items-center justify-center">
-        <p className="text-gray-500">Please log in to access messages</p>
-      </div>
-    );
-  }
-
   return (
     <div className="bg-white rounded-lg shadow overflow-hidden h-[calc(100vh-12rem)]">
       <div className="flex h-full">
         {/* Conversations sidebar */}
         <div className="w-full sm:w-80 md:w-96 border-r border-gray-200 flex flex-col">
-          {/* ...existing search header code... */}
+          {/* Search header */}
           <div className="p-4 border-b border-gray-200">
             <div className="relative">
               <Search
@@ -178,192 +223,94 @@ export default function MessagesPage() {
           </div>
 
           <div className="flex-1 overflow-y-auto">
-            <Tabs defaultValue="all" className="w-full">
-              <div className="px-4 pt-4">
-                <TabsList className="w-full">
-                  <TabsTrigger value="all" className="flex-1">
-                    All
-                  </TabsTrigger>
-                  <TabsTrigger value="unread" className="flex-1">
-                    Unread
-                    <Badge className="ml-2 bg-primary text-white">
-                      {conversations.reduce(
-                        (acc, conv) => acc + conv.unread,
-                        0
-                      )}
-                    </Badge>
-                  </TabsTrigger>
-                </TabsList>
-              </div>
+            <div className="divide-y">
+              {filteredConversations.map((conversation) => {
+                const otherPerson = getOtherPerson(conversation);
+                const lastMessage = getLastMessage(conversation);
 
-              <TabsContent value="all" className="p-0 mt-0">
-                <div className="divide-y">
-                  {filteredConversations.map((conversation) => (
-                    <div
-                      key={conversation.id}
-                      className={`p-4 hover:bg-gray-50 cursor-pointer ${
-                        activeConversation?.id === conversation.id
-                          ? "bg-gray-50"
-                          : ""
-                      }`}
-                      onClick={() => setActiveConversation(conversation)}
-                    >
-                      {/* ...existing conversation item code... */}
-                      <div className="flex items-center">
-                        <div className="relative">
-                          <Image
-                            src={
-                              conversation.person.avatar || "/placeholder.svg"
-                            }
-                            alt={conversation.person.name}
-                            width={48}
-                            height={48}
-                            className="rounded-full"
-                          />
-                          {conversation.online && (
-                            <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-green-500 border-2 border-white"></span>
-                          )}
+                return (
+                  <div
+                    key={conversation.id}
+                    className={`p-4 hover:bg-gray-50 cursor-pointer ${
+                      selectedConversation?.id === conversation.id
+                        ? "bg-gray-50"
+                        : ""
+                    }`}
+                    onClick={() => setSelectedConversation(conversation)}
+                  >
+                    <div className="flex items-center">
+                      <Avatar className="h-12 w-12">
+                        <AvatarImage
+                          src={otherPerson.profilePicture || undefined}
+                          alt={`${otherPerson.firstName} ${otherPerson.lastName}`}
+                        />
+                        <AvatarFallback>
+                          {otherPerson.firstName[0]}
+                          {otherPerson.lastName[0]}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="ml-3 flex-1 min-w-0">
+                        <div className="flex items-center justify-between">
+                          <h3 className="font-medium truncate text-gray-900">
+                            {otherPerson.firstName} {otherPerson.lastName}
+                          </h3>
+                          <span className="text-xs text-gray-500">
+                            {lastMessage.time}
+                          </span>
                         </div>
-                        <div className="ml-3 flex-1 min-w-0">
-                          <div className="flex items-center justify-between">
-                            <h3
-                              className={`font-medium truncate ${
-                                conversation.unread > 0
-                                  ? "text-black font-semibold"
-                                  : "text-gray-900"
-                              }`}
-                            >
-                              {conversation.person.name}
-                            </h3>
-                            <span className="text-xs text-gray-500">
-                              {conversation.lastMessage.time}
-                            </span>
-                          </div>
-                          <div className="flex items-center justify-between">
-                            <p
-                              className={`text-sm truncate ${
-                                conversation.unread > 0
-                                  ? "text-black font-medium"
-                                  : "text-gray-500"
-                              }`}
-                            >
-                              {conversation.lastMessage.text}
-                            </p>
-                            {conversation.unread > 0 && (
-                              <Badge className="bg-primary text-white">
-                                {conversation.unread}
-                              </Badge>
-                            )}
-                          </div>
+                        <div className="flex items-center justify-between">
+                          <p className="text-sm truncate text-gray-500">
+                            {lastMessage.senderId === userId ? "You: " : ""}
+                            {lastMessage.text}
+                          </p>
                         </div>
                       </div>
                     </div>
-                  ))}
+                  </div>
+                );
+              })}
 
-                  {filteredConversations.length === 0 && (
-                    <div className="p-6 text-center">
-                      <p className="text-gray-500">
-                        {conversations.length === 0
-                          ? "No conversations yet. Start messaging mentors or mentees!"
-                          : "No conversations found"}
-                      </p>
-                    </div>
-                  )}
+              {filteredConversations.length === 0 && (
+                <div className="p-6 text-center">
+                  <p className="text-gray-500">
+                    {conversations.length === 0
+                      ? "No conversations yet. Start messaging mentors or mentees!"
+                      : "No conversations found"}
+                  </p>
                 </div>
-              </TabsContent>
-
-              <TabsContent value="unread" className="p-0 mt-0">
-                {/* ...existing unread tab code... */}
-                <div className="divide-y">
-                  {filteredConversations
-                    .filter((conversation) => conversation.unread > 0)
-                    .map((conversation) => (
-                      <div
-                        key={conversation.id}
-                        className={`p-4 hover:bg-gray-50 cursor-pointer ${
-                          activeConversation?.id === conversation.id
-                            ? "bg-gray-50"
-                            : ""
-                        }`}
-                        onClick={() => setActiveConversation(conversation)}
-                      >
-                        <div className="flex items-center">
-                          <div className="relative">
-                            <Image
-                              src={
-                                conversation.person.avatar || "/placeholder.svg"
-                              }
-                              alt={conversation.person.name}
-                              width={48}
-                              height={48}
-                              className="rounded-full"
-                            />
-                            {conversation.online && (
-                              <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-green-500 border-2 border-white"></span>
-                            )}
-                          </div>
-                          <div className="ml-3 flex-1 min-w-0">
-                            <div className="flex items-center justify-between">
-                              <h3 className="font-semibold truncate">
-                                {conversation.person.name}
-                              </h3>
-                              <span className="text-xs text-gray-500">
-                                {conversation.lastMessage.time}
-                              </span>
-                            </div>
-                            <div className="flex items-center justify-between">
-                              <p className="text-sm font-medium truncate">
-                                {conversation.lastMessage.text}
-                              </p>
-                              <Badge className="bg-primary text-white">
-                                {conversation.unread}
-                              </Badge>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-
-                  {filteredConversations.filter(
-                    (conversation) => conversation.unread > 0
-                  ).length === 0 && (
-                    <div className="p-6 text-center">
-                      <p className="text-gray-500">No unread messages</p>
-                    </div>
-                  )}
-                </div>
-              </TabsContent>
-            </Tabs>
+              )}
+            </div>
           </div>
         </div>
 
         {/* Chat area */}
-        {activeConversation ? (
+        {selectedConversation ? (
           <div className="hidden sm:flex flex-col flex-1">
-            {/* ...existing chat header code... */}
+            {/* Chat header */}
             <div className="p-4 border-b border-gray-200 flex items-center justify-between">
               <div className="flex items-center">
-                <div className="relative">
-                  <Image
-                    src={activeConversation.person.avatar || "/placeholder.svg"}
-                    alt={activeConversation.person.name}
-                    width={40}
-                    height={40}
-                    className="rounded-full"
+                <Avatar className="h-10 w-10">
+                  <AvatarImage
+                    src={
+                      getOtherPerson(selectedConversation).profilePicture ||
+                      undefined
+                    }
+                    alt={`${getOtherPerson(selectedConversation).firstName} ${
+                      getOtherPerson(selectedConversation).lastName
+                    }`}
                   />
-                  {activeConversation.online && (
-                    <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-green-500 border-2 border-white"></span>
-                  )}
-                </div>
+                  <AvatarFallback>
+                    {getOtherPerson(selectedConversation).firstName[0]}
+                    {getOtherPerson(selectedConversation).lastName[0]}
+                  </AvatarFallback>
+                </Avatar>
                 <div className="ml-3">
                   <h3 className="font-medium">
-                    {activeConversation.person.name}
+                    {getOtherPerson(selectedConversation).firstName}{" "}
+                    {getOtherPerson(selectedConversation).lastName}
                   </h3>
                   <p className="text-xs text-gray-500">
-                    {activeConversation.person.title} •{" "}
-                    <span className="capitalize">
-                      {activeConversation.person.role}
-                    </span>
+                    {userRole === "mentor" ? "Mentee" : "Mentor"}
                   </p>
                 </div>
               </div>
@@ -389,36 +336,42 @@ export default function MessagesPage() {
                 <div
                   key={message.id}
                   className={`flex ${
-                    message.sender === "me" ? "justify-end" : "justify-start"
+                    message.senderId === userId
+                      ? "justify-end"
+                      : "justify-start"
                   }`}
                 >
-                  {message.sender !== "me" && (
-                    <Image
-                      src={
-                        activeConversation.person.avatar || "/placeholder.svg"
-                      }
-                      alt={activeConversation.person.name}
-                      width={36}
-                      height={36}
-                      className="rounded-full mr-2 self-end"
-                    />
+                  {message.senderId !== userId && (
+                    <Avatar className="h-9 w-9 mr-2 self-end">
+                      <AvatarImage
+                        src={message.sender.profilePicture || undefined}
+                        alt={`${message.sender.firstName} ${message.sender.lastName}`}
+                      />
+                      <AvatarFallback>
+                        {message.sender.firstName[0]}
+                        {message.sender.lastName[0]}
+                      </AvatarFallback>
+                    </Avatar>
                   )}
                   <div
                     className={`max-w-[70%] ${
-                      message.sender === "me"
+                      message.senderId === userId
                         ? "bg-primary text-white rounded-tl-lg rounded-tr-lg rounded-bl-lg"
                         : "bg-gray-100 text-gray-800 rounded-tl-lg rounded-tr-lg rounded-br-lg"
                     } p-3`}
                   >
-                    <p className="whitespace-pre-wrap">{message.text}</p>
+                    <p className="whitespace-pre-wrap">{message.content}</p>
                     <div
                       className={`text-xs mt-1 ${
-                        message.sender === "me"
+                        message.senderId === userId
                           ? "text-primary-foreground/70"
                           : "text-gray-500"
                       }`}
                     >
-                      {message.time}
+                      {new Date(message.createdAt).toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
                     </div>
                   </div>
                 </div>
@@ -448,7 +401,7 @@ export default function MessagesPage() {
                   size="icon"
                   className="rounded-full"
                   onClick={handleSendMessage}
-                  disabled={!newMessage.trim()}
+                  disabled={!newMessage.trim() || sending}
                 >
                   <Send className="h-5 w-5" />
                 </Button>
@@ -464,8 +417,7 @@ export default function MessagesPage() {
               No conversation selected
             </h3>
             <p className="text-gray-500 max-w-md">
-              Select a conversation from the list or start a new one to begin
-              messaging
+              Select a conversation from the list to begin messaging
             </p>
           </div>
         )}

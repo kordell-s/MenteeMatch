@@ -34,8 +34,10 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import type { MenteeDashboardData } from "@/app/types/dashboard/menteeDashboardData";
+import { useSession } from "next-auth/react";
 
 export default function MenteeDashboardPage() {
+  const { data: session, status } = useSession();
   const router = useRouter();
   const [dashboardData, setDashboardData] =
     useState<MenteeDashboardData | null>(null);
@@ -51,30 +53,67 @@ export default function MenteeDashboardPage() {
     notes: "",
   });
 
-  const userId = "3459d90e-8bd8-43f2-9b17-b40b16625668"; // Replace this with actual logged-in user ID logic
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function fetchDashboard() {
-      try {
-        const res = await fetch(`/api/dashboard/mentee?id=${userId}`);
-        const data = await res.json();
-        setDashboardData(data);
-      } catch (error) {
-        console.error("Error fetching dashboard data:", error);
-      }
+    // Redirect to signin if not authenticated
+    if (status === "unauthenticated") {
+      router.push("/auth/signin");
+      return;
     }
 
-    fetchDashboard();
-  }, []);
+    // Wait for session to load
+    if (status === "loading") {
+      return;
+    }
+
+    // Use session user ID and determine API endpoint based on role
+    if (session?.user?.id) {
+      // If user is a mentor, fetch mentee data; if mentee, fetch mentor data
+      const apiEndpoint =
+        session.user.role === "MENTOR"
+          ? `/api/dashboard/mentor?id=${session.user.id}`
+          : `/api/dashboard/mentee?id=${session.user.id}`;
+
+      fetchDashboardData(session.user.id, apiEndpoint);
+    }
+  }, [status, session]);
+
+  const fetchDashboardData = async (userId: string, endpoint?: string) => {
+    try {
+      const apiUrl = endpoint || `/api/dashboard/mentee?id=${userId}`;
+      const response = await fetch(apiUrl);
+      if (response.ok) {
+        const data = await response.json();
+        setDashboardData(data);
+      }
+    } catch (error) {
+      console.error("Error fetching dashboard data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   if (!dashboardData) return <div>Loading...</div>;
 
   const { mentorInfo, tasks, upcomingSessions, completedSessions, progress } =
     dashboardData;
 
+  // Update labels based on user role
+  const isUserMentor = session?.user?.role === "MENTOR";
+  const relationshipLabel = isUserMentor ? "My Mentees" : "My Mentor";
+  const personInfo = isUserMentor
+    ? dashboardData.menteeInfo || mentorInfo
+    : mentorInfo;
+
   const handleMessage = () => {
-    if (mentorInfo) {
-      router.push(`/dashboard/messages?mentorId=${mentorInfo.id}`);
+    if (personInfo) {
+      const partnerId = isUserMentor ? personInfo.id : mentorInfo?.id;
+      router.push(
+        `/dashboard/messages?${
+          isUserMentor ? "menteeId" : "mentorId"
+        }=${partnerId}`
+      );
     }
   };
 
@@ -90,25 +129,44 @@ export default function MenteeDashboardPage() {
     }
 
     try {
+      // Use session user ID
+      if (!session?.user?.id) {
+        alert("Please log in to book a session");
+        return;
+      }
+
       // Combine date and time into a single datetime string
       const sessionDateTime = new Date(
         `${bookingData.date}T${bookingData.time}`
       );
+
+      // Adjust the booking logic based on user role
+      const requestBody = isUserMentor
+        ? {
+            mentorId: session.user.id,
+            menteeId: personInfo?.id,
+            title: bookingData.topic,
+            date: sessionDateTime.toISOString(),
+            topic: bookingData.topic,
+            notes: bookingData.notes,
+            status: "CONFIRMED", // Mentors can confirm their own sessions
+          }
+        : {
+            mentorId: mentorInfo?.id,
+            menteeId: session.user.id,
+            title: bookingData.topic,
+            date: sessionDateTime.toISOString(),
+            topic: bookingData.topic,
+            notes: bookingData.notes,
+            status: "PENDING", // Mentees book pending sessions
+          };
 
       const response = await fetch("/api/sessions/book", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          mentorId: mentorInfo?.id,
-          menteeId: userId,
-          title: bookingData.topic,
-          date: sessionDateTime.toISOString(),
-          topic: bookingData.topic,
-          notes: bookingData.notes,
-          status: "PENDING",
-        }),
+        body: JSON.stringify(requestBody),
       });
 
       if (response.ok) {
@@ -119,13 +177,18 @@ export default function MenteeDashboardPage() {
         setBookingData({ date: "", time: "", topic: "", notes: "" });
 
         // Refresh dashboard data to show the new session
-        const res = await fetch(`/api/dashboard/mentee?id=${userId}`);
-        const data = await res.json();
-        setDashboardData(data);
+        if (session?.user?.id) {
+          const apiEndpoint =
+            session.user.role === "MENTOR"
+              ? `/api/dashboard/mentor?id=${session.user.id}`
+              : `/api/dashboard/mentee?id=${session.user.id}`;
+          fetchDashboardData(session.user.id, apiEndpoint);
+        }
 
-        alert(
-          "Session booked successfully! Your mentor will confirm the session."
-        );
+        const successMessage = isUserMentor
+          ? "Session scheduled successfully!"
+          : "Session booked successfully! Your mentor will confirm the session.";
+        alert(successMessage);
       } else {
         const error = await response.json();
         console.error("Error booking session:", error);
@@ -155,15 +218,15 @@ export default function MenteeDashboardPage() {
         },
         body: JSON.stringify({
           action,
-          userId,
+          userId: session?.user?.id,
         }),
       });
 
       if (response.ok) {
         // Refresh dashboard data
-        const res = await fetch(`/api/dashboard/mentee?id=${userId}`);
-        const data = await res.json();
-        setDashboardData(data);
+        if (session?.user?.id) {
+          fetchDashboardData(session.user.id);
+        }
       }
     } catch (error) {
       console.error("Error updating task:", error);
@@ -177,6 +240,11 @@ export default function MenteeDashboardPage() {
 
   const handleCancelSession = async (sessionId: string) => {
     try {
+      if (!session?.user?.id) {
+        alert("Please log in to cancel sessions");
+        return;
+      }
+
       const response = await fetch(`/api/sessions/${sessionId}`, {
         method: "PATCH",
         headers: {
@@ -184,55 +252,69 @@ export default function MenteeDashboardPage() {
         },
         body: JSON.stringify({
           status: "CANCELLED",
-          userId,
+          userId: session.user.id, // Use session ID
         }),
       });
 
       if (response.ok) {
-        // Refresh dashboard data
-        const res = await fetch(`/api/dashboard/mentee?id=${userId}`);
-        const data = await res.json();
-        setDashboardData(data);
+        // Refresh dashboard data with correct endpoint
+        const apiEndpoint =
+          session.user.role === "MENTOR"
+            ? `/api/dashboard/mentor?id=${session.user.id}`
+            : `/api/dashboard/mentee?id=${session.user.id}`;
+        fetchDashboardData(session.user.id, apiEndpoint);
       }
     } catch (error) {
       console.error("Error cancelling session:", error);
     }
   };
 
+  // Show loading while session is loading
+  if (status === "loading" || loading) {
+    return <div>Loading...</div>;
+  }
+
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold mb-2">My Mentor</h1>
-        <p className="text-gray-600">Your current mentor and progress</p>
+        <h1 className="text-2xl font-bold mb-2">{relationshipLabel}</h1>
+        <p className="text-gray-600">
+          {isUserMentor
+            ? "Your current mentees and their progress"
+            : "Your current mentor and progress"}
+        </p>
       </div>
 
-      {mentorInfo ? (
+      {personInfo ? (
         <Card>
           <CardHeader>
             <div className="flex justify-between">
               <div className="flex space-x-4">
                 <Image
-                  src={mentorInfo.profilePicture || "/images/avatar.png"}
-                  alt={mentorInfo.name}
+                  src={personInfo.profilePicture || "/images/avatar.png"}
+                  alt={personInfo.name}
                   width={60}
                   height={60}
                   className="rounded-full"
                 />
                 <div>
-                  <CardTitle className="text-lg">{mentorInfo.name}</CardTitle>
+                  <CardTitle className="text-lg">{personInfo.name}</CardTitle>
                   <CardDescription>
-                    {mentorInfo.title} at {mentorInfo.company}
+                    {personInfo.title}{" "}
+                    {personInfo.company && `at ${personInfo.company}`}
                   </CardDescription>
                 </div>
               </div>
               <div className="flex items-center">
                 <Star className="h-4 w-4 text-yellow-400 fill-yellow-400" />
-                <span className="text-sm ml-1">{mentorInfo.rating}</span>
+                <span className="text-sm ml-1">
+                  {personInfo.rating || "N/A"}
+                </span>
               </div>
             </div>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-gray-600 mb-3">{mentorInfo.bio}</p>
+            <p className="text-sm text-gray-600 mb-3">{personInfo.bio}</p>
             <div className="text-sm text-gray-600 mb-1">
               <span className="font-medium">Progress:</span> {progress}%
             </div>
@@ -248,13 +330,15 @@ export default function MenteeDashboardPage() {
             </Button>
             <Button className="flex-1" onClick={handleBookSession}>
               <Calendar className="h-4 w-4 mr-2" />
-              Book Session
+              {isUserMentor ? "Schedule Session" : "Book Session"}
             </Button>
           </CardFooter>
         </Card>
       ) : (
         <div className="text-gray-500">
-          You don't have a mentor assigned yet.
+          {isUserMentor
+            ? "You don't have any mentees assigned yet."
+            : "You don't have a mentor assigned yet."}
         </div>
       )}
 
@@ -538,9 +622,13 @@ export default function MenteeDashboardPage() {
       <Dialog open={showBookingModal} onOpenChange={setShowBookingModal}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Book a Session</DialogTitle>
+            <DialogTitle>
+              {isUserMentor ? "Schedule a Session" : "Book a Session"}
+            </DialogTitle>
             <DialogDescription>
-              Schedule a session with {mentorInfo?.name}
+              {isUserMentor
+                ? `Schedule a session with ${personInfo?.name}`
+                : `Schedule a session with ${mentorInfo?.name}`}
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">

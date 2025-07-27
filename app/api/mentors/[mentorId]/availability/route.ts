@@ -8,8 +8,6 @@ export async function GET(
   try {
     const { mentorId } = params;
 
-    console.log("Fetching availability for mentor:", mentorId); // Debug log
-
     if (!mentorId) {
       return NextResponse.json(
         { error: "Mentor ID is required" },
@@ -29,8 +27,6 @@ export async function GET(
       },
     });
 
-    console.log("Found mentor:", mentor); // Debug log
-
     if (!mentor) {
       return NextResponse.json(
         { error: "Mentor not found" },
@@ -38,77 +34,62 @@ export async function GET(
       );
     }
 
-    // Parse availability if it's stored as a string
-    let availability: any = mentor.availability;
+    // Simplified availability parsing
+    let availability: any[] = [];
     
-    console.log("Raw availability:", availability); // Debug log
-    console.log("Availability type:", typeof availability); // Debug log
-    
-    if (typeof availability === "string") {
-      console.log("Attempting to parse string availability:", availability); // Debug log
-      try {
-        // Only try to parse if it looks like JSON
-        if (availability.trim().startsWith('[') || availability.trim().startsWith('{')) {
-          availability = JSON.parse(availability);
-        } else {
-          // If it's a simple string, treat it as a single availability slot
-          availability = [availability];
+    try {
+      if (mentor.availability) {
+        if (typeof mentor.availability === "string") {
+          // Try to parse JSON, fallback to simple string handling
+          try {
+            availability = JSON.parse(mentor.availability);
+          } catch {
+            // If not JSON, treat as simple string
+            availability = [{ date: mentor.availability, isAvailable: true }];
+          }
+        } else if (Array.isArray(mentor.availability)) {
+          availability = mentor.availability;
+        } else if (typeof mentor.availability === 'object') {
+          availability = [mentor.availability];
         }
-      } catch (error) {
-        console.error("Error parsing availability JSON:", error);
-        console.error("Problematic availability string:", availability);
-        // If parsing fails, treat the string as a simple availability description
-        availability = [availability];
       }
-    }
-
-    // If availability is null or undefined, create empty array
-    if (!availability) {
+    } catch (error) {
+      console.error("Error processing availability:", error);
       availability = [];
     }
 
-    // If availability is not an array, try to convert it
-    if (!Array.isArray(availability)) {
-      if (typeof availability === 'object') {
-        // If it's an object, try to extract meaningful data
-        availability = Object.values(availability).filter(Boolean);
-      } else {
-        // If it's something else, wrap it in an array
-        availability = [availability];
-      }
-    }
-
-    console.log("Processed availability before transformation:", availability); // Debug log
-
-    // Transform availability data to include proper date objects and isAvailable flag
+    // Transform and validate availability data
     const transformedAvailability = availability
-      .filter((slot: any) => slot !== null && slot !== undefined && slot !== '')
-      .map((slot: any) => {
-        console.log("Processing slot:", slot, "Type:", typeof slot); // Debug log
-        
-        // Handle different possible formats
-        if (typeof slot === "string") {
-          // If it's just a string like "Monday 9:00 AM" or "Weekdays 9-5"
+      .filter((slot: any) => slot != null)
+      .map((slot: any, index: number) => {
+        try {
+          if (typeof slot === "string") {
+            return {
+              id: index,
+              date: slot,
+              isAvailable: true,
+            };
+          } else if (slot && typeof slot === 'object') {
+            return {
+              id: index,
+              date: slot.date || slot.time || slot.day || `Slot ${index + 1}`,
+              isAvailable: slot.isAvailable !== false,
+            };
+          }
           return {
-            date: slot,
+            id: index,
+            date: String(slot),
             isAvailable: true,
           };
-        } else if (slot && typeof slot === 'object') {
-          // If it's an object with date/time information
+        } catch (error) {
+          console.error("Error transforming slot:", error);
           return {
-            date: slot.date || slot.time || slot.day || slot.schedule || JSON.stringify(slot),
-            isAvailable: slot.isAvailable !== false, // Default to true unless explicitly false
+            id: index,
+            date: `Slot ${index + 1}`,
+            isAvailable: true,
           };
         }
-        
-        // Fallback: convert to string
-        return {
-          date: String(slot),
-          isAvailable: true,
-        };
       });
-
-    console.log("Transformed availability:", transformedAvailability); // Debug log
 
     return NextResponse.json(transformedAvailability);
   } catch (error) {

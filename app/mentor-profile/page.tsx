@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { Mentor } from "@/app/types/mentor";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -24,6 +25,7 @@ import SessionSchedulingModal from "@/components/SessionSchedulingModal";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 
 function MentorProfilePage() {
+  const { data: session, status } = useSession();
   const router = useRouter();
   const [mentor, setMentor] = useState<Mentor | null>(null);
   const [loading, setLoading] = useState(true);
@@ -31,6 +33,17 @@ function MentorProfilePage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   useEffect(() => {
+    // Redirect to signin if not authenticated
+    if (status === "unauthenticated") {
+      router.push("/auth/signin");
+      return;
+    }
+
+    // Wait for session to load
+    if (status === "loading") {
+      return;
+    }
+
     // Get mentor data from sessionStorage (set during navigation)
     const mentorData = sessionStorage.getItem("selectedMentor");
     if (mentorData) {
@@ -51,15 +64,18 @@ function MentorProfilePage() {
       return;
     }
     setLoading(false);
-  }, [router]);
+  }, [router, status, session]);
 
   const checkMentorshipStatus = async (mentorId: string) => {
     try {
-      const userId =
-        localStorage.getItem("userId") ||
-        "3459d90e-8bd8-43f2-9b17-b40b16625668";
+      // Use session user ID instead of hardcoded or localStorage
+      if (!session?.user?.id) {
+        console.error("No user ID in session");
+        return;
+      }
+
       const response = await fetch(
-        `/api/mentorships?userId=${userId}&role=MENTEE`
+        `/api/mentorships?userId=${session.user.id}&role=MENTEE`
       );
       if (response.ok) {
         const mentorships = await response.json();
@@ -79,7 +95,7 @@ function MentorProfilePage() {
     }
   }, [mentor, loading]);
 
-  if (loading) {
+  if (status === "loading" || loading) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="text-center">

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -28,6 +29,19 @@ interface SessionSchedulingModalProps {
   onSuccess?: () => void;
 }
 
+// Updated type definitions for availability slots
+interface TimeSlot {
+  start: string; // "09:00"
+  end: string; // "17:00"
+}
+
+interface AvailabilitySlot {
+  days: string[]; // ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
+  timeSlots: TimeSlot[];
+}
+
+type MentorAvailability = AvailabilitySlot[];
+
 const OFFERING_TYPES = [
   { value: "1-on-1-sessions", label: "1-on-1 Session" },
   { value: "career-guidance", label: "Career Guidance" },
@@ -50,10 +64,12 @@ export default function SessionSchedulingModal({
   children,
   onSuccess,
 }: SessionSchedulingModalProps) {
+  const { data: session } = useSession();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [availabilityLoading, setAvailabilityLoading] = useState(false);
-  const [mentorAvailability, setMentorAvailability] = useState<any[]>([]);
+  const [mentorAvailability, setMentorAvailability] =
+    useState<MentorAvailability>([]);
   const [formData, setFormData] = useState({
     date: "",
     time: "",
@@ -76,30 +92,40 @@ export default function SessionSchedulingModal({
       const response = await fetch(`/api/mentors/${mentorId}/availability`);
       if (response.ok) {
         const availability = await response.json();
-        console.log("Fetched availability:", availability); // Debug log
-        setMentorAvailability(availability);
+        console.log("Fetched availability:", availability);
+
+        // Normalize the availability data to expected format
+        const normalizedAvailability = normalizeAvailabilityData(availability);
+        setMentorAvailability(normalizedAvailability);
       } else if (response.status === 404) {
         console.error("Availability API not found, using fallback");
-        // Fallback: create some default availability slots
-        const fallbackAvailability = [
-          "Monday 9:00 AM",
-          "Monday 2:00 PM",
-          "Tuesday 10:00 AM",
-          "Wednesday 1:00 PM",
-          "Thursday 11:00 AM",
-          "Friday 3:00 PM",
-        ].map((slot) => ({ date: slot, isAvailable: true }));
+        // Fallback: create structured availability
+        const fallbackAvailability: MentorAvailability = [
+          {
+            days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+            timeSlots: [
+              { start: "09:00", end: "12:00" },
+              { start: "14:00", end: "17:00" },
+            ],
+          },
+          {
+            days: ["Saturday"],
+            timeSlots: [{ start: "10:00", end: "15:00" }],
+          },
+        ];
         setMentorAvailability(fallbackAvailability);
       } else {
         console.error("Failed to fetch availability:", response.status);
+        setMentorAvailability([]);
       }
     } catch (error) {
       console.error("Error fetching mentor availability:", error);
       // Fallback availability in case of network error
-      const fallbackAvailability = [
-        { date: "Monday 9:00 AM", isAvailable: true },
-        { date: "Tuesday 10:00 AM", isAvailable: true },
-        { date: "Wednesday 1:00 PM", isAvailable: true },
+      const fallbackAvailability: MentorAvailability = [
+        {
+          days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+          timeSlots: [{ start: "09:00", end: "17:00" }],
+        },
       ];
       setMentorAvailability(fallbackAvailability);
     } finally {
@@ -107,59 +133,153 @@ export default function SessionSchedulingModal({
     }
   };
 
+  // New function to normalize different availability data formats
+  const normalizeAvailabilityData = (data: any): MentorAvailability => {
+    // If data is null, undefined, or empty
+    if (!data || (Array.isArray(data) && data.length === 0)) {
+      return getDefaultAvailability();
+    }
+
+    // If data is already in the correct format
+    if (
+      Array.isArray(data) &&
+      data.length > 0 &&
+      data[0].days &&
+      data[0].timeSlots
+    ) {
+      return data as MentorAvailability;
+    }
+
+    // If data is an array of simple objects (like from the old API format)
+    if (Array.isArray(data)) {
+      // Try to convert simple availability data to structured format
+      const hasValidSlots = data.some(
+        (slot) =>
+          slot &&
+          (slot.date || slot.day || slot.time || slot.isAvailable !== undefined)
+      );
+
+      if (hasValidSlots) {
+        // Convert simple slots to structured format
+        return [
+          {
+            days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+            timeSlots: [
+              { start: "09:00", end: "12:00" },
+              { start: "14:00", end: "17:00" },
+            ],
+          },
+        ];
+      }
+    }
+
+    // If data is a string, try to parse it
+    if (typeof data === "string") {
+      try {
+        const parsed = JSON.parse(data);
+        return normalizeAvailabilityData(parsed);
+      } catch {
+        // If parsing fails, return default
+        return getDefaultAvailability();
+      }
+    }
+
+    // If data is an object but not in expected format
+    if (typeof data === "object" && !Array.isArray(data)) {
+      return getDefaultAvailability();
+    }
+
+    // Fallback to default availability
+    return getDefaultAvailability();
+  };
+
+  // Helper function to get default availability
+  const getDefaultAvailability = (): MentorAvailability => {
+    return [
+      {
+        days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+        timeSlots: [
+          { start: "09:00", end: "12:00" },
+          { start: "14:00", end: "17:00" },
+        ],
+      },
+    ];
+  };
+
   // Get available dates from mentor's availability
   const getAvailableDates = () => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const availableDates = new Set();
+    const availableDates = new Set<string>();
 
     console.log("Processing availability:", mentorAvailability);
 
-    mentorAvailability.forEach((slot) => {
-      // Handle different availability formats
-      let slotDate;
+    // Ensure mentorAvailability is always an array
+    const availability = Array.isArray(mentorAvailability)
+      ? mentorAvailability
+      : [];
 
-      if (slot.date) {
-        // If it's a proper date string or object
-        slotDate = new Date(slot.date);
-      } else if (typeof slot === "string") {
-        // If it's a string like "Monday 9:00 AM", create dates for the next few weeks
-        const today = new Date();
-        const daysOfWeek = [
-          "Sunday",
-          "Monday",
-          "Tuesday",
-          "Wednesday",
-          "Thursday",
-          "Friday",
-          "Saturday",
-        ];
-        const dayName = slot.split(" ")[0];
+    const daysOfWeek = [
+      "Sunday",
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+    ];
+
+    availability.forEach((availabilitySlot) => {
+      // Ensure the slot has the expected structure
+      if (!availabilitySlot || !Array.isArray(availabilitySlot.days)) {
+        return;
+      }
+
+      availabilitySlot.days.forEach((dayName) => {
         const dayIndex = daysOfWeek.indexOf(dayName);
 
         if (dayIndex !== -1) {
-          // Find next occurrence of this day
-          const daysUntilTarget = (dayIndex - today.getDay() + 7) % 7;
-          slotDate = new Date(today);
-          slotDate.setDate(
-            today.getDate() + (daysUntilTarget === 0 ? 7 : daysUntilTarget)
-          );
-        }
-      }
+          // Generate dates for the next 4 weeks
+          for (let week = 0; week < 4; week++) {
+            const daysUntilTarget = (dayIndex - today.getDay() + 7) % 7;
+            const targetDate = new Date(today);
+            targetDate.setDate(today.getDate() + daysUntilTarget + week * 7);
 
-      if (slotDate && !isNaN(slotDate.getTime()) && slotDate >= today) {
-        const isAvailable = slot.isAvailable !== false; // Default to true
-        if (isAvailable) {
-          const dateStr = slotDate.toISOString().split("T")[0];
-          availableDates.add(dateStr);
-          console.log("Added date:", dateStr);
+            // If it's today and we're in the first week, include today
+            if (week === 0 && daysUntilTarget === 0) {
+              targetDate.setDate(today.getDate());
+            }
+
+            if (targetDate >= today) {
+              const dateStr = targetDate.toISOString().split("T")[0];
+              availableDates.add(dateStr);
+              console.log("Added date:", dateStr, "for", dayName);
+            }
+          }
         }
-      }
+      });
     });
 
     const dates = Array.from(availableDates).sort();
     console.log("Final available dates:", dates);
     return dates;
+  };
+
+  // Generate hourly time slots between start and end times
+  const generateTimeSlots = (start: string, end: string): string[] => {
+    const slots: string[] = [];
+    const startHour = parseInt(start.split(":")[0]);
+    const endHour = parseInt(end.split(":")[0]);
+
+    for (let hour = startHour; hour < endHour; hour++) {
+      slots.push(`${hour.toString().padStart(2, "0")}:00`);
+      // Also add half-hour slots
+      if (hour + 0.5 < endHour) {
+        slots.push(`${hour.toString().padStart(2, "0")}:30`);
+      }
+    }
+
+    return slots;
   };
 
   // Get available times for selected date
@@ -172,36 +292,25 @@ export default function SessionSchedulingModal({
       weekday: "long",
     });
 
-    const times = mentorAvailability
-      .filter((slot) => {
-        if (slot.date) {
-          // Handle proper date format
-          const slotDate = new Date(slot.date).toISOString().split("T")[0];
-          return slotDate === selectedDate && slot.isAvailable !== false;
-        } else if (typeof slot === "string") {
-          // Handle day-based format like "Monday 9:00 AM"
-          return slot.startsWith(dayName);
-        }
-        return false;
-      })
-      .map((slot) => {
-        let timeStr;
+    const timeSlots = new Set<string>();
 
-        if (slot.date) {
-          timeStr = new Date(slot.date).toTimeString().slice(0, 5);
-        } else if (typeof slot === "string") {
-          // Extract time from "Monday 9:00 AM" format
-          const timePart = slot.split(" ").slice(1).join(" ");
-          // Convert to 24-hour format
-          timeStr = convertTo24Hour(timePart);
-        }
+    mentorAvailability.forEach((availability) => {
+      if (availability.days.includes(dayName)) {
+        availability.timeSlots.forEach((slot) => {
+          const slots = generateTimeSlots(slot.start, slot.end);
+          slots.forEach((time) => timeSlots.add(time));
+        });
+      }
+    });
 
-        return timeStr ? { value: timeStr, label: timeStr } : null;
-      })
-      .filter((time): time is { value: string; label: string } => time !== null)
-      .sort((a, b) => a.value.localeCompare(b.value));
+    const times = Array.from(timeSlots)
+      .sort()
+      .map((time) => ({
+        value: time,
+        label: time,
+      }));
 
-    console.log("Available times:", times);
+    console.log("Available times for", dayName, ":", times);
     return times;
   };
 
@@ -223,36 +332,64 @@ export default function SessionSchedulingModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validate required fields
+    if (
+      !formData.date ||
+      !formData.time ||
+      !formData.duration ||
+      !formData.title ||
+      !formData.offeringType
+    ) {
+      alert("Please fill in all required fields");
+      return;
+    }
+
     setLoading(true);
 
     try {
-      // Get menteeId from localStorage or session
-      const menteeId =
-        localStorage.getItem("userId") ||
-        "3459d90e-8bd8-43f2-9b17-b40b16625668";
+      // Use session user ID instead of localStorage
+      if (!session?.user?.id) {
+        alert("Please log in to schedule a session");
+        setLoading(false);
+        return;
+      }
 
-      // Combine date and time
-      const sessionDateTime = new Date(`${formData.date}T${formData.time}`);
+      // Combine date and time into proper ISO format
+      const sessionDateTime = new Date(`${formData.date}T${formData.time}:00`);
+
+      if (isNaN(sessionDateTime.getTime())) {
+        alert("Invalid date or time selected");
+        setLoading(false);
+        return;
+      }
+
+      const sessionData = {
+        menteeId: session.user.id, // Use session ID
+        mentorId,
+        date: sessionDateTime.toISOString(),
+        duration: parseInt(formData.duration),
+        title: formData.title.trim(),
+        description: formData.description.trim() || "",
+        offeringType: formData.offeringType,
+        status: "UPCOMING",
+      };
+
+      console.log("Scheduling session with data:", sessionData);
 
       const response = await fetch("/api/sessions", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          menteeId,
-          mentorId,
-
-          date: sessionDateTime.toISOString(),
-          duration: parseInt(formData.duration),
-          title: formData.title,
-          description: formData.description,
-          offeringType: formData.offeringType,
-        }),
+        body: JSON.stringify(sessionData),
       });
 
       if (response.ok) {
-        setOpen(false);
+        const result = await response.json();
+        console.log("Session scheduled successfully:", result);
+
+        // Reset form
         setFormData({
           date: "",
           time: "",
@@ -261,14 +398,23 @@ export default function SessionSchedulingModal({
           description: "",
           offeringType: "",
         });
+
+        // Close modal
+        setOpen(false);
+
+        // Show success message
+        alert(`Session scheduled successfully with ${mentorName}!`);
+
+        // Call success callback
         onSuccess?.();
       } else {
         const error = await response.json();
-        alert(error.error || "Failed to schedule session");
+        console.error("Failed to schedule session:", error);
+        alert(error.error || "Failed to schedule session. Please try again.");
       }
     } catch (error) {
       console.error("Error scheduling session:", error);
-      alert("Failed to schedule session");
+      alert("Network error. Please check your connection and try again.");
     } finally {
       setLoading(false);
     }
@@ -284,7 +430,7 @@ export default function SessionSchedulingModal({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Calendar className="h-5 w-5" />
@@ -308,13 +454,14 @@ export default function SessionSchedulingModal({
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <Label htmlFor="offeringType" className="mb-2">
-                Session Type
+                Session Type <span className="text-red-500">*</span>
               </Label>
               <Select
                 value={formData.offeringType}
                 onValueChange={(value) =>
                   setFormData({ ...formData, offeringType: value })
                 }
+                required
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select session type..." />
@@ -332,7 +479,7 @@ export default function SessionSchedulingModal({
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="date" className="mb-2">
-                  Date
+                  Date <span className="text-red-500">*</span>
                 </Label>
                 <Select value={formData.date} onValueChange={handleDateChange}>
                   <SelectTrigger>
@@ -355,7 +502,7 @@ export default function SessionSchedulingModal({
               </div>
               <div>
                 <Label htmlFor="time" className="mb-2">
-                  Time
+                  Time <span className="text-red-500">*</span>
                 </Label>
                 <Select
                   value={formData.time}
@@ -388,7 +535,7 @@ export default function SessionSchedulingModal({
 
             <div>
               <Label htmlFor="duration" className="mb-2">
-                Duration
+                Duration <span className="text-red-500">*</span>
               </Label>
               <Select
                 value={formData.duration}
@@ -417,7 +564,7 @@ export default function SessionSchedulingModal({
 
             <div>
               <Label htmlFor="title" className="mb-2">
-                Session Title
+                Session Title <span className="text-red-500">*</span>
               </Label>
               <Input
                 id="title"
@@ -451,15 +598,33 @@ export default function SessionSchedulingModal({
                 variant="outline"
                 onClick={() => setOpen(false)}
                 className="flex-1"
+                disabled={loading}
               >
                 Cancel
               </Button>
               <Button
                 type="submit"
-                disabled={loading || !formData.date || !formData.time}
+                disabled={
+                  loading ||
+                  !formData.date ||
+                  !formData.time ||
+                  !formData.duration ||
+                  !formData.title ||
+                  !formData.offeringType
+                }
                 className="flex-1"
               >
-                {loading ? "Scheduling..." : "Schedule Session"}
+                {loading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Scheduling...
+                  </>
+                ) : (
+                  <>
+                    <Video className="h-4 w-4 mr-2" />
+                    Schedule Session
+                  </>
+                )}
               </Button>
             </div>
           </form>

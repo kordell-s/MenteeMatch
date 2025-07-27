@@ -48,56 +48,90 @@ export default function MentorBrowser() {
     async function fetchMentors() {
       try {
         setError(null);
+        console.log("Fetching mentors from API...");
+
         // 1. Get all mentors
         const res = await fetch("/api/mentors");
         if (!res.ok) {
-          throw new Error(`Failed to fetch mentors: ${res.status}`);
+          const errorText = await res.text();
+          throw new Error(
+            `Failed to fetch mentors (${res.status}): ${errorText}`
+          );
         }
+
         const data = await res.json();
-        const mentors = Array.isArray(data) ? data : [];
 
-        // Debug: Log the full structure of the first mentor
-        console.log("Raw API response:", data);
-        console.log("First mentor structure:", mentors[0]);
+        // Validate the response structure
+        if (!Array.isArray(data)) {
+          throw new Error("Invalid response format: expected array of mentors");
+        }
+
+        // Validate each mentor has required fields
+        const validMentors = data.filter((mentor) => {
+          const isValid =
+            mentor &&
+            typeof mentor.id === "string" &&
+            typeof mentor.name === "string" &&
+            mentor.name.trim() !== "";
+
+          if (!isValid) {
+            console.warn("Invalid mentor data:", mentor);
+          }
+          return isValid;
+        });
+
         console.log(
-          "First mentor keys:",
-          mentors[0] ? Object.keys(mentors[0]) : "No mentors"
+          `Fetched ${validMentors.length} valid mentors out of ${data.length} total`
         );
+        console.log("Sample mentor:", validMentors[0]);
 
-        setMentorData(mentors);
+        setMentorData(validMentors);
 
-        // 2. Get AI-matched mentors
-        try {
-          const matchRes = await fetch("/api/match", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ menteeId: userId }),
-          });
+        // 2. Get AI-matched mentors (only if we have mentor data)
+        if (validMentors.length > 0) {
+          try {
+            console.log("Fetching AI recommendations...");
+            const matchRes = await fetch("/api/match", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ menteeId: userId }),
+            });
 
-          if (matchRes.ok) {
-            const matched = await matchRes.json();
-            if (Array.isArray(matched)) {
-              const recommended = matched
-                .map((match: { mentorId: string }) =>
-                  mentors.find((m: Mentor) => m.id === match.mentorId)
-                )
-                .filter(Boolean);
-              setRecommendedMentors(recommended);
+            if (matchRes.ok) {
+              const matched = await matchRes.json();
+              if (Array.isArray(matched)) {
+                const recommended = matched
+                  .map((match: { mentorId: string }) =>
+                    validMentors.find((m: Mentor) => m.id === match.mentorId)
+                  )
+                  .filter(Boolean);
+
+                console.log(`Found ${recommended.length} recommended mentors`);
+                setRecommendedMentors(recommended);
+              } else {
+                console.warn("Match API returned non-array:", matched);
+                setRecommendedMentors([]);
+              }
             } else {
-              console.warn("Match API returned non-array:", matched);
+              const errorText = await matchRes.text();
+              console.warn(`Match API failed (${matchRes.status}):`, errorText);
               setRecommendedMentors([]);
             }
-          } else {
-            console.warn("Match API failed:", matchRes.status);
+          } catch (matchError) {
+            console.warn("Match API error:", matchError);
             setRecommendedMentors([]);
           }
-        } catch (matchError) {
-          console.warn("Match API error:", matchError);
+        } else {
+          console.log("No mentors available for AI matching");
           setRecommendedMentors([]);
         }
       } catch (err) {
         console.error("Error fetching mentors:", err);
-        setError(err instanceof Error ? err.message : "Failed to load mentors");
+        const errorMessage =
+          err instanceof Error ? err.message : "Failed to load mentors";
+        setError(errorMessage);
+
+        // Set fallback empty arrays to prevent component breaking
         setMentorData([]);
         setRecommendedMentors([]);
       } finally {
@@ -112,14 +146,12 @@ export default function MentorBrowser() {
   useEffect(() => {
     let result = mentorData;
 
-    console.log("Filtering - activeCategory:", activeCategory);
-    console.log("Total mentors:", mentorData.length);
-    console.log(
-      "Sample mentor categories:",
-      mentorData
-        .slice(0, 3)
-        .map((m) => ({ name: m.name, category: m.category }))
-    );
+    console.log("Filtering mentors:", {
+      activeCategory,
+      totalMentors: mentorData.length,
+      searchQuery: searchQuery || "none",
+      recommendedCount: recommendedMentors.length,
+    });
 
     if (activeCategory === "recommended") {
       // For recommended tab, use recommended mentors as base
@@ -140,30 +172,32 @@ export default function MentorBrowser() {
       };
 
       const dbCategory = categoryMapping[activeCategory];
-      console.log("Mapped category:", activeCategory, "->", dbCategory);
 
       if (dbCategory) {
         result = mentorData.filter((mentor) => mentor.category === dbCategory);
-        console.log("Filtered mentors for", dbCategory, ":", result.length);
-        console.log("Available categories in data:", [
-          ...new Set(mentorData.map((m) => m.category)),
-        ]);
+        console.log(
+          `Filtered ${result.length} mentors for category ${dbCategory}`
+        );
       } else {
-        // Fallback - if category not found, show all mentors
-        console.warn(`Unknown category: ${activeCategory}`);
+        console.warn(
+          `Unknown category: ${activeCategory}, showing all mentors`
+        );
         result = mentorData;
       }
     }
 
     // Filter by search query
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
+    if (searchQuery && searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim();
       result = result.filter(
         (mentor: Mentor) =>
           mentor.name?.toLowerCase().includes(query) ||
+          mentor.title?.toLowerCase().includes(query) ||
           mentor.company?.toLowerCase().includes(query) ||
-          mentor.skills?.some((skill) => skill.toLowerCase().includes(query))
+          mentor.skills?.some((skill) => skill.toLowerCase().includes(query)) ||
+          mentor.bio?.toLowerCase().includes(query)
       );
+      console.log(`Search filtered to ${result.length} mentors`);
     }
 
     // Sort results
@@ -171,7 +205,6 @@ export default function MentorBrowser() {
       result = [...result].sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0));
     }
 
-    console.log("Final filtered mentors:", result.length);
     setFilteredMentors(result);
   }, [mentorData, activeCategory, searchQuery, sortOption, recommendedMentors]);
 
@@ -189,8 +222,38 @@ export default function MentorBrowser() {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="text-center">
-          <p className="text-red-500">Error: {error}</p>
-          <Button onClick={() => window.location.reload()}>Retry</Button>
+          <h2 className="text-xl font-semibold mb-4">Unable to Load Mentors</h2>
+          <p className="text-red-500 mb-4">Error: {error}</p>
+          <p className="text-gray-600 mb-4">
+            There seems to be an issue with the mentors API. Please try again or
+            contact support if the problem persists.
+          </p>
+          <div className="flex gap-4 justify-center">
+            <Button onClick={() => window.location.reload()}>Retry</Button>
+            <Button variant="outline" onClick={() => setError(null)}>
+              Continue Without Data
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show message when no mentors are available
+  if (!loading && mentorData.length === 0 && !error) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="text-center">
+          <h2 className="text-xl font-semibold mb-4">No Mentors Available</h2>
+          <p className="text-gray-600 mb-4">
+            No mentors are currently available. This might be due to:
+          </p>
+          <ul className="text-gray-600 mb-4 list-disc list-inside">
+            <li>No mentors have registered yet</li>
+            <li>Database connection issues</li>
+            <li>Mentors are currently inactive</li>
+          </ul>
+          <Button onClick={() => window.location.reload()}>Refresh</Button>
         </div>
       </div>
     );

@@ -39,5 +39,13 @@ export type MentorInfo = {
     upcomingSessions: Session[];
     completedSessions: Session[];
     progress: number;
+    menteeInfo?: {
+      id: string;
+      name: string;
+      profilePicture?: string;
+      title?: string;
+      company?: string;
+      bio?: string;
+      rating?: number;
+    };
   };
-  

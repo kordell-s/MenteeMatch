@@ -1,6 +1,8 @@
+"use client";
+
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -8,14 +10,29 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useSession, signOut } from "next-auth/react";
 
 export default function Navbar() {
-  // TODO: Replace with actual user state management
-  const isLoggedIn = true; // This should come from your auth context/state
-  const user = {
-    name: "John Doe",
-    avatar: "/placeholder-avatar.jpg",
-    initials: "JD",
+  const { data: session, status } = useSession();
+  const isLoggedIn = status === "authenticated" && session?.user;
+
+  // Use actual session data instead of hardcoded values
+  const user = session?.user
+    ? {
+        name: session.user.name || "User",
+        avatar: "/placeholder-avatar.jpg",
+        initials: session.user.name
+          ? session.user.name
+              .split(" ")
+              .map((n) => n[0])
+              .join("")
+              .toUpperCase()
+          : "U",
+      }
+    : null;
+
+  const handleSignOut = () => {
+    signOut({ callbackUrl: "/" });
   };
 
   return (
@@ -56,7 +73,7 @@ export default function Navbar() {
           </nav>
 
           <div className="flex items-center space-x-4">
-            {isLoggedIn ? (
+            {isLoggedIn && user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger className="flex items-center space-x-2 hover:opacity-80">
                   <Avatar className="h-8 w-8">
@@ -72,10 +89,13 @@ export default function Navbar() {
                     <Link href="/profile">Profile</Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link href="/settings">Settings</Link>
+                    <Link href="/dashboard">Dashboard</Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem>Sign Out</DropdownMenuItem>
+                  {/* No role switching options */}
+                  <DropdownMenuItem onClick={handleSignOut}>
+                    Sign Out
+                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (

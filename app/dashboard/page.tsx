@@ -1,6 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
@@ -14,6 +16,17 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
   Calendar,
   Clock,
   Users,
@@ -24,188 +37,348 @@ import {
   Star,
 } from "lucide-react";
 
-// Mock data for dashboard
-const mentorStats = {
-  totalMentees: 12,
-  activeRequests: 5,
-  completedSessions: 28,
-  upcomingSessions: 3,
-  totalEarnings: 1240,
-  rating: 4.8,
-};
+// Interfaces for dashboard data
+interface MentorDashboardData {
+  totalMentees: number;
+  activeRequests: number;
+  completedSessions: number;
+  upcomingSessions: any[];
+  totalEarnings?: number;
+  rating?: number;
+  recentRequests: any[];
+  confirmedMentees: any[];
+}
 
-const menteeStats = {
-  totalMentors: 4,
-  activeSessions: 2,
-  completedSessions: 8,
-  upcomingSessions: 1,
-};
+interface MenteeDashboardData {
+  mentorInfo: any;
+  tasks: any[];
+  upcomingSessions: any[];
+  completedSessions: any[];
+  progress: any;
+  totalMentors?: number;
+  activeSessions?: number;
+}
 
-const upcomingSessions = [
-  {
-    id: 1,
-    mentee: {
-      name: "Emma Wilson",
-      avatar: "/placeholder.svg",
-    },
-    mentor: {
-      name: "David Chen",
-      avatar: "/placeholder.svg",
-    },
-    sessionType: "Career Guidance",
-    date: "Tomorrow",
-    time: "10:00 AM - 11:00 AM",
-    status: "confirmed",
-  },
-  {
-    id: 2,
-    mentee: {
-      name: "James Rodriguez",
-      avatar: "/placeholder.svg",
-    },
-    mentor: {
-      name: "Sarah Johnson",
-      avatar: "/placeholder.svg",
-    },
-    sessionType: "Resume Review",
-    date: "May 15, 2023",
-    time: "2:00 PM - 3:00 PM",
-    status: "confirmed",
-  },
-  {
-    id: 3,
-    mentee: {
-      name: "Olivia Martinez",
-      avatar: "/placeholder.svg",
-    },
-    mentor: {
-      name: "Michael Brown",
-      avatar: "/placeholder.svg",
-    },
-    sessionType: "Mock Interview",
-    date: "May 18, 2023",
-    time: "11:00 AM - 12:30 PM",
-    status: "pending",
-  },
-];
-
-const recentRequests = [
-  {
-    id: 1,
-    mentee: {
-      name: "Sophia Lee",
-      avatar: "/placeholder.svg",
-    },
-    sessionType: "Career Transition",
-    message:
-      "I need guidance on transitioning from marketing to product management.",
-    date: "2 hours ago",
-    status: "pending",
-  },
-  {
-    id: 2,
-    mentee: {
-      name: "Daniel Kim",
-      avatar: "/placeholder.svg",
-    },
-    sessionType: "Resume Review",
-    message: "Could you review my resume for a senior developer position?",
-    date: "1 day ago",
-    status: "accepted",
-  },
-  {
-    id: 3,
-    mentee: {
-      name: "Aisha Patel",
-      avatar: "/placeholder.svg",
-    },
-    sessionType: "Mock Interview",
-    message: "I have an interview next week and would like to practice.",
-    date: "2 days ago",
-    status: "declined",
-  },
-];
-
-// Popular mentor categories for mentees
-const mentorCategories = [
-  {
-    id: 1,
-    name: "Career Development",
-    count: 45,
-    icon: "/placeholder.svg?height=40&width=40",
-  },
-  {
-    id: 2,
-    name: "Technical Skills",
-    count: 38,
-    icon: "/placeholder.svg?height=40&width=40",
-  },
-  {
-    id: 3,
-    name: "Leadership",
-    count: 29,
-    icon: "/placeholder.svg?height=40&width=40",
-  },
-  {
-    id: 4,
-    name: "Resume & Interview",
-    count: 52,
-    icon: "/placeholder.svg?height=40&width=40",
-  },
-];
-
-// Recommended mentors for mentees
-const recommendedMentors = [
-  {
-    id: 1,
-    name: "Jennifer Lee",
-    title: "Senior UX Designer",
-    company: "Airbnb",
-    avatar: "/placeholder.svg",
-    rating: 4.9,
-    specialties: ["Portfolio Review", "Career Transition", "UX Strategy"],
-    price: 85,
-  },
-  {
-    id: 2,
-    name: "Marcus Johnson",
-    title: "Engineering Manager",
-    company: "Google",
-    avatar: "/placeholder.svg",
-    rating: 4.8,
-    specialties: ["Technical Leadership", "System Design", "Career Growth"],
-    price: 120,
-  },
-  {
-    id: 3,
-    name: "Priya Sharma",
-    title: "Product Director",
-    company: "Spotify",
-    avatar: "/placeholder.svg",
-    rating: 5.0,
-    specialties: ["Product Strategy", "User Research", "Roadmapping"],
-    price: 100,
-  },
-];
+interface DashboardData {
+  mentorData?: MentorDashboardData;
+  menteeData?: MenteeDashboardData;
+  userRole: "mentor" | "mentee";
+}
 
 export default function DashboardPage() {
-  const [userRole, setUserRole] = useState("mentor"); // Default to mentor
+  const { data: session, status } = useSession();
+  const router = useRouter();
+  const [dashboardData, setDashboardData] = useState<DashboardData | null>(
+    null
+  );
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [processingRequests, setProcessingRequests] = useState<Set<string>>(
+    new Set()
+  );
+  const [showBookingModal, setShowBookingModal] = useState(false);
+  const [bookingData, setBookingData] = useState({
+    date: "",
+    time: "",
+    duration: "60",
+    topic: "",
+    description: "",
+  });
+  const [bookingLoading, setBookingLoading] = useState(false);
 
-  // Toggle role for demonstration
-  const toggleRole = () => {
-    setUserRole(userRole === "mentor" ? "mentee" : "mentor");
+  // Get user ID from session instead of hardcoded value
+  const userId = session?.user?.id;
+
+  useEffect(() => {
+    // Redirect to sign-in if not authenticated
+    if (status === "loading") return; // Still loading
+    if (!session) {
+      router.push("/auth/signin");
+      return;
+    }
+
+    async function fetchDashboardData() {
+      if (!userId) return;
+      try {
+        setLoading(true);
+        setError(null); // Clear previous errors
+
+        // Try to fetch mentee data first
+        const menteeResponse = await fetch(
+          `/api/dashboard/mentee?id=${userId}`,
+          {
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        if (menteeResponse.ok) {
+          const menteeData = await menteeResponse.json();
+          setDashboardData({
+            menteeData,
+            userRole: "mentee",
+          });
+          return;
+        }
+
+        // If mentee data fails, try mentor data
+        const mentorResponse = await fetch(
+          `/api/dashboard/mentor?id=${userId}`,
+          {
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        if (mentorResponse.ok) {
+          const mentorData = await mentorResponse.json();
+          setDashboardData({
+            mentorData,
+            userRole: "mentor",
+          });
+          return;
+        }
+
+        // If both fail, show appropriate message
+        console.warn("No dashboard data found for user");
+        setDashboardData({
+          userRole: "mentee",
+          menteeData: {
+            mentorInfo: null,
+            tasks: [],
+            upcomingSessions: [],
+            completedSessions: [],
+            progress: null,
+          },
+        });
+      } catch (error) {
+        console.error("Error fetching dashboard data:", error);
+        setError("Failed to load dashboard data. Please try again.");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchDashboardData();
+  }, [userId, session, status, router]);
+
+  // Show loading while checking authentication
+  if (status === "loading") {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-lg">Loading...</div>
+      </div>
+    );
+  }
+
+  // Redirect to sign-in if not authenticated
+  if (!session) {
+    return null; // Will redirect in useEffect
+  }
+
+  const handleMentorshipRequest = async (
+    requestId: string,
+    action: "accept" | "decline"
+  ) => {
+    try {
+      setProcessingRequests((prev) => new Set(prev).add(requestId));
+
+      const response = await fetch("/api/mentorship-requests", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          requestId,
+          action: action.toUpperCase(),
+          mentorId: userId,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to ${action} request`);
+      }
+
+      // Refresh dashboard data
+      const mentorResponse = await fetch(`/api/dashboard/mentor?id=${userId}`);
+      if (mentorResponse.ok) {
+        const mentorData = await mentorResponse.json();
+        setDashboardData((prev) => (prev ? { ...prev, mentorData } : null));
+      }
+    } catch (error) {
+      console.error(`Error ${action}ing request:`, error);
+      setError(`Failed to ${action} mentorship request`);
+    } finally {
+      setProcessingRequests((prev) => {
+        const newSet = new Set(prev);
+        newSet.delete(requestId);
+        return newSet;
+      });
+    }
   };
+
+  const handleBookSession = () => {
+    setShowBookingModal(true);
+  };
+
+  const handleSendMessage = (mentorId?: string) => {
+    const targetId = mentorId || dashboardData?.menteeData?.mentorInfo?.id;
+    if (targetId) {
+      // For now, show an alert - you can implement proper messaging later
+      alert("Messaging feature coming soon!");
+    }
+  };
+
+  const handleBookingSubmit = async () => {
+    try {
+      setBookingLoading(true);
+
+      const mentorId = dashboardData?.menteeData?.mentorInfo?.id;
+      if (!mentorId) {
+        throw new Error("No mentor selected");
+      }
+
+      const response = await fetch("/api/sessions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          mentorId,
+          menteeId: userId,
+          date: bookingData.date,
+          time: bookingData.time,
+          duration: parseInt(bookingData.duration),
+          title: bookingData.topic, // Use topic as title
+          description: bookingData.description,
+          offeringType: bookingData.topic, // Also set offeringType
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to book session");
+      }
+
+      // Reset form and close modal
+      setBookingData({
+        date: "",
+        time: "",
+        duration: "60",
+        topic: "",
+        description: "",
+      });
+      setShowBookingModal(false);
+
+      // Show success message
+      alert("Session booked successfully!");
+
+      // Refresh dashboard data
+      const menteeResponse = await fetch(`/api/dashboard/mentee?id=${userId}`);
+      if (menteeResponse.ok) {
+        const menteeData = await menteeResponse.json();
+        setDashboardData((prev) => (prev ? { ...prev, menteeData } : null));
+      }
+    } catch (error) {
+      console.error("Error booking session:", error);
+      alert(
+        `Failed to book session: ${
+          error instanceof Error ? error.message : "Please try again."
+        }`
+      );
+    } finally {
+      setBookingLoading(false);
+    }
+  };
+
+  // Add fallback image error handler
+  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    e.currentTarget.src = "/images/default-avatar.png";
+  };
+
+  // Add fallback image component
+  const ProfileImage = ({
+    src,
+    alt,
+    width,
+    height,
+    className,
+  }: {
+    src: string | null | undefined;
+    alt: string;
+    width: number;
+    height: number;
+    className?: string;
+  }) => {
+    const imageSrc =
+      src && src !== "/placeholder.svg" ? src : "/images/default-avatar.png";
+
+    return (
+      <Image
+        src={imageSrc}
+        alt={alt}
+        width={width}
+        height={height}
+        className={className}
+        onError={handleImageError}
+        priority={false}
+      />
+    );
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-lg">Loading dashboard...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-lg text-red-600">{error}</div>
+      </div>
+    );
+  }
+
+  if (!dashboardData) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-lg">No dashboard data available</div>
+      </div>
+    );
+  }
+
+  const { userRole, mentorData, menteeData } = dashboardData;
 
   return (
     <div>
+      {/* Error display */}
+      {error && (
+        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+          <p className="text-red-800">{error}</p>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setError(null)}
+            className="mt-2"
+          >
+            Dismiss
+          </Button>
+        </div>
+      )}
+
       {/* Mentor Dashboard */}
-      {userRole === "mentor" && (
+      {userRole === "mentor" && mentorData && (
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium text-gray-500">
-                  Active Requests
+                  Total Mentees
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -213,9 +386,30 @@ export default function DashboardPage() {
                   <Users className="h-8 w-8 text-blue-500 mr-3" />
                   <div>
                     <div className="text-2xl font-bold">
-                      {mentorStats.activeRequests}
+                      {mentorData.confirmedMentees?.length || 0}
                     </div>
-                    <p className="text-xs text-gray-500">+2 this week</p>
+                    <p className="text-xs text-gray-500">Active mentees</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-gray-500">
+                  Pending Requests
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center">
+                  <Calendar className="h-8 w-8 text-green-500 mr-3" />
+                  <div>
+                    <div className="text-2xl font-bold">
+                      {mentorData.recentRequests?.filter(
+                        (r) => r.status === "PENDING"
+                      ).length || 0}
+                    </div>
+                    <p className="text-xs text-gray-500">Awaiting response</p>
                   </div>
                 </div>
               </CardContent>
@@ -229,13 +423,17 @@ export default function DashboardPage() {
               </CardHeader>
               <CardContent>
                 <div className="flex items-center">
-                  <Calendar className="h-8 w-8 text-green-500 mr-3" />
+                  <CheckCircle className="h-8 w-8 text-purple-500 mr-3" />
                   <div>
                     <div className="text-2xl font-bold">
-                      {mentorStats.upcomingSessions}
+                      {mentorData.upcomingSessions?.length || 0}
                     </div>
                     <p className="text-xs text-gray-500">
-                      Next: Tomorrow, 10:00 AM
+                      {mentorData.upcomingSessions?.[0]
+                        ? `Next: ${new Date(
+                            mentorData.upcomingSessions[0].date
+                          ).toLocaleDateString()}`
+                        : "No sessions scheduled"}
                     </p>
                   </div>
                 </div>
@@ -250,37 +448,19 @@ export default function DashboardPage() {
               </CardHeader>
               <CardContent>
                 <div className="flex items-center">
-                  <CheckCircle className="h-8 w-8 text-purple-500 mr-3" />
-                  <div>
-                    <div className="text-2xl font-bold">
-                      {mentorStats.completedSessions}
-                    </div>
-                    <p className="text-xs text-gray-500">+5 this month</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-gray-500">
-                  Total Earnings
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center">
                   <TrendingUp className="h-8 w-8 text-yellow-500 mr-3" />
                   <div>
                     <div className="text-2xl font-bold">
-                      ${mentorStats.totalEarnings}
+                      {mentorData.completedSessions || 0}
                     </div>
-                    <p className="text-xs text-gray-500">+$320 this month</p>
+                    <p className="text-xs text-gray-500">Total completed</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
           </div>
 
+          {/* Recent Mentorship Requests */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <Card className="lg:col-span-2">
               <CardHeader>
@@ -291,67 +471,108 @@ export default function DashboardPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {recentRequests.map((request) => (
-                    <div
-                      key={request.id}
-                      className="flex items-start p-4 border rounded-lg hover:bg-gray-50 transition-colors"
-                    >
-                      <Image
-                        src={request.mentee.avatar || "/placeholder.svg"}
-                        alt={request.mentee.name}
-                        width={40}
-                        height={40}
-                        className="rounded-full"
-                      />
-                      <div className="ml-4 flex-1">
-                        <div className="flex items-center justify-between">
-                          <h4 className="font-medium">{request.mentee.name}</h4>
-                          <span className="text-xs text-gray-500">
-                            {request.date}
-                          </span>
-                        </div>
-                        <Badge className="mt-1 mb-2">
-                          {request.sessionType}
-                        </Badge>
-                        <p className="text-sm text-gray-600">
-                          {request.message}
-                        </p>
-                      </div>
-                      <div className="ml-4 flex items-center">
-                        {request.status === "pending" ? (
-                          <div className="flex space-x-2">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="text-red-500 border-red-200"
-                            >
-                              Decline
-                            </Button>
-                            <Button size="sm">Accept</Button>
+                  {mentorData.recentRequests?.length > 0 ? (
+                    mentorData.recentRequests
+                      .slice(0, 5)
+                      .map((request: any) => (
+                        <div
+                          key={request.id}
+                          className="flex items-start p-4 border rounded-lg hover:bg-gray-50 transition-colors"
+                        >
+                          <ProfileImage
+                            src={request.mentee?.profilePicture}
+                            alt={request.mentee?.name || "Mentee"}
+                            width={40}
+                            height={40}
+                            className="rounded-full"
+                          />
+                          <div className="ml-4 flex-1">
+                            <div className="flex items-center justify-between">
+                              <h4 className="font-medium">
+                                {request.mentee?.name}
+                              </h4>
+                              <span className="text-xs text-gray-500">
+                                {new Date(
+                                  request.createdAt
+                                ).toLocaleDateString()}
+                              </span>
+                            </div>
+                            <p className="text-sm text-gray-600 mt-1">
+                              {request.message || "No message provided"}
+                            </p>
+                            <div className="flex flex-wrap gap-2 mt-2">
+                              {request.mentee?.goals?.map(
+                                (goal: string, index: number) => (
+                                  <Badge key={index} variant="secondary">
+                                    {goal}
+                                  </Badge>
+                                )
+                              )}
+                            </div>
                           </div>
-                        ) : request.status === "accepted" ? (
-                          <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
-                            Accepted
-                          </Badge>
-                        ) : (
-                          <Badge className="bg-red-100 text-red-800 hover:bg-red-100">
-                            Declined
-                          </Badge>
-                        )}
-                      </div>
+                          <div className="ml-4 flex items-center">
+                            {request.status === "PENDING" ? (
+                              <div className="flex space-x-2">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="text-red-500 border-red-200"
+                                  onClick={() =>
+                                    handleMentorshipRequest(
+                                      request.id,
+                                      "decline"
+                                    )
+                                  }
+                                  disabled={processingRequests.has(request.id)}
+                                >
+                                  {processingRequests.has(request.id)
+                                    ? "Processing..."
+                                    : "Decline"}
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  onClick={() =>
+                                    handleMentorshipRequest(
+                                      request.id,
+                                      "accept"
+                                    )
+                                  }
+                                  disabled={processingRequests.has(request.id)}
+                                >
+                                  {processingRequests.has(request.id)
+                                    ? "Processing..."
+                                    : "Accept"}
+                                </Button>
+                              </div>
+                            ) : request.status === "ACCEPTED" ? (
+                              <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
+                                Accepted
+                              </Badge>
+                            ) : (
+                              <Badge className="bg-red-100 text-red-800 hover:bg-red-100">
+                                Declined
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                      ))
+                  ) : (
+                    <div className="text-center py-8 text-gray-500">
+                      No mentorship requests yet
                     </div>
-                  ))}
+                  )}
                 </div>
               </CardContent>
               <CardFooter>
-                <Link href="/dashboard/requests">
+                <Link href="/dashboard/my-mentees">
                   <Button variant="outline" className="w-full">
-                    View All Requests
+                    View All Mentees
                   </Button>
                 </Link>
               </CardFooter>
             </Card>
 
+            {/* Upcoming Sessions */}
             <Card>
               <CardHeader>
                 <CardTitle>Upcoming Sessions</CardTitle>
@@ -361,35 +582,49 @@ export default function DashboardPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {upcomingSessions.slice(0, 3).map((session) => (
-                    <div
-                      key={session.id}
-                      className="p-3 border rounded-lg hover:bg-gray-50 transition-colors"
-                    >
-                      <div className="flex items-center justify-between mb-2">
-                        <Badge variant="outline">{session.sessionType}</Badge>
-                        <span className="text-xs font-medium text-gray-500">
-                          {session.date}
-                        </span>
-                      </div>
-                      <div className="flex items-center mb-2">
-                        <Image
-                          src={session.mentee.avatar || "/placeholder.svg"}
-                          alt={session.mentee.name}
-                          width={24}
-                          height={24}
-                          className="rounded-full"
-                        />
-                        <span className="ml-2 text-sm">
-                          {session.mentee.name}
-                        </span>
-                      </div>
-                      <div className="flex items-center text-xs text-gray-500">
-                        <Clock className="h-3 w-3 mr-1" />
-                        {session.time}
-                      </div>
+                  {mentorData.upcomingSessions?.length > 0 ? (
+                    mentorData.upcomingSessions
+                      .slice(0, 3)
+                      .map((session: any) => (
+                        <div
+                          key={session.id}
+                          className="p-3 border rounded-lg hover:bg-gray-50 transition-colors"
+                        >
+                          <div className="flex items-center justify-between mb-2">
+                            <Badge variant="outline">{session.title}</Badge>
+                            <span className="text-xs font-medium text-gray-500">
+                              {new Date(session.date).toLocaleDateString()}
+                            </span>
+                          </div>
+                          <div className="flex items-center mb-2">
+                            <ProfileImage
+                              src={
+                                session.mentee?.profilePicture ||
+                                "/placeholder.svg"
+                              }
+                              alt={session.mentee?.name || "Mentee"}
+                              width={24}
+                              height={24}
+                              className="rounded-full"
+                            />
+                            <span className="ml-2 text-sm">
+                              {session.mentee?.name}
+                            </span>
+                          </div>
+                          <div className="flex items-center text-xs text-gray-500">
+                            <Clock className="h-3 w-3 mr-1" />
+                            {new Date(session.date).toLocaleTimeString([], {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </div>
+                        </div>
+                      ))
+                  ) : (
+                    <div className="text-center py-8 text-gray-500">
+                      No upcoming sessions
                     </div>
-                  ))}
+                  )}
                 </div>
               </CardContent>
               <CardFooter>
@@ -405,7 +640,7 @@ export default function DashboardPage() {
       )}
 
       {/* Mentee Dashboard */}
-      {userRole === "mentee" && (
+      {userRole === "mentee" && menteeData && (
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <Card>
@@ -419,9 +654,13 @@ export default function DashboardPage() {
                   <Users className="h-8 w-8 text-blue-500 mr-3" />
                   <div>
                     <div className="text-2xl font-bold">
-                      {menteeStats.totalMentors}
+                      {menteeData.mentorInfo ? 1 : 0}
                     </div>
-                    <p className="text-xs text-gray-500">Across 3 categories</p>
+                    <p className="text-xs text-gray-500">
+                      {menteeData.mentorInfo
+                        ? "Active mentor"
+                        : "No mentor assigned"}
+                    </p>
                   </div>
                 </div>
               </CardContent>
@@ -430,7 +669,7 @@ export default function DashboardPage() {
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium text-gray-500">
-                  Active Sessions
+                  Active Tasks
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -438,11 +677,11 @@ export default function DashboardPage() {
                   <Calendar className="h-8 w-8 text-green-500 mr-3" />
                   <div>
                     <div className="text-2xl font-bold">
-                      {menteeStats.activeSessions}
+                      {menteeData.tasks?.filter(
+                        (task) => task.status !== "COMPLETED"
+                      ).length || 0}
                     </div>
-                    <p className="text-xs text-gray-500">
-                      Next: Tomorrow, 10:00 AM
-                    </p>
+                    <p className="text-xs text-gray-500">Pending completion</p>
                   </div>
                 </div>
               </CardContent>
@@ -459,9 +698,9 @@ export default function DashboardPage() {
                   <CheckCircle className="h-8 w-8 text-purple-500 mr-3" />
                   <div>
                     <div className="text-2xl font-bold">
-                      {menteeStats.completedSessions}
+                      {menteeData.completedSessions?.length || 0}
                     </div>
-                    <p className="text-xs text-gray-500">+2 this month</p>
+                    <p className="text-xs text-gray-500">Total completed</p>
                   </div>
                 </div>
               </CardContent>
@@ -478,214 +717,122 @@ export default function DashboardPage() {
                   <Clock className="h-8 w-8 text-yellow-500 mr-3" />
                   <div>
                     <div className="text-2xl font-bold">
-                      {menteeStats.upcomingSessions}
+                      {menteeData.upcomingSessions?.length || 0}
                     </div>
-                    <p className="text-xs text-gray-500">Resume Review</p>
+                    <p className="text-xs text-gray-500">
+                      {menteeData.upcomingSessions?.[0]?.title ||
+                        "No sessions scheduled"}
+                    </p>
                   </div>
                 </div>
               </CardContent>
             </Card>
           </div>
 
-          {/* Find Mentors Section - New prominent section for mentees */}
-          <Card className="mb-8">
-            <CardHeader>
-              <CardTitle>Find Your Perfect Mentor</CardTitle>
-              <CardDescription>
-                Discover mentors who can help you achieve your goals
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="flex flex-col justify-between">
-                  <div>
-                    <h3 className="text-lg font-medium mb-2">
-                      What are you looking for help with?
-                    </h3>
-                    <p className="text-gray-600 mb-6">
-                      Browse our community of experienced mentors across various
-                      fields and specialties.
-                    </p>
-                    <div className="grid grid-cols-2 gap-3 mb-6">
-                      {mentorCategories.map((category) => (
-                        <Link
-                          href={`/browse?category=${category.name}`}
-                          key={category.id}
-                        >
-                          <div className="flex items-center p-3 border rounded-lg hover:bg-gray-50 transition-colors">
-                            <Image
-                              src={category.icon || "/placeholder.svg"}
-                              alt={category.name}
-                              width={40}
-                              height={40}
-                              className="rounded-md mr-3"
-                            />
-                            <div>
-                              <p className="font-medium text-sm">
-                                {category.name}
-                              </p>
-                              <p className="text-xs text-gray-500">
-                                {category.count} mentors
-                              </p>
-                            </div>
-                          </div>
-                        </Link>
-                      ))}
-                    </div>
-                  </div>
+          {/* Find Mentors Section - Show only if no mentor assigned */}
+          {!menteeData.mentorInfo && (
+            <Card className="mb-8">
+              <CardHeader>
+                <CardTitle>Find Your Perfect Mentor</CardTitle>
+                <CardDescription>
+                  Discover mentors who can help you achieve your goals
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center py-8">
+                  <h3 className="text-lg font-medium mb-4">
+                    Ready to start your mentorship journey?
+                  </h3>
+                  <p className="text-gray-600 mb-6">
+                    Browse our community of experienced mentors across various
+                    fields and specialties.
+                  </p>
                   <Link href="/browse">
-                    <Button className="w-full">
+                    <Button className="w-full max-w-md">
                       <Search className="h-4 w-4 mr-2" />
                       Browse All Mentors
                     </Button>
                   </Link>
                 </div>
-
-                <div>
-                  <h3 className="text-lg font-medium mb-4">
-                    Recommended for you
-                  </h3>
-                  <div className="space-y-4">
-                    {recommendedMentors.map((mentor) => (
-                      <Link href={`/mentor/${mentor.id}`} key={mentor.id}>
-                        <div className="flex items-start p-3 border rounded-lg hover:bg-gray-50 transition-colors">
-                          <Image
-                            src={mentor.avatar || "/placeholder.svg"}
-                            alt={mentor.name}
-                            width={48}
-                            height={48}
-                            className="rounded-full"
-                          />
-                          <div className="ml-3 flex-1">
-                            <div className="flex items-center justify-between">
-                              <h4 className="font-medium">{mentor.name}</h4>
-                              <div className="flex items-center">
-                                <Star className="h-4 w-4 text-yellow-400 fill-yellow-400" />
-                                <span className="text-sm ml-1">
-                                  {mentor.rating}
-                                </span>
-                              </div>
-                            </div>
-                            <p className="text-sm text-gray-600">
-                              {mentor.title} at {mentor.company}
-                            </p>
-                            <div className="flex flex-wrap gap-1 mt-1">
-                              {mentor.specialties
-                                .slice(0, 2)
-                                .map((specialty, index) => (
-                                  <Badge
-                                    key={index}
-                                    variant="secondary"
-                                    className="text-xs"
-                                  >
-                                    {specialty}
-                                  </Badge>
-                                ))}
-                              {mentor.specialties.length > 2 && (
-                                <Badge variant="secondary" className="text-xs">
-                                  +{mentor.specialties.length - 2} more
-                                </Badge>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          )}
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* My Mentor Section */}
             <Card className="lg:col-span-2">
               <CardHeader>
-                <CardTitle>My Mentors</CardTitle>
-                <CardDescription>Connect with your mentors</CardDescription>
+                <CardTitle>My Mentor</CardTitle>
+                <CardDescription>Your current mentorship</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {[
-                    {
-                      id: 1,
-                      name: "David Chen",
-                      title: "Senior Product Manager",
-                      company: "Google",
-                      avatar: "/placeholder.svg",
-                      expertise: ["Career Guidance", "Product Management"],
-                      lastSession: "2 days ago",
-                    },
-                    {
-                      id: 2,
-                      name: "Sarah Johnson",
-                      title: "UX Design Lead",
-                      company: "Adobe",
-                      avatar: "/placeholder.svg",
-                      expertise: ["Resume Review", "Portfolio Feedback"],
-                      lastSession: "1 week ago",
-                    },
-                    {
-                      id: 3,
-                      name: "Michael Brown",
-                      title: "Engineering Manager",
-                      company: "Microsoft",
-                      avatar: "/placeholder.svg",
-                      expertise: ["Mock Interview", "Technical Skills"],
-                      lastSession: "2 weeks ago",
-                    },
-                  ].map((mentor) => (
-                    <div
-                      key={mentor.id}
-                      className="flex items-start p-4 border rounded-lg hover:bg-gray-50 transition-colors"
-                    >
-                      <Image
-                        src={mentor.avatar || "/placeholder.svg"}
-                        alt={mentor.name}
-                        width={48}
-                        height={48}
-                        className="rounded-full"
-                      />
-                      <div className="ml-4 flex-1">
-                        <div className="flex items-center justify-between">
-                          <h4 className="font-medium">{mentor.name}</h4>
-                          <span className="text-xs text-gray-500">
-                            Last session: {mentor.lastSession}
+                {menteeData.mentorInfo ? (
+                  <div className="flex items-start p-4 border rounded-lg hover:bg-gray-50 transition-colors">
+                    <ProfileImage
+                      src={menteeData.mentorInfo.profilePicture}
+                      alt={menteeData.mentorInfo.name}
+                      width={60}
+                      height={60}
+                      className="rounded-full"
+                    />
+                    <div className="ml-4 flex-1">
+                      <div className="flex items-center justify-between">
+                        <h4 className="font-medium text-lg">
+                          {menteeData.mentorInfo.name}
+                        </h4>
+                        <div className="flex items-center">
+                          <Star className="h-4 w-4 text-yellow-400 fill-yellow-400" />
+                          <span className="text-sm ml-1">
+                            {menteeData.mentorInfo.rating || "N/A"}
                           </span>
                         </div>
-                        <p className="text-sm text-gray-600">
-                          {mentor.title} at {mentor.company}
-                        </p>
-                        <div className="flex flex-wrap gap-2 mt-2">
-                          {mentor.expertise.map((skill) => (
-                            <Badge key={skill} variant="secondary">
-                              {skill}
-                            </Badge>
-                          ))}
-                        </div>
                       </div>
-                      <div className="ml-4 flex items-center space-x-2">
-                        <Button size="sm" variant="outline">
+                      <p className="text-sm text-gray-600">
+                        {menteeData.mentorInfo.title} at{" "}
+                        {menteeData.mentorInfo.company}
+                      </p>
+                      <p className="text-sm text-gray-600 mt-2">
+                        {menteeData.mentorInfo.bio}
+                      </p>
+                      <div className="flex items-center space-x-2 mt-4">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() =>
+                            handleSendMessage(menteeData.mentorInfo.id)
+                          }
+                        >
                           <MessageSquare className="h-4 w-4 mr-1" />
                           Message
                         </Button>
-                        <Button size="sm">
+                        <Button size="sm" onClick={handleBookSession}>
                           <Calendar className="h-4 w-4 mr-1" />
-                          Book
+                          Book Session
                         </Button>
                       </div>
                     </div>
-                  ))}
-                </div>
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-gray-500">
+                    <p className="mb-4">
+                      You don't have a mentor assigned yet.
+                    </p>
+                    <Link href="/browse">
+                      <Button>Find a Mentor</Button>
+                    </Link>
+                  </div>
+                )}
               </CardContent>
               <CardFooter>
-                <Link href="/dashboard/mentors">
+                <Link href="/dashboard/my-mentors">
                   <Button variant="outline" className="w-full">
-                    View All My Mentors
+                    View Mentor Details
                   </Button>
                 </Link>
               </CardFooter>
             </Card>
 
+            {/* Upcoming Sessions */}
             <Card>
               <CardHeader>
                 <CardTitle>Upcoming Sessions</CardTitle>
@@ -695,35 +842,49 @@ export default function DashboardPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {upcomingSessions.slice(0, 3).map((session) => (
-                    <div
-                      key={session.id}
-                      className="p-3 border rounded-lg hover:bg-gray-50 transition-colors"
-                    >
-                      <div className="flex items-center justify-between mb-2">
-                        <Badge variant="outline">{session.sessionType}</Badge>
-                        <span className="text-xs font-medium text-gray-500">
-                          {session.date}
-                        </span>
-                      </div>
-                      <div className="flex items-center mb-2">
-                        <Image
-                          src={session.mentor.avatar || "/placeholder.svg"}
-                          alt={session.mentor.name}
-                          width={24}
-                          height={24}
-                          className="rounded-full"
-                        />
-                        <span className="ml-2 text-sm">
-                          {session.mentor.name}
-                        </span>
-                      </div>
-                      <div className="flex items-center text-xs text-gray-500">
-                        <Clock className="h-3 w-3 mr-1" />
-                        {session.time}
-                      </div>
+                  {menteeData.upcomingSessions?.length > 0 ? (
+                    menteeData.upcomingSessions
+                      .slice(0, 3)
+                      .map((session: any) => (
+                        <div
+                          key={session.id}
+                          className="p-3 border rounded-lg hover:bg-gray-50 transition-colors"
+                        >
+                          <div className="flex items-center justify-between mb-2">
+                            <Badge variant="outline">{session.title}</Badge>
+                            <span className="text-xs font-medium text-gray-500">
+                              {new Date(session.date).toLocaleDateString()}
+                            </span>
+                          </div>
+                          <div className="flex items-center mb-2">
+                            <ProfileImage
+                              src={
+                                menteeData.mentorInfo?.profilePicture ||
+                                "/placeholder.svg"
+                              }
+                              alt={menteeData.mentorInfo?.name || "Mentor"}
+                              width={24}
+                              height={24}
+                              className="rounded-full"
+                            />
+                            <span className="ml-2 text-sm">
+                              {menteeData.mentorInfo?.name}
+                            </span>
+                          </div>
+                          <div className="flex items-center text-xs text-gray-500">
+                            <Clock className="h-3 w-3 mr-1" />
+                            {new Date(session.date).toLocaleTimeString([], {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </div>
+                        </div>
+                      ))
+                  ) : (
+                    <div className="text-center py-8 text-gray-500">
+                      No upcoming sessions
                     </div>
-                  ))}
+                  )}
                 </div>
               </CardContent>
               <CardFooter>
@@ -737,6 +898,124 @@ export default function DashboardPage() {
           </div>
         </>
       )}
+
+      {/* Session Booking Modal */}
+      <Dialog open={showBookingModal} onOpenChange={setShowBookingModal}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Book a Session</DialogTitle>
+            <DialogDescription>
+              Schedule a mentoring session with{" "}
+              {dashboardData?.menteeData?.mentorInfo?.name}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="date" className="text-right">
+                Date
+              </Label>
+              <Input
+                id="date"
+                type="date"
+                value={bookingData.date}
+                onChange={(e) =>
+                  setBookingData((prev) => ({ ...prev, date: e.target.value }))
+                }
+                className="col-span-3"
+                min={new Date().toISOString().split("T")[0]}
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="time" className="text-right">
+                Time
+              </Label>
+              <Input
+                id="time"
+                type="time"
+                value={bookingData.time}
+                onChange={(e) =>
+                  setBookingData((prev) => ({ ...prev, time: e.target.value }))
+                }
+                className="col-span-3"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="duration" className="text-right">
+                Duration
+              </Label>
+              <select
+                id="duration"
+                value={bookingData.duration}
+                onChange={(e) =>
+                  setBookingData((prev) => ({
+                    ...prev,
+                    duration: e.target.value,
+                  }))
+                }
+                className="col-span-3 px-3 py-2 border border-gray-300 rounded-md"
+              >
+                <option value="30">30 minutes</option>
+                <option value="60">1 hour</option>
+                <option value="90">1.5 hours</option>
+                <option value="120">2 hours</option>
+              </select>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="topic" className="text-right">
+                Topic
+              </Label>
+              <Input
+                id="topic"
+                value={bookingData.topic}
+                onChange={(e) =>
+                  setBookingData((prev) => ({ ...prev, topic: e.target.value }))
+                }
+                placeholder="Session topic"
+                className="col-span-3"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="description" className="text-right">
+                Notes
+              </Label>
+              <Textarea
+                id="description"
+                value={bookingData.description}
+                onChange={(e) =>
+                  setBookingData((prev) => ({
+                    ...prev,
+                    description: e.target.value,
+                  }))
+                }
+                placeholder="Additional notes or agenda"
+                className="col-span-3"
+                rows={3}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setShowBookingModal(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              onClick={handleBookingSubmit}
+              disabled={
+                bookingLoading ||
+                !bookingData.date ||
+                !bookingData.time ||
+                !bookingData.topic
+              }
+            >
+              {bookingLoading ? "Booking..." : "Book Session"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

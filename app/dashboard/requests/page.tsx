@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -15,87 +15,125 @@ import {
 } from "@/components/ui/select";
 import { Clock, Search, Calendar, MessageSquare, Inbox } from "lucide-react";
 
-// Mock data for mentorship requests
-const mentorshipRequests = [
-  {
-    id: 1,
-    mentee: {
-      name: "Sophia Lee",
-      avatar: "/placeholder.svg",
-      title: "Marketing Specialist",
-    },
-    sessionType: "Career Transition",
-    message:
-      "I need guidance on transitioning from marketing to product management. I have 5 years of experience in digital marketing and I'm interested in leveraging my analytical skills and user insights in a product role. Could you help me create a transition plan and identify skills I need to develop?",
-    date: "2 hours ago",
-    status: "pending",
-    availability: ["Monday evenings", "Wednesday afternoons", "Weekends"],
-  },
-  {
-    id: 2,
-    mentee: {
-      name: "Daniel Kim",
-      avatar: "/placeholder.svg",
-      title: "Frontend Developer",
-    },
-    sessionType: "Resume Review",
-    message:
-      "Could you review my resume for a senior developer position? I've been working as a frontend developer for 4 years and I'm looking to take the next step in my career. I've attached my current resume for your review.",
-    date: "1 day ago",
-    status: "accepted",
-    availability: ["Tuesday evenings", "Thursday mornings"],
-    scheduledFor: "May 15, 2023, 6:00 PM",
-  },
-  {
-    id: 3,
-    mentee: {
-      name: "Aisha Patel",
-      avatar: "/placeholder.svg",
-      title: "Product Designer",
-    },
-    sessionType: "Mock Interview",
-    message:
-      "I have an interview next week for a senior product designer role at a fintech company. I'd like to practice my portfolio presentation and answering design challenge questions. I'm particularly nervous about explaining my design process.",
-    date: "2 days ago",
-    status: "declined",
-    availability: ["Friday afternoons", "Weekends"],
-  },
-  {
-    id: 4,
-    mentee: {
-      name: "James Wilson",
-      avatar: "/placeholder.svg",
-      title: "Data Analyst",
-    },
-    sessionType: "Career Guidance",
-    message:
-      "I'm considering specializing in either data science or business intelligence. I'd appreciate your insights on the career prospects, required skills, and day-to-day responsibilities of both paths to help me make an informed decision.",
-    date: "3 days ago",
-    status: "pending",
-    availability: ["Monday mornings", "Wednesday evenings"],
-  },
-  {
-    id: 5,
-    mentee: {
-      name: "Emma Rodriguez",
-      avatar: "/placeholder.svg",
-      title: "Recent Graduate",
-    },
-    sessionType: "Portfolio Review",
-    message:
-      "I just graduated with a degree in UX design and I'd love your feedback on my portfolio before I start applying for jobs. I want to make sure my projects showcase my skills effectively and stand out to potential employers.",
-    date: "4 days ago",
-    status: "accepted",
-    availability: ["Weekday evenings", "Weekends"],
-    scheduledFor: "May 18, 2023, 7:00 PM",
-  },
-];
+// Define TypeScript interface for mentorship request
+interface MentorshipRequest {
+  id: number;
+  mentee: {
+    name: string;
+    avatar?: string;
+    title: string;
+    email?: string;
+  };
+  sessionType: string;
+  message: string;
+  date: string;
+  status: "pending" | "accepted" | "declined";
+  availability: string[];
+  scheduledFor?: string;
+  createdAt?: string;
+  preferredDuration?: string;
+  urgency?: "low" | "medium" | "high";
+}
 
 export default function RequestsPage() {
   const [filter, setFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [sessionTypeFilter, setSessionTypeFilter] = useState("all");
-  
+  const [mentorshipRequests, setMentorshipRequests] = useState<
+    MentorshipRequest[]
+  >([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch mentorship requests for the current mentor
+  const fetchMentorshipRequests = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      // Replace with your actual API endpoint
+      const response = await fetch("/api/mentor/requests", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          // Add authentication headers if needed
+          // 'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      // Handle 404 - API endpoint doesn't exist yet
+      if (response.status === 404) {
+        setMentorshipRequests([]);
+        return;
+      }
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch mentorship requests");
+      }
+
+      const data = await response.json();
+      setMentorshipRequests(data.requests || []);
+    } catch (err) {
+      // If it's a network error or the API doesn't exist, just show empty state
+      if (err instanceof TypeError && err.message.includes("fetch")) {
+        setMentorshipRequests([]);
+      } else {
+        setError(
+          err instanceof Error
+            ? err.message
+            : "An error occurred while fetching requests"
+        );
+      }
+      console.error("Error fetching mentorship requests:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Load requests when component mounts
+  useEffect(() => {
+    fetchMentorshipRequests();
+  }, []);
+
+  // Handle request actions
+  const handleAcceptRequest = async (requestId: number) => {
+    try {
+      const response = await fetch(`/api/mentor/requests/${requestId}/accept`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (response.ok) {
+        // Refresh the requests list
+        fetchMentorshipRequests();
+      }
+    } catch (err) {
+      console.error("Error accepting request:", err);
+    }
+  };
+
+  const handleDeclineRequest = async (requestId: number) => {
+    try {
+      const response = await fetch(
+        `/api/mentor/requests/${requestId}/decline`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (response.ok) {
+        // Refresh the requests list
+        fetchMentorshipRequests();
+      }
+    } catch (err) {
+      console.error("Error declining request:", err);
+    }
+  };
 
   // Filter requests based on status and search query
   const filteredRequests = mentorshipRequests.filter((request) => {
@@ -129,6 +167,58 @@ export default function RequestsPage() {
   const sessionTypes = Array.from(
     new Set(mentorshipRequests.map((request) => request.sessionType))
   );
+
+  // Show loading state
+  if (loading) {
+    return (
+      <div>
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold mb-2">Mentorship Requests</h1>
+          <p className="text-gray-600">
+            Manage and respond to mentorship requests from mentees
+          </p>
+        </div>
+        <div className="bg-white rounded-lg shadow p-8 text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading your mentorship requests...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Only show error state for actual errors, not empty data
+  if (error) {
+    return (
+      <div>
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold mb-2">Mentorship Requests</h1>
+          <p className="text-gray-600">
+            Manage and respond to mentorship requests from mentees
+          </p>
+        </div>
+        <div className="bg-white rounded-lg shadow p-8 text-center">
+          <div className="text-red-500 mb-4">
+            <svg
+              className="h-12 w-12 mx-auto"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+          </div>
+          <h3 className="text-lg font-medium mb-2">Error loading requests</h3>
+          <p className="text-gray-600 mb-4">{error}</p>
+          <Button onClick={fetchMentorshipRequests}>Try Again</Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -282,7 +372,10 @@ export default function RequestsPage() {
 
                         {request.status === "pending" && (
                           <div className="flex flex-col sm:flex-row gap-3 mt-4">
-                            <Button className="sm:w-auto">
+                            <Button
+                              className="sm:w-auto"
+                              onClick={() => handleAcceptRequest(request.id)}
+                            >
                               Accept Request
                             </Button>
                             <Button variant="outline" className="sm:w-auto">
@@ -291,6 +384,7 @@ export default function RequestsPage() {
                             <Button
                               variant="outline"
                               className="text-red-500 border-red-200 sm:w-auto"
+                              onClick={() => handleDeclineRequest(request.id)}
                             >
                               Decline
                             </Button>
@@ -319,12 +413,16 @@ export default function RequestsPage() {
                     <Inbox className="h-8 w-8 text-gray-500" />
                   </div>
                   <h3 className="text-lg font-medium mb-1">
-                    No requests found
+                    {mentorshipRequests.length === 0
+                      ? "No mentorship requests yet"
+                      : "No requests found"}
                   </h3>
                   <p className="text-gray-500">
-                    {searchQuery || sessionTypeFilter !== "all"
-                      ? "Try adjusting your filters"
-                      : "You don't have any mentorship requests at the moment"}
+                    {mentorshipRequests.length === 0
+                      ? "You don't have any mentorship requests at the moment. Mentees will be able to send you requests once your profile is set up."
+                      : searchQuery || sessionTypeFilter !== "all"
+                      ? "Try adjusting your filters to see more requests"
+                      : "No requests match your current filters"}
                   </p>
                 </div>
               )}
