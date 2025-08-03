@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import {
   Card,
   CardContent,
@@ -61,36 +62,43 @@ interface UserRole {
 
 export default function SessionsPage() {
   const router = useRouter();
+  const { data: session, status } = useSession();
   const [sessions, setSessions] = useState<Session[]>([]);
   const [userRole, setUserRole] = useState<"mentor" | "mentee" | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedSession, setSelectedSession] = useState<Session | null>(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
 
-  // Replace with actual user ID from authentication
-  const userId = "3459d90e-8bd8-43f2-9b17-b40b16625668";
-
   useEffect(() => {
-    fetchUserRoleAndSessions();
-  }, []);
+    if (status === "loading") return;
+    if (status === "unauthenticated") {
+      router.push("/auth/signin");
+      return;
+    }
+    if (session?.user?.id) {
+      fetchUserRoleAndSessions();
+    }
+  }, [session, status, router]);
 
   const fetchUserRoleAndSessions = async () => {
+    if (!session?.user?.id) return;
+
     try {
       setLoading(true);
 
-      // Determine user role by trying to fetch mentor data first
-      const mentorResponse = await fetch(`/api/dashboard/mentor?id=${userId}`);
-      let role: "mentor" | "mentee" = "mentee";
-
-      if (mentorResponse.ok) {
-        role = "mentor";
+      // Get current user data including role
+      const userResponse = await fetch("/api/auth/user");
+      if (!userResponse.ok) {
+        throw new Error("Failed to fetch user data");
       }
 
-      setUserRole(role);
+      const userData = await userResponse.json();
+      const normalizedRole = userData.role.toLowerCase() as "mentor" | "mentee";
+      setUserRole(normalizedRole);
 
-      // Fetch sessions based on role
+      // Fetch sessions for the authenticated user
       const sessionsResponse = await fetch(
-        `/api/sessions?userId=${userId}&role=${role.toUpperCase()}`
+        `/api/sessions?role=${userData.role}`
       );
 
       if (sessionsResponse.ok) {
@@ -120,7 +128,6 @@ export default function SessionsPage() {
         },
         body: JSON.stringify({
           status: "CANCELLED",
-          userId,
         }),
       });
 

@@ -103,9 +103,11 @@ model Session {
   time     String
   duration Int
   status   String
+  description   String
   feedback String?
   rating   Float?
   title    String
+  offeringType String?
   booking  Booking? @relation("SessionBooking")
   mentee   User     @relation("SessionsAsMentee", fields: [menteeId], references: [id])
   mentor   User     @relation("SessionsAsMentor", fields: [mentorId], references: [id])
@@ -115,6 +117,7 @@ model Mentorship {
   id        String   @id @default(uuid())
   mentorId  String
   menteeId  String
+  status    MentorshipRequestStatus @default(PENDING)
   createdAt DateTime @default(now())
   mentee    User     @relation("MentorshipMentee", fields: [menteeId], references: [id])
   mentor    User     @relation("MentorshipMentor", fields: [mentorId], references: [id])

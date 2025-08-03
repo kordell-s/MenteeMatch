@@ -19,8 +19,29 @@ export async function GET(request: NextRequest) {
     // Get all conversations where the user is a participant
     const conversations = await prisma.conversation.findMany({
       where: {
-        participantIds: {
-          has: userId
+        OR: [
+          { mentorId: userId },
+          { menteeId: userId }
+        ]
+      },
+      include: {
+        mentor: {
+          select: {
+            id: true,
+            name: true,
+            profilePicture: true
+          }
+        },
+        mentee: {
+          select: {
+            id: true,
+            name: true,
+            profilePicture: true
+          }
+        },
+        messages: {
+          orderBy: { timestamp: 'desc' },
+          take: 1
         }
       },
       orderBy: {
@@ -32,7 +53,7 @@ export async function GET(request: NextRequest) {
     const transformedConversations = await Promise.all(
       conversations.map(async (conversation) => {
         // Get the other participant ID
-        const otherParticipantId = conversation.participantIds.find(id => id !== userId);
+        const otherParticipantId = conversation.mentorId === userId ? conversation.menteeId : conversation.mentorId;
         
         if (!otherParticipantId) {
           return null;

@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useSession } from "next-auth/react";
 import {
   Home,
   Calendar,
@@ -19,28 +20,17 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 
-// Mock user data - in a real app, this would come from your auth system
-const mockUser = {
-  id: 1,
-  name: "Alex Johnson",
-  email: "alex@example.com",
-  role: "mentor", // or "mentee"
-  avatar: "/placeholder.svg",
-};
-
 export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [userRole, setUserRole] = useState("mentor"); // Default to mentor
+  const { data: session, status } = useSession();
   const pathname = usePathname();
 
-  // Toggle between mentor and mentee view for demonstration
-  const toggleRole = () => {
-    setUserRole(userRole === "mentor" ? "mentee" : "mentor");
-  };
+  // Get user role from session
+  const userRole = session?.user?.role?.toLowerCase() || "mentee";
 
   // Navigation items based on user role
   const mentorNavItems = [
@@ -50,7 +40,7 @@ export default function DashboardLayout({
     { name: "Sessions", href: "/dashboard/sessions", icon: Calendar },
     {
       name: "Messages",
-      href: "/dashboard/messages",
+      href: "/messages",
       icon: MessageSquare,
       badge: 3,
     },
@@ -65,7 +55,7 @@ export default function DashboardLayout({
     { name: "Sessions", href: "/dashboard/sessions", icon: Calendar },
     {
       name: "Messages",
-      href: "/dashboard/messages",
+      href: "/messages",
       icon: MessageSquare,
       badge: 2,
     },
@@ -74,6 +64,15 @@ export default function DashboardLayout({
   ];
 
   const navItems = userRole === "mentor" ? mentorNavItems : menteeNavItems;
+
+  // Show loading state if session is loading
+  if (status === "loading") {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        Loading...
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
@@ -113,26 +112,19 @@ export default function DashboardLayout({
           <div className="flex items-center">
             <Avatar className="h-8 w-8">
               <AvatarImage
-                src={mockUser.avatar || "/placeholder.svg"}
-                alt={mockUser.name}
+                src={session?.user?.profilePicture || "/placeholder.svg"}
+                alt={session?.user?.name || "User"}
               />
-              <AvatarFallback>{mockUser.name.charAt(0)}</AvatarFallback>
+              <AvatarFallback>
+                {session?.user?.name?.charAt(0) || "U"}
+              </AvatarFallback>
             </Avatar>
             <div className="ml-3">
-              <p className="text-sm font-medium">{mockUser.name}</p>
+              <p className="text-sm font-medium">
+                {session?.user?.name || "User"}
+              </p>
               <p className="text-xs text-gray-500 capitalize">{userRole}</p>
             </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="ml-auto"
-              onClick={toggleRole}
-              title={`Switch to ${
-                userRole === "mentor" ? "mentee" : "mentor"
-              } view`}
-            >
-              <Users className="h-4 w-4" />
-            </Button>
           </div>
         </div>
       </aside>
@@ -200,26 +192,19 @@ export default function DashboardLayout({
               <div className="flex items-center">
                 <Avatar className="h-8 w-8">
                   <AvatarImage
-                    src={mockUser.avatar || "/placeholder.svg"}
-                    alt={mockUser.name}
+                    src={session?.user?.profilePicture || "/placeholder.svg"}
+                    alt={session?.user?.name || "User"}
                   />
-                  <AvatarFallback>{mockUser.name.charAt(0)}</AvatarFallback>
+                  <AvatarFallback>
+                    {session?.user?.name?.charAt(0) || "U"}
+                  </AvatarFallback>
                 </Avatar>
                 <div className="ml-3">
-                  <p className="text-sm font-medium">{mockUser.name}</p>
+                  <p className="text-sm font-medium">
+                    {session?.user?.name || "User"}
+                  </p>
                   <p className="text-xs text-gray-500 capitalize">{userRole}</p>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="ml-auto"
-                  onClick={toggleRole}
-                  title={`Switch to ${
-                    userRole === "mentor" ? "mentee" : "mentor"
-                  } view`}
-                >
-                  <Users className="h-4 w-4" />
-                </Button>
               </div>
             </div>
           </div>
@@ -244,38 +229,17 @@ export default function DashboardLayout({
             </Button>
             <Avatar className="h-8 w-8">
               <AvatarImage
-                src={mockUser.avatar || "/placeholder.svg"}
-                alt={mockUser.name}
+                src={session?.user?.profilePicture || "/placeholder.svg"}
+                alt={session?.user?.name || "User"}
               />
-              <AvatarFallback>{mockUser.name.charAt(0)}</AvatarFallback>
+              <AvatarFallback>
+                {session?.user?.name?.charAt(0) || "U"}
+              </AvatarFallback>
             </Avatar>
           </div>
         </header>
 
         <main className="flex-1 overflow-y-auto p-6 pt-16 md:pt-6">
-          {/* Role-based content */}
-          {userRole === "mentor" ? (
-            <div className="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm text-blue-700 flex items-center justify-between">
-              <div>
-                <span className="font-medium">Mentor View</span> - You're
-                currently viewing the dashboard as a mentor.
-              </div>
-              <Button size="sm" variant="outline" onClick={toggleRole}>
-                Switch to Mentee View
-              </Button>
-            </div>
-          ) : (
-            <div className="mb-6 bg-green-50 border border-green-200 rounded-lg p-4 text-sm text-green-700 flex items-center justify-between">
-              <div>
-                <span className="font-medium">Mentee View</span> - You're
-                currently viewing the dashboard as a mentee.
-              </div>
-              <Button size="sm" variant="outline" onClick={toggleRole}>
-                Switch to Mentor View
-              </Button>
-            </div>
-          )}
-
           {children}
         </main>
       </div>

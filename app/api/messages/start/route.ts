@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 
 export async function POST(request: NextRequest) {
   try {
-    // TODO: Re-enable auth when features are complete
-    // const session = await getServerSession(authOptions);
-    // if (!session?.user?.id) {
-    //   return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    // }
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
     const { userId, currentUserId } = await request.json();
     if (!userId || !currentUserId) {
@@ -33,38 +34,69 @@ export async function POST(request: NextRequest) {
         OR: [
           { mentorId: currentUserId, menteeId: userId },
           { mentorId: userId, menteeId: currentUserId }
-        ]
+        ],
+        status: 'ACCEPTED'
       }
     });
 
     if (!relationship) {
-      return NextResponse.json({ error: 'No mentorship relationship exists between users' }, { status: 403 });
+      return NextResponse.json({ error: 'No active mentorship relationship found' }, { status: 403 });
     }
 
     // Check if conversation already exists
     const existingConversation = await prisma.conversation.findFirst({
       where: {
-        AND: [
-          { participantIds: { has: currentUserId } },
-          { participantIds: { has: userId } }
+        OR: [
+          { mentorId: currentUserId, menteeId: userId },
+          { mentorId: userId, menteeId: currentUserId }
         ]
+      },
+      include: {
+        messages: {
+          orderBy: { timestamp: 'desc' },
+          take: 1
+        }
       }
     });
 
     if (existingConversation) {
-      return NextResponse.json({ conversationId: existingConversation.id });
+      return NextResponse.json(existingConversation);
     }
 
+    // Determine who is mentor and who is mentee
+    const isCurrentUserMentor = currentUser.role === 'MENTOR';
+    const mentorId = isCurrentUserMentor ? currentUserId : userId;
+    const menteeId = isCurrentUserMentor ? userId : currentUserId;
+
     // Create new conversation
-    const conversation = await prisma.conversation.create({
+    const newConversation = await prisma.conversation.create({
       data: {
-        participantIds: [currentUserId, userId]
+        mentorId,
+        menteeId
+      },
+      include: {
+        mentor: {
+          select: {
+            id: true,
+            name: true,
+            profilePicture: true
+          }
+        },
+        mentee: {
+          select: {
+            id: true,
+            name: true,
+            profilePicture: true
+          }
+        },
+        messages: true
       }
     });
 
-    return NextResponse.json({ conversationId: conversation.id });
+    return NextResponse.json(newConversation);
   } catch (error) {
-    console.error('Error starting conversation:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    console.error("Error starting conversation:", error);
+    return NextResponse.json({ error: 'Failed to start conversation' }, { status: 500 });
   }
 }
+

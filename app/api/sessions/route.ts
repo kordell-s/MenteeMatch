@@ -1,78 +1,77 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getCurrentUser } from "@/lib/auth-helpers";
 import { prisma } from "@/lib/prisma";
 
-export async function POST(request: NextRequest) {
+export async function GET(req: NextRequest) {
   try {
-    const body = await request.json();
-    const { menteeId, mentorId, date, duration, title, description, offeringType, time } = body;
-
-    // Validate required fields - add time to validation
-    if (!menteeId || !mentorId || !date || !duration || !time) {
+    const user = await getCurrentUser();
+    
+    if (!user) {
       return NextResponse.json(
-        { error: "All required fields must be provided" },
-        { status: 400 }
+        { error: "Unauthorized" },
+        { status: 401 }
       );
     }
 
-    // Validate duration is a positive number
-    if (duration <= 0) {
-      return NextResponse.json(
-        { error: "Duration must be a positive number" },
-        { status: 400 }
-      );
-    }
+    const { searchParams } = new URL(req.url);
+    const role = searchParams.get("role");
 
-    // Verify mentorship exists
-    const mentorship = await prisma.mentorship.findFirst({
-      where: {
-        mentorId,
-        menteeId,
-      },
-    });
+    let sessions;
 
-    if (!mentorship) {
-      return NextResponse.json(
-        { error: "No mentorship relationship exists" },
-        { status: 403 }
-      );
-    }
-
-    const booking = await prisma.booking.create({
-      data: {
-        menteeId,
-        mentorId,
-        date: new Date(date),
-        time,
-        duration,
-        title,
-        description,
-        status: "PENDING",
-        offeringType,
-      },
-      include: {
-        mentee: {
-          select: {
-            id: true,
-            name: true,
-            profilePicture: true,
-          },
+    if (role === "MENTOR") {
+      // Fetch sessions where user is the mentor
+      sessions = await prisma.session.findMany({
+        where: {
+          mentorId: user.id,
         },
-        mentor: {
-          select: {
-            id: true,
-            name: true,
-            profilePicture: true,
-          },
+        include: {
+          mentor: true,
+          mentee: true,
         },
-      },
-    });
+        orderBy: {
+          date: "asc",
+        },
+      });
+    } else {
+      // Fetch sessions where user is the mentee
+      sessions = await prisma.session.findMany({
+        where: {
+          menteeId: user.id,
+        },
+        include: {
+          mentor: true,
+          mentee: true,
+        },
+        orderBy: {
+          date: "asc",
+        },
+      });
+    }
 
-    return NextResponse.json({
-      success: true,
-      booking,
-    });
+    const formattedSessions = sessions.map((session) => ({
+      id: session.id,
+      title: session.title,
+      date: session.date.toISOString(),
+      time: session.time,
+      duration: session.duration,
+      status: session.status,
+      description: session.description,
+      // offeringType: session.offeringType,
+      mentor: {
+        id: session.mentor.id,
+        name: session.mentor.name,
+        profilePicture: session.mentor.profilePicture,
+      },
+      mentee: {
+        id: session.mentee.id,
+        name: session.mentee.name,
+        profilePicture: session.mentee.profilePicture,
+      },
+    }));
+
+    return NextResponse.json(formattedSessions);
   } catch (error) {
-    console.error("Error creating session booking:", error);
+    console.error("Error fetching sessions:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
@@ -80,54 +79,67 @@ export async function POST(request: NextRequest) {
   }
 }
 
-export async function GET(request: NextRequest) {
+export async function POST(req: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const userId = searchParams.get("userId");
-    const role = searchParams.get("role");
-
-    if (!userId || !role) {
+    const user = await getCurrentUser();
+    
+    if (!user) {
       return NextResponse.json(
-        { error: "userId and role are required" },
-        { status: 400 }
+        { error: "Unauthorized" },
+        { status: 401 }
       );
     }
 
-    let bookings;
+    const {
+      mentorId,
+      menteeId,
+      date,
+      time,
+      duration,
+      title,
+      description,
+      offeringType,
+    } = await req.json();
 
-    if (role === "MENTOR") {
-      bookings = await prisma.booking.findMany({
-        where: { mentorId: userId },
-        include: {
-          mentee: {
-            select: {
-              id: true,
-              name: true,
-              profilePicture: true,
-            },
-          },
-        },
-        orderBy: { date: "asc" },
-      });
-    } else {
-      bookings = await prisma.booking.findMany({
-        where: { menteeId: userId },
-        include: {
-          mentor: {
-            select: {
-              id: true,
-              name: true,
-              profilePicture: true,
-            },
-          },
-        },
-        orderBy: { date: "asc" },
-      });
+    // Verify that the user is either the mentor or mentee
+    if (user.id !== mentorId && user.id !== menteeId) {
+      return NextResponse.json(
+        { error: "Unauthorized to create this session" },
+        { status: 403 }
+      );
     }
 
-    return NextResponse.json(bookings);
+    // Create the session
+    const session = await prisma.session.create({
+      data: {
+        mentorId,
+        menteeId,
+        date: new Date(date),
+        time,
+        duration,
+        title,
+        description,
+        // offeringType,
+        status: "PENDING",
+      },
+      include: {
+        mentor: true,
+        mentee: true,
+      },
+    });
+
+    return NextResponse.json({
+      id: session.id,
+      title: session.title,
+      date: session.date.toISOString(),
+      time: session.time,
+      duration: session.duration,
+      status: session.status,
+      description: session.description,
+      // offeringType: session.offeringType,
+    });
   } catch (error) {
-    console.error("Error fetching bookings:", error);
+    console.error("Error creating session:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

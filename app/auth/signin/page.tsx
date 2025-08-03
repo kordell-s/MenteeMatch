@@ -48,12 +48,8 @@ export default function SignInPage() {
           localStorage.setItem("userId", session.user.id);
         }
 
-        // Redirect based on user role and profile completion status
-        if (session?.user?.role === "MENTOR") {
-          router.push("/mentor-dashboard");
-        } else {
-          router.push("/dashboard");
-        }
+        // Always redirect to dashboard - let dashboard handle role-specific routing
+        router.push("/dashboard");
       }
     } catch (error) {
       setError("An error occurred. Please try again.");

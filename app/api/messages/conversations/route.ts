@@ -20,25 +20,46 @@ export async function GET(request: NextRequest) {
     }
 
     // Find conversations where user is a participant
-    const conversations = await prisma.Conversation.findMany({
+    const conversations = await prisma.conversation.findMany({
       where: {
-        participantIds: {
-          has: session.user.id
+        OR: [
+          { mentorId: session.user.id },
+          { menteeId: session.user.id }
+        ]
+      },
+      include: {
+        mentor: {
+          select: {
+            id: true,
+            name: true,
+            profilePicture: true,
+            title: true
+          }
+        },
+        mentee: {
+          select: {
+            id: true,
+            name: true,
+            profilePicture: true,
+            title: true
+          }
+        },
+        messages: {
+          orderBy: { timestamp: 'desc' },
+          take: 1
         }
       },
       orderBy: {
-        lastMessageTime: 'desc'
+        updatedAt: 'desc'
       }
     });
 
     // Get participant details and unread counts for each conversation
     const conversationsWithDetails = await Promise.all(
       conversations.map(async (conv) => {
-        const otherParticipantId = conv.participantIds.find(p => p !== session.user.id);
-        const otherUser = await prisma.user.findUnique({
-          where: { id: otherParticipantId },
-          select: { id: true, name: true, email: true, role: true, profilePicture: true, title: true }
-        });
+        // Get the other participant
+        const otherParticipantId = conv.mentorId === session.user.id ? conv.menteeId : conv.mentorId;
+        const otherUser = conv.mentorId === session.user.id ? conv.mentee : conv.mentor;
 
         // Count unread messages for current user
         const unreadCount = await prisma.message.count({
@@ -55,16 +76,12 @@ export async function GET(request: NextRequest) {
             id: otherUser?.id || '',
             name: otherUser?.name || 'Unknown User',
             avatar: otherUser?.profilePicture || '/placeholder.svg',
-            role: otherUser?.role?.toLowerCase() || 'user',
-            title: otherUser?.title || `${otherUser?.role?.charAt(0).toUpperCase()}${otherUser?.role?.slice(1).toLowerCase()}` || 'User',
+            role: currentUser.role === 'MENTOR' ? 'mentee' : 'mentor',
+            title: otherUser?.title || ''
           },
-          lastMessage: {
-            text: conv.lastMessage || '',
-            time: conv.lastMessageTime ? formatTime(conv.lastMessageTime) : '',
-            isRead: unreadCount === 0,
-          },
-          unread: unreadCount,
-          online: false,
+          lastMessage: conv.messages[0] || null,
+          unreadCount,
+          lastMessageTime: conv.lastMessageAt || conv.updatedAt
         };
       })
     );
@@ -72,22 +89,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(conversationsWithDetails);
   } catch (error) {
     console.error('Error fetching conversations:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
-  }
-}
-
-function formatTime(date: Date): string {
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-
-  if (diffDays === 0) {
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  } else if (diffDays === 1) {
-    return 'Yesterday';
-  } else if (diffDays < 7) {
-    return date.toLocaleDateString([], { weekday: 'long' });
-  } else {
-    return date.toLocaleDateString();
+    return NextResponse.json({ error: 'Failed to fetch conversations' }, { status: 500 });
   }
 }

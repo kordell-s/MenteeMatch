@@ -1,160 +1,133 @@
+import { NextRequest, NextResponse } from "next/server";
+import { getCurrentUser } from "@/lib/auth-helpers";
 import { prisma } from "@/lib/prisma";
-import { NextResponse } from "next/server";
 
-export async function GET(request: Request) {
+export async function GET(req: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const userId = searchParams.get("id");
-
-    if (!userId) {
-      return NextResponse.json({ error: "User ID is required" }, { status: 400 });
+    const user = await getCurrentUser();
+    
+    if (!user) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      );
     }
 
-    // Get mentor's basic info
-    const mentorInfo = await prisma.user.findUnique({
-      where: { id: userId },
-      select: {
-        id: true,
-        name: true,
-        title: true,
-        profilePicture: true,
-        bio: true,
-        rating: true,
-        availability: true,
-        skills: true,
-        company: true,
+    // Get mentor data
+    const mentorProfile = await prisma.mentor.findUnique({
+      where: {
+        userId: user.id,
       },
     });
 
-    if (!mentorInfo) {
-      return NextResponse.json({ error: "Mentor not found" }, { status: 404 });
+    if (!mentorProfile) {
+      return NextResponse.json(
+        { error: "Mentor profile not found" },
+        { status: 404 }
+      );
     }
 
-    // Upcoming sessions
-    const upcomingSessions = await prisma.session.findMany({
+    // Get confirmed mentees
+    const confirmedMentees = await prisma.mentorship.findMany({
       where: {
-        mentorId: userId,
-        status: "UPCOMING",
+        mentorId: user.id,
+        status: "ACCEPTED",
       },
-      orderBy: { date: "asc" },
       include: {
-        mentee: {
-          select: {
-            id: true,
-            name: true,
-            profilePicture: true,
-          },
-        },
+        mentee: true,
       },
     });
 
-    // Completed sessions
-    const completedSessions = await prisma.session.findMany({
-        where: {
-          mentorId: userId,
-          status: "COMPLETED",
-        },
-        orderBy: {
-          date: "desc",
-        },
-        include: {
-          mentee: {
-            select: {
-              name: true,
-              profilePicture: true,
-            },
-          },
-        },
-      });
-
-    // Mentorship requests (pending bookings)
-    const mentorshipRequests = await prisma.booking.findMany({
+    // Get recent mentorship requests
+    const recentRequests = await prisma.mentorshipRequest.findMany({
       where: {
-        mentorId: userId,
-        status: "PENDING",
+        mentorId: user.id,
       },
       include: {
         mentee: {
-          select: {
-            id: true,
-            name: true,
-            profilePicture: true,
-          },
-        },
-      },
-    });
-
-    // Confirmed mentees (established mentorships)
-    const confirmedMenteesRaw = await prisma.mentorship.findMany({
-        where: { mentorId: userId },
-        include: {
-          mentee: {
-            select: {
-              id: true,
-              name: true,
-              title: true,
-              profilePicture: true,
-              bio: true,
-              company: true,
-              school: true,
-              mentee: {
-                select: {
-                  goals: true,
-                },
+          include: {
+            mentee: {
+              select: {
+                goals: true,
               },
             },
           },
         },
-      });
-      
-
-    const confirmedMentees = await Promise.all(
-      confirmedMenteesRaw.map(async (entry) => {
-        const sessions = await prisma.session.findMany({
-          where: {
-            menteeId: entry.mentee.id,
-            mentorId: userId,
-          },
-          orderBy: { date: "desc" },
-        });
-
-        const completed = sessions.filter((s) => s.status === "COMPLETED");
-        const upcoming = sessions.find((s) => s.status === "UPCOMING");
-        const progress = Math.min((completed.length / 10) * 100, 100); 
-
-        
-
-        return {
-          id: entry.mentee.id,
-          name: entry.mentee.name,
-          profilePicture: entry.mentee.profilePicture,
-          bio: entry.mentee.bio,
-          company: entry.mentee.company,
-            school: entry.mentee.school,
-          goals: entry.mentee.mentee?.goals || [],
-          status: sessions.length > 0 ? "active" : "inactive",
-          sessionsCompleted: completed.length,
-          joinedDate: sessions.at(-1)?.date || null,
-          lastSession: completed.at(0)?.date || null,
-          nextSession: upcoming?.date || null,
-          progress :completed.length * 10,
-        };
-      })
-    );
-
-    const totalMentees = confirmedMentees.length;
-
-    return NextResponse.json({
-      mentorInfo,
-      upcomingSessions,
-      completedSessions,
-      completedSessionsCount: completedSessions.length,
-      confirmedMentees,
-      mentorshipRequests,
-      totalMentees,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+      take: 10,
     });
+
+    // Get upcoming sessions
+    const upcomingSessions = await prisma.session.findMany({
+      where: {
+        mentorId: user.id,
+        status: {
+          in: ["PENDING", "CONFIRMED"],
+        },
+        date: {
+          gte: new Date(),
+        },
+      },
+      include: {
+        mentee: true,
+      },
+      orderBy: {
+        date: "asc",
+      },
+      take: 5,
+    });
+
+    // Get completed sessions count
+    const completedSessionsCount = await prisma.session.count({
+      where: {
+        mentorId: user.id,
+        status: "COMPLETED",
+      },
+    });
+
+    const dashboardData = {
+      confirmedMentees: confirmedMentees.map((mentorship) => ({
+      id: mentorship.mentee.id,
+      name: mentorship.mentee.name,
+      profilePicture: mentorship.mentee.profilePicture,
+      })),
+      recentRequests: recentRequests.map((request) => ({
+      id: request.id,
+      status: request.status,
+      message: request.message,
+      createdAt: request.createdAt.toISOString(),
+      mentee: {
+        id: request.mentee.id,
+        name: request.mentee.name,
+        profilePicture: request.mentee.profilePicture,
+        goals: request.mentee.mentee?.goals || [],
+      },
+      })),
+      upcomingSessions: upcomingSessions.map((session) => ({
+      id: session.id,
+      title: session.title,
+      date: session.date.toISOString(),
+      time: session.time,
+      duration: session.duration,
+      status: session.status,
+      mentee: {
+        id: session.mentee.id,
+        name: session.mentee.name,
+        profilePicture: session.mentee.profilePicture,
+      },
+      })),
+      completedSessions: completedSessionsCount,
+    };
+
+    return NextResponse.json(dashboardData);
   } catch (error) {
     console.error("Error fetching mentor dashboard:", error);
-    return NextResponse.json({ error: "Failed to fetch mentor data" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
   }
 }

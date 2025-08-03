@@ -4,16 +4,15 @@ import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import Image from "next/image";
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
+  CardFooter,
 } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
@@ -27,42 +26,34 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
+  User,
+  MessageSquare,
   Calendar,
   Clock,
-  Users,
-  TrendingUp,
-  MessageSquare,
-  CheckCircle,
-  Search,
   Star,
+  Mail,
+  Users,
+  CheckCircle,
+  TrendingUp,
+  Search,
 } from "lucide-react";
+import Image from "next/image";
 
-// Interfaces for dashboard data
-interface MentorDashboardData {
-  totalMentees: number;
-  activeRequests: number;
-  completedSessions: number;
-  upcomingSessions: any[];
-  totalEarnings?: number;
-  rating?: number;
-  recentRequests: any[];
-  confirmedMentees: any[];
-}
-
-interface MenteeDashboardData {
-  mentorInfo: any;
-  tasks: any[];
-  upcomingSessions: any[];
-  completedSessions: any[];
-  progress: any;
-  totalMentors?: number;
-  activeSessions?: number;
+interface Mentor {
+  id: string;
+  name: string;
+  title?: string;
+  bio?: string;
+  profilePicture?: string;
+  skills: string[];
+  goals: string[];
+  conversationId?: string;
 }
 
 interface DashboardData {
-  mentorData?: MentorDashboardData;
-  menteeData?: MenteeDashboardData;
   userRole: "mentor" | "mentee";
+  mentorData?: any;
+  menteeData?: any;
 }
 
 export default function DashboardPage() {
@@ -103,45 +94,57 @@ export default function DashboardPage() {
         setLoading(true);
         setError(null); // Clear previous errors
 
-        // Try to fetch mentee data first
-        const menteeResponse = await fetch(
-          `/api/dashboard/mentee?id=${userId}`,
-          {
-            headers: {
-              "Content-Type": "application/json",
-            },
-          }
-        );
-
-        if (menteeResponse.ok) {
-          const menteeData = await menteeResponse.json();
-          setDashboardData({
-            menteeData,
-            userRole: "mentee",
-          });
-          return;
+        // Get user role first
+        const userResponse = await fetch("/api/auth/user");
+        if (!userResponse.ok) {
+          throw new Error("Failed to fetch user data");
         }
 
-        // If mentee data fails, try mentor data
-        const mentorResponse = await fetch(
-          `/api/dashboard/mentor?id=${userId}`,
-          {
-            headers: {
-              "Content-Type": "application/json",
-            },
-          }
-        );
+        const userData = await userResponse.json();
+        const userRole = userData.role.toLowerCase();
 
-        if (mentorResponse.ok) {
-          const mentorData = await mentorResponse.json();
-          setDashboardData({
-            mentorData,
-            userRole: "mentor",
-          });
-          return;
+        // Fetch appropriate dashboard data based on role
+        if (userRole === "mentee") {
+          const menteeResponse = await fetch(
+            `/api/dashboard/mentee?id=${userId}`,
+            {
+              headers: {
+                "Content-Type": "application/json",
+              },
+            }
+          );
+
+          if (menteeResponse.ok) {
+            const menteeData = await menteeResponse.json();
+            setDashboardData({
+              menteeData,
+              userRole: "mentee",
+            });
+            return;
+          }
         }
 
-        // If both fail, show appropriate message
+        if (userRole === "mentor") {
+          const mentorResponse = await fetch(
+            `/api/dashboard/mentor?id=${userId}`,
+            {
+              headers: {
+                "Content-Type": "application/json",
+              },
+            }
+          );
+
+          if (mentorResponse.ok) {
+            const mentorData = await mentorResponse.json();
+            setDashboardData({
+              mentorData,
+              userRole: "mentor",
+            });
+            return;
+          }
+        }
+
+        // If both fail, set default mentee data
         console.warn("No dashboard data found for user");
         setDashboardData({
           userRole: "mentee",
@@ -226,8 +229,15 @@ export default function DashboardPage() {
   const handleSendMessage = (mentorId?: string) => {
     const targetId = mentorId || dashboardData?.menteeData?.mentorInfo?.id;
     if (targetId) {
-      // For now, show an alert - you can implement proper messaging later
-      alert("Messaging feature coming soon!");
+      // Navigate to messages page with conversation ID or partner ID
+      router.push(`/messages?partnerId=${targetId}`);
+    }
+  };
+
+  // Add new function for mentor messaging mentees
+  const handleSendMessageToMentee = (menteeId: string) => {
+    if (menteeId) {
+      router.push(`/messages?partnerId=${menteeId}`);
     }
   };
 
@@ -406,7 +416,7 @@ export default function DashboardPage() {
                   <div>
                     <div className="text-2xl font-bold">
                       {mentorData.recentRequests?.filter(
-                        (r) => r.status === "PENDING"
+                        (r: { status: string }) => r.status === "PENDING"
                       ).length || 0}
                     </div>
                     <p className="text-xs text-gray-500">Awaiting response</p>
@@ -509,6 +519,23 @@ export default function DashboardPage() {
                                 )
                               )}
                             </div>
+                            {/* Add message button for accepted requests */}
+                            {request.status === "ACCEPTED" && (
+                              <div className="mt-3">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() =>
+                                    handleSendMessageToMentee(
+                                      request.mentee?.id
+                                    )
+                                  }
+                                >
+                                  <MessageSquare className="h-4 w-4 mr-1" />
+                                  Message Mentee
+                                </Button>
+                              </div>
+                            )}
                           </div>
                           <div className="ml-4 flex items-center">
                             {request.status === "PENDING" ? (
@@ -676,11 +703,11 @@ export default function DashboardPage() {
                 <div className="flex items-center">
                   <Calendar className="h-8 w-8 text-green-500 mr-3" />
                   <div>
-                    <div className="text-2xl font-bold">
+                    {/* <div className="text-2xl font-bold">
                       {menteeData.tasks?.filter(
                         (task) => task.status !== "COMPLETED"
                       ).length || 0}
-                    </div>
+                    </div> */}
                     <p className="text-xs text-gray-500">Pending completion</p>
                   </div>
                 </div>

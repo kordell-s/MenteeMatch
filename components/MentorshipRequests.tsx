@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -9,25 +10,23 @@ import { Clock, CheckCircle, XCircle, MessageSquare, User } from "lucide-react";
 
 interface MentorshipRequest {
   id: string;
+  menteeId: string;
   offeringType: string;
   message: string;
-  status: "PENDING" | "ACCEPTED" | "REJECTED";
+  status: string;
   createdAt: string;
   mentee: {
     id: string;
     name: string;
+    email: string;
     profilePicture?: string;
-    bio?: string;
+    skills: string[];
+    experienceLevel: string;
   };
 }
 
-interface MentorshipRequestsProps {
-  mentorId: string;
-}
-
-export default function MentorshipRequests({
-  mentorId,
-}: MentorshipRequestsProps) {
+export default function MentorshipRequests() {
+  const { data: session } = useSession();
   const [requests, setRequests] = useState<MentorshipRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -35,9 +34,8 @@ export default function MentorshipRequests({
 
   const fetchRequests = async () => {
     try {
-      const response = await fetch(
-        `/api/mentorship-request?mentorId=${mentorId}`
-      );
+      // No mentorId needed - API uses session
+      const response = await fetch("/api/mentorship-request");
       if (response.ok) {
         const data = await response.json();
         setRequests(data);
@@ -53,50 +51,34 @@ export default function MentorshipRequests({
   };
 
   useEffect(() => {
-    fetchRequests();
-  }, [mentorId]);
+    if (session?.user) {
+      fetchRequests();
+    }
+  }, [session]);
 
   const handleResponse = async (
     requestId: string,
     action: "accept" | "reject"
   ) => {
     setProcessingId(requestId);
-    setError("");
-
     try {
       const response = await fetch(`/api/mentorship-request/${requestId}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          action,
-          mentorId,
-        }),
+        body: JSON.stringify({ action }),
       });
 
-      const data = await response.json();
-
       if (response.ok) {
-        // Update the request in the local state
-        setRequests((prev) =>
-          prev.map((req) =>
-            req.id === requestId
-              ? {
-                  ...req,
-                  status: action === "accept" ? "ACCEPTED" : "REJECTED",
-                }
-              : req
-          )
-        );
+        // Refresh requests after successful action
+        await fetchRequests();
       } else {
-        throw new Error(data.error || `Failed to ${action} request`);
+        throw new Error(`Failed to ${action} request`);
       }
     } catch (err) {
       console.error(`Error ${action}ing request:`, err);
-      setError(
-        err instanceof Error ? err.message : `Failed to ${action} request`
-      );
+      setError(`Failed to ${action} request`);
     } finally {
       setProcessingId(null);
     }
