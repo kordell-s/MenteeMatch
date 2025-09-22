@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -33,6 +34,7 @@ const categories = [
 ];
 
 export default function MentorBrowser() {
+  const { data: session } = useSession();
   const [mentorData, setMentorData] = useState<Mentor[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -41,7 +43,9 @@ export default function MentorBrowser() {
   const [recommendedMentors, setRecommendedMentors] = useState<Mentor[]>([]);
   const [filteredMentors, setFilteredMentors] = useState<Mentor[]>([]);
   const [sortOption, setSortOption] = useState("recommended");
-  const userId = "3459d90e-8bd8-43f2-9b17-b40b16625668"; // Alex James (mentee)
+
+  // Use session user ID instead of hardcoded ID
+  const userId = session?.user?.id;
 
   // Fetch mentor data from API
   useEffect(() => {
@@ -87,8 +91,8 @@ export default function MentorBrowser() {
 
         setMentorData(validMentors);
 
-        // 2. Get AI-matched mentors (only if we have mentor data)
-        if (validMentors.length > 0) {
+        // 2. Get AI-matched mentors (only if we have mentor data and user ID)
+        if (validMentors.length > 0 && userId) {
           try {
             console.log("Fetching AI recommendations...");
             const matchRes = await fetch("/api/match", {
@@ -122,7 +126,7 @@ export default function MentorBrowser() {
             setRecommendedMentors([]);
           }
         } else {
-          console.log("No mentors available for AI matching");
+          console.log("No mentors available for AI matching or no user ID");
           setRecommendedMentors([]);
         }
       } catch (err) {
@@ -139,8 +143,11 @@ export default function MentorBrowser() {
       }
     }
 
-    fetchMentors();
-  }, []);
+    if (session !== undefined) {
+      // Wait for session to load
+      fetchMentors();
+    }
+  }, [userId, session]);
 
   // Filter mentors based on active category and search query
   useEffect(() => {

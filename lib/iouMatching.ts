@@ -15,7 +15,17 @@ type MatchResult = {
  function calculateIoU(setA: Set<string>, setB: Set<string>): number {
     const intersection = new Set([...setA].filter(skill => setB.has(skill)));
     const union = new Set([...setA, ...setB]);
-    return intersection.size / union.size;
+    const score = intersection.size / union.size;
+
+    console.log('IoU calculation:', {
+        setA: Array.from(setA),
+        setB: Array.from(setB),
+        intersection: Array.from(intersection),
+        union: Array.from(union),
+        score: score
+    });
+    
+    return score;
  }
 
  /**
@@ -31,10 +41,14 @@ type MatchResult = {
     const matches = mentors.map((mentor) => {
         const mentorSkills = new Set(mentor.skills.map(skill => skill.toLowerCase()));
         const score = calculateIoU(menteeSkills, mentorSkills);
+        console.log(`Mentor ${mentor.id} - IoU Score: ${score}`);
         return { mentorId: mentor.id, score };
     });
 
 
     //sort mentors by score from most to least relevant
+    const sortedMatches = matches.sort((a, b) => b.score - a.score);
+    console.log('Sorted Matches:', sortedMatches);
     return matches.sort((a, b) => b.score - a.score);
+    
 }

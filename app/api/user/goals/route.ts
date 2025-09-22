@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 export async function GET(request: Request) {
   try {
     // TODO: Replace this with actual session/authentication logic
-    const currentUserId = "3459d90e-8bd8-43f2-9b17-b40b16625668"; // Alex James (mentee)
+    const currentUserId = "23d6c35a-3c3f-4d7f-a6fc-95ba7da4c216"; // James Clean
     
     if (!currentUserId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -47,7 +47,7 @@ export async function GET(request: Request) {
 export async function PUT(request: Request) {
   try {
     // TODO: Replace this with actual session/authentication logic
-    const currentUserId = "3459d90e-8bd8-43f2-9b17-b40b16625668"; // Alex James (mentee)
+    const currentUserId = "23d6c35a-3c3f-4d7f-a6fc-95ba7da4c216"; // James Clean (mentor)
     
     if (!currentUserId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

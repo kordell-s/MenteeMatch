@@ -413,7 +413,14 @@ function MentorProfilePage() {
                       <div className="flex items-center gap-2">
                         <Clock size={16} className="text-gray-600" />
                         <p className="text-gray-700 font-medium">
-                          {mentor.availability}
+                          {Array.isArray(mentor.availability)
+                            ? mentor.availability.join(" • ")
+                            : typeof mentor.availability === "string"
+                            ? mentor.availability
+                                .split(",")
+                                .map((day) => day.trim())
+                                .join(" • ")
+                            : "Availability not specified"}
                         </p>
                       </div>
                     </div>

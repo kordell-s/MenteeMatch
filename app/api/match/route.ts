@@ -47,9 +47,22 @@ export async function POST (req: NextRequest){
 
     //match mentee with mentors using IoU - call function
     const rankedMatches = matchBySkillsIoU(mentee, mentors);
+    console.log('📊 Final Rankings:');
+    rankedMatches.forEach((match, index) => {
+      console.log(`#${index + 1} Mentor ${match.mentorId}: ${match.score.toFixed(4)}`);
+    });
+    
+    // Log detailed info on server, return simple array for client
+    console.log('📋 Mentee Skills:', mentee.skills);
+    console.log('🎯 Match Results:', {
+      menteeId: mentee.id,
+      totalMatches: rankedMatches.length,
+      timestamp: new Date().toISOString()
+    });
+    
     return NextResponse.json(rankedMatches, { status: 200 });
   } catch (error) {
     console.error("Error in matching API:", error);
-return NextResponse.json([], {status:200});
+    return NextResponse.json({ matches: [], error: "Matching failed" }, {status:200});
   }
 }

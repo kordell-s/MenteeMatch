@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -35,6 +36,7 @@ export default function MentorshipRequestForm({
   mentorName,
   onSuccess,
 }: MentorshipRequestFormProps) {
+  const { data: session } = useSession();
   const [offeringType, setOfferingType] = useState("");
   const [message, setMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -61,6 +63,11 @@ export default function MentorshipRequestForm({
     e.preventDefault();
     setError("");
 
+    if (!session?.user?.id) {
+      setError("You must be logged in to send a mentorship request");
+      return;
+    }
+
     if (!validateForm()) {
       return;
     }
@@ -68,18 +75,13 @@ export default function MentorshipRequestForm({
     setIsSubmitting(true);
 
     try {
-      // Get menteeId from localStorage or session
-      const menteeId =
-        localStorage.getItem("userId") ||
-        "3459d90e-8bd8-43f2-9b17-b40b16625668";
-
       const response = await fetch("/api/mentorship-request", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          menteeId,
+          menteeId: session.user.id,
           mentorId,
           offeringType,
           message: message.trim(),

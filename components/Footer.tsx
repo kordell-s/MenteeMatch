@@ -6,7 +6,7 @@ export default function Footer() {
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
           <div>
-            <h3 className="text-lg font-semibold mb-4">MentorMatch</h3>
+            <h3 className="text-lg font-semibold mb-4">MenteeMatch</h3>
             <p className="text-gray-400 text-sm">
               Connecting professionals with mentors who can help them grow and
               succeed.
@@ -89,7 +89,7 @@ export default function Footer() {
 
         <div className="border-t border-gray-800 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
           <p className="text-sm text-gray-400">
-            © {new Date().getFullYear()} MentorMatch. All rights reserved.
+            © {new Date().getFullYear()} MenteeMatch. All rights reserved.
           </p>
 
           <div className="flex space-x-6 mt-4 md:mt-0">

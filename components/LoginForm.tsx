@@ -1,9 +1,9 @@
 "use client";
 
-import type React from "react";
-
+import React from "react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,6 +23,7 @@ export default function LoginForm() {
   const [errors, setErrors] = useState({
     email: "",
     password: "",
+    general: "", // Add general error for login failures
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -75,16 +76,35 @@ export default function LoginForm() {
     if (!validateForm()) return;
 
     setIsLoading(true);
+    setErrors({ email: "", password: "", general: "" }); // Clear previous errors
 
     try {
-      // This would be replaced with your actual authentication logic
-      await new Promise((resolve) => setTimeout(resolve, 1500)); // Simulate API call
+      const result = await signIn("credentials", {
+        email: formData.email,
+        password: formData.password,
+        redirect: false, // Don't redirect automatically
+      });
 
-      // Redirect to dashboard after successful login
-      router.push("/dashboard");
+      if (result?.error) {
+        console.error("Login failed:", result.error);
+        setErrors({
+          email: "",
+          password: "",
+          general: "Invalid email or password. Please try again.",
+        });
+      } else if (result?.ok) {
+        console.log("Login successful");
+        // Redirect to dashboard after successful login
+        router.push("/dashboard");
+        router.refresh(); // Refresh to update session
+      }
     } catch (error) {
-      console.error("Login failed:", error);
-      // Handle login error
+      console.error("Login error:", error);
+      setErrors({
+        email: "",
+        password: "",
+        general: "An error occurred. Please try again.",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -92,6 +112,13 @@ export default function LoginForm() {
 
   return (
     <form onSubmit={handleSubmit} className="mt-8 space-y-6">
+      {/* Show general error message */}
+      {errors.general && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+          {errors.general}
+        </div>
+      )}
+
       <div className="space-y-4">
         <div>
           <Label htmlFor="email">Email address</Label>

@@ -5,7 +5,7 @@ export async function GET(request: Request) {
   try {
     // TODO: Replace this with actual session/authentication logic
     // For now, using a hardcoded user ID - you'll need to implement proper session handling
-    const currentUserId = "3459d90e-8bd8-43f2-9b17-b40b16625668"; // Alex James (mentee)
+    const currentUserId = "23d6c35a-3c3f-4d7f-a6fc-95ba7da4c216"; // James Clean (mentor)
     
     // In a real app, you would get the user ID from the session like:
     // const session = await getServerSession(authOptions);

@@ -1,7 +1,7 @@
 import { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { prisma } from './prisma';
-import bcrypt from 'bcryptjs';
+// import bcrypt from 'bcryptjs'; // Comment out for now
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -29,17 +29,21 @@ export const authOptions: NextAuthOptions = {
             return null;
           }
 
-          console.log('User found, checking password...');
+          console.log('User found:', {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            hasPassword: !!user.password,
+          });
+
+          // TEMPORARY: Plain text password comparison for testing
+          console.log('Checking password (plain text)...');
+          console.log('Input password:', credentials.password);
+          console.log('Stored password:', user.password);
           
-          // TEMPORARY: Skip password hashing for testing
-          // Just check if password matches the stored password directly
-          const isPasswordValid = credentials.password === user.password;
-          
-          // Original hashed password check (commented out for testing)
-          // const isPasswordValid = await bcrypt.compare(
-          //   credentials.password,
-          //   user.password
-          // );
+          const isPasswordValid = user.password === credentials.password;
+
+          console.log('Password comparison result:', isPasswordValid);
 
           if (!isPasswordValid) {
             console.log('Invalid password for user:', credentials.email);
@@ -52,7 +56,8 @@ export const authOptions: NextAuthOptions = {
             id: user.id,
             email: user.email,
             name: user.name,
-            role: user.role
+            role: user.role,
+            profilePicture: user.profilePicture || undefined,
           };
         } catch (error) {
           console.error('Authentication error:', error);
@@ -70,6 +75,8 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.id = user.id;
         token.role = user.role;
+        token.name = user.name;
+        token.email = user.email;
         token.profilePicture = user.profilePicture;
       }
       return token;
@@ -78,13 +85,16 @@ export const authOptions: NextAuthOptions = {
       if (token && session.user) {
         session.user.id = token.id as string;
         session.user.role = token.role as string;
+        session.user.name = token.name as string;
+        session.user.email = token.email as string;
         session.user.profilePicture = token.profilePicture as string;
       }
       return session;
     }
   },
   pages: {
-    signIn: '/auth/signin'
+    signIn: '/login',
+    signOut: '/' // Redirect to home page after logout
   },
-  debug: process.env.NODE_ENV === 'development', // Enable debug in development
+  debug: process.env.NODE_ENV === 'development',
 };

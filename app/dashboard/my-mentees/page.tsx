@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -35,30 +36,72 @@ import type {
   MenteeCardData,
 } from "@/app/types/dashboard/mentorDashboardData";
 import type { MenteeDashboardData } from "@/app/types/dashboard/menteeDashboardData";
+import TaskAssignmentModal from "@/components/TaskAssignmentModal";
+import { CheckSquare } from "lucide-react";
+import router from "next/router";
+import TaskCard from "@/components/TaskCard";
 
 export default function MyMenteesPage() {
+  const { data: session } = useSession();
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("all");
   const [goalFilter, setGoalFilter] = useState("all");
+  const [assignedTasks, setAssignedTasks] = useState<any[]>([]);
 
-  const mentorId = "23d6c35a-3c3f-4d7f-a6fc-95ba7da4c216";
+  // Use session user ID instead of hardcoded ID
+  const mentorId = session?.user?.id;
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(
     null
   );
   const myMentees: MenteeCardData[] = dashboardData?.confirmedMentees || [];
 
-  useEffect(() => {
-    async function fetchDashboard() {
-      try {
-        const res = await fetch(`/api/dashboard/mentor?id=${mentorId}`);
-        const data = await res.json();
-        setDashboardData(data);
-      } catch (error) {
-        console.error("Error fetching dashboard data:", error);
+  const fetchDashboard = async () => {
+    if (!mentorId) return;
+
+    try {
+      const res = await fetch(`/api/dashboard/mentor?id=${mentorId}`);
+      const data = await res.json();
+      setDashboardData(data);
+
+      // Fetch assigned tasks
+      const tasksRes = await fetch(`/api/tasks/mentor/${mentorId}`);
+      if (tasksRes.ok) {
+        const tasksData = await tasksRes.json();
+        setAssignedTasks(tasksData);
       }
+    } catch (error) {
+      console.error("Error fetching dashboard data:", error);
     }
-    fetchDashboard();
-  }, []);
+  };
+
+  const handleTaskStatusUpdate = async (taskId: string, newStatus: string) => {
+    try {
+      const response = await fetch(`/api/tasks/${taskId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ status: newStatus }),
+      });
+
+      if (response.ok) {
+        // Refresh tasks
+        fetchDashboard();
+      }
+    } catch (error) {
+      console.error("Error updating task status:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (mentorId) {
+      fetchDashboard();
+    }
+  }, [mentorId]);
+
+  const refreshDashboard = async () => {
+    await fetchDashboard();
+  };
 
   // Get unique goals for filter dropdown
   const allGoals = Array.from(
@@ -273,11 +316,17 @@ export default function MyMenteesPage() {
                     </div>
 
                     <div className="flex flex-wrap gap-2 mb-4">
-                      {mentee.goals.map((goal) => (
-                        <Badge key={goal} variant="secondary">
-                          {goal}
+                      {mentee.goals && mentee.goals.length > 0 ? (
+                        mentee.goals.map((goal) => (
+                          <Badge key={goal} variant="secondary">
+                            {goal}
+                          </Badge>
+                        ))
+                      ) : (
+                        <Badge variant="outline" className="text-gray-400">
+                          No goals set
                         </Badge>
-                      ))}
+                      )}
                     </div>
 
                     <div className="text-sm text-gray-600 mb-1">
@@ -303,17 +352,31 @@ export default function MyMenteesPage() {
                         </Badge>
                       </div>
                     )}
+                    <div className="flex gap-2 mt-4">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          router.push(
+                            `/dashboard/messages?menteeId=${mentee.id}`
+                          );
+                        }}
+                      >
+                        <MessageSquare className="h-4 w-4 mr-1" />
+                        Message
+                      </Button>
+                      <TaskAssignmentModal
+                        menteeId={mentee.id}
+                        menteeName={mentee.name}
+                        onTaskAssigned={refreshDashboard}
+                      >
+                        <Button size="sm" className="flex items-center gap-2">
+                          <CheckSquare className="h-4 w-4" />
+                          Assign Task
+                        </Button>
+                      </TaskAssignmentModal>
+                    </div>
                   </CardContent>
-                  <CardFooter className="flex gap-2">
-                    <Button variant="outline" className="flex-1">
-                      <MessageSquare className="h-4 w-4 mr-2" />
-                      Message
-                    </Button>
-                    <Button className="flex-1">
-                      <Calendar className="h-4 w-4 mr-2" />
-                      Schedule
-                    </Button>
-                  </CardFooter>
                 </Card>
               ))}
             </div>
@@ -383,11 +446,17 @@ export default function MyMenteesPage() {
                       </div>
 
                       <div className="flex flex-wrap gap-2 mb-4">
-                        {mentee.goals.map((goal) => (
-                          <Badge key={goal} variant="secondary">
-                            {goal}
+                        {mentee.goals && mentee.goals.length > 0 ? (
+                          mentee.goals.map((goal) => (
+                            <Badge key={goal} variant="secondary">
+                              {goal}
+                            </Badge>
+                          ))
+                        ) : (
+                          <Badge variant="outline" className="text-gray-400">
+                            No goals set
                           </Badge>
-                        ))}
+                        )}
                       </div>
 
                       <div className="text-sm text-gray-600 mb-1">
@@ -416,16 +485,6 @@ export default function MyMenteesPage() {
                         </div>
                       )}
                     </CardContent>
-                    <CardFooter className="flex gap-2">
-                      <Button variant="outline" className="flex-1">
-                        <MessageSquare className="h-4 w-4 mr-2" />
-                        Message
-                      </Button>
-                      <Button className="flex-1">
-                        <Calendar className="h-4 w-4 mr-2" />
-                        Schedule
-                      </Button>
-                    </CardFooter>
                   </Card>
                 ))}
             </div>
@@ -459,7 +518,7 @@ export default function MyMenteesPage() {
                       <div className="flex items-start justify-between">
                         <div className="flex items-start space-x-4">
                           <Image
-                            src={mentee.profilePicture || "/placeholder.svg"}
+                            src={mentee.profilePicture || "/images/avatar.png"}
                             alt={mentee.name}
                             width={60}
                             height={60}
@@ -522,13 +581,6 @@ export default function MyMenteesPage() {
                         </div>
                       )}
                     </CardContent>
-                    <CardFooter className="flex gap-2">
-                      <Button variant="outline" className="flex-1">
-                        <MessageSquare className="h-4 w-4 mr-2" />
-                        Message
-                      </Button>
-                      <Button className="flex-1">Reactivate</Button>
-                    </CardFooter>
                   </Card>
                 ))}
             </div>
@@ -550,6 +602,38 @@ export default function MyMenteesPage() {
         </TabsContent>
       </Tabs>
 
+      <Card className="mb-8">
+        <CardHeader>
+          <CardTitle>Assigned Tasks</CardTitle>
+          <CardDescription>
+            Tasks you've assigned to your mentees
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {assignedTasks.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {assignedTasks.map((task) => (
+                <TaskCard
+                  key={task.id}
+                  task={task}
+                  onStatusUpdate={handleTaskStatusUpdate}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <CheckSquare className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium mb-2">
+                No tasks assigned yet
+              </h3>
+              <p className="text-gray-500">
+                Start assigning tasks to help guide your mentees' progress.
+              </p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       <Card>
         <CardHeader>
           <CardTitle>Recent Sessions</CardTitle>
@@ -559,7 +643,7 @@ export default function MyMenteesPage() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {dashboardData?.completedSessions?.map((session) => (
+            {(dashboardData?.completedSessions || []).map((session) => (
               <div
                 key={session.id}
                 className="p-4 border rounded-lg hover:bg-gray-50 transition-colors"
@@ -580,7 +664,7 @@ export default function MyMenteesPage() {
                           <Star
                             key={i}
                             className={`h-4 w-4 ${
-                              i < session.rating
+                              i < (session.rating || 0)
                                 ? "fill-yellow-400 text-yellow-400"
                                 : "text-gray-300"
                             }`}
@@ -601,6 +685,15 @@ export default function MyMenteesPage() {
                 </div>
               </div>
             ))}
+
+            {/* Show empty state if no sessions */}
+            {(!dashboardData?.completedSessions ||
+              dashboardData.completedSessions.length === 0) && (
+              <div className="text-center py-8 text-gray-500">
+                <Calendar className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                <p>No recent sessions found</p>
+              </div>
+            )}
           </div>
         </CardContent>
         <CardFooter>

@@ -80,7 +80,7 @@ export default function DashboardLayout({
       <aside className="hidden md:flex flex-col w-64 bg-white border-r border-gray-200">
         <div className="p-4 border-b border-gray-200">
           <Link href="/" className="flex items-center">
-            <span className="text-xl font-bold text-primary">MentorMatch</span>
+            <span className="text-xl font-bold text-primary">MenteeMatch</span>
           </Link>
         </div>
 

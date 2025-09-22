@@ -96,7 +96,16 @@ export default function MentorCard({
 
         <div className="flex items-center text-sm text-gray-500 mb-4">
           <Clock className="h-4 w-4 mr-1" />
-          <span>{mentor.availability}</span>
+          <span>
+            {Array.isArray(mentor.availability)
+              ? mentor.availability.join(" • ")
+              : typeof mentor.availability === "string"
+              ? mentor.availability
+                  .split(",")
+                  .map((day) => day.trim())
+                  .join(" • ")
+              : "Availability not specified"}
+          </span>
         </div>
 
         <div className="flex gap-2">

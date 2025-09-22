@@ -42,7 +42,7 @@ export async function GET() {
         title: string | null;
         email: string;
         profilePicture: string | null;
-        availability: any;
+        availability: string | string[] | null;
         timeAvailability: any;
         location: string | null;
         rating: number | null;
