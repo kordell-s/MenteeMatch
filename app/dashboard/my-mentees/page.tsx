@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation"; // Fixed import
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -38,11 +39,11 @@ import type {
 import type { MenteeDashboardData } from "@/app/types/dashboard/menteeDashboardData";
 import TaskAssignmentModal from "@/components/TaskAssignmentModal";
 import { CheckSquare } from "lucide-react";
-import router from "next/router";
 import TaskCard from "@/components/TaskCard";
 
 export default function MyMenteesPage() {
   const { data: session } = useSession();
+  const router = useRouter(); // Fixed: Added proper router initialization
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("all");
   const [goalFilter, setGoalFilter] = useState("all");
@@ -85,11 +86,26 @@ export default function MyMenteesPage() {
       });
 
       if (response.ok) {
+        const result = await response.json();
+        console.log("Task updated successfully:", result);
+
         // Refresh tasks
-        fetchDashboard();
+        await fetchDashboard();
+
+        // Show success message
+        alert(
+          `Task status updated to ${newStatus
+            .toLowerCase()
+            .replace("_", " ")} successfully!`
+        );
+      } else {
+        const error = await response.json();
+        console.error("Error updating task status:", error);
+        alert(`Failed to update task: ${error.error || "Unknown error"}`);
       }
     } catch (error) {
       console.error("Error updating task status:", error);
+      alert("Failed to update task status. Please try again.");
     }
   };
 
@@ -273,7 +289,7 @@ export default function MyMenteesPage() {
                     <div className="flex items-start justify-between">
                       <div className="flex items-start space-x-4">
                         <Image
-                          src={"/images/avatar.png"}
+                          src={mentee.profilePicture || "/images/avatar.png"}
                           alt={mentee.name}
                           width={60}
                           height={60}
@@ -396,7 +412,6 @@ export default function MyMenteesPage() {
         </TabsContent>
 
         <TabsContent value="active" className="mt-6">
-          {/* Similar content as "all" tab but filtered for active mentees */}
           {filteredMentees.filter((mentee) => mentee.status === "active")
             .length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -408,7 +423,7 @@ export default function MyMenteesPage() {
                       <div className="flex items-start justify-between">
                         <div className="flex items-start space-x-4">
                           <Image
-                            src={"/images/avatar.png"}
+                            src={mentee.profilePicture || "/images/avatar.png"}
                             alt={mentee.name}
                             width={60}
                             height={60}
@@ -506,7 +521,6 @@ export default function MyMenteesPage() {
         </TabsContent>
 
         <TabsContent value="inactive" className="mt-6">
-          {/* Similar content as "all" tab but filtered for inactive mentees */}
           {filteredMentees.filter((mentee) => mentee.status === "inactive")
             .length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -559,11 +573,17 @@ export default function MyMenteesPage() {
                       </div>
 
                       <div className="flex flex-wrap gap-2 mb-4">
-                        {mentee.goals.map((goal) => (
-                          <Badge key={goal} variant="secondary">
-                            {goal}
+                        {mentee.goals && mentee.goals.length > 0 ? (
+                          mentee.goals.map((goal) => (
+                            <Badge key={goal} variant="secondary">
+                              {goal}
+                            </Badge>
+                          ))
+                        ) : (
+                          <Badge variant="outline" className="text-gray-400">
+                            No goals set
                           </Badge>
-                        ))}
+                        )}
                       </div>
 
                       <div className="text-sm text-gray-600 mb-1">
@@ -650,7 +670,7 @@ export default function MyMenteesPage() {
               >
                 <div className="flex items-start">
                   <Image
-                    src={"/images/avatar.png"}
+                    src={session.mentee.profilePicture || "/images/avatar.png"}
                     alt={session.mentee.name}
                     width={40}
                     height={40}

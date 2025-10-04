@@ -343,7 +343,7 @@ export default function MentorBrowser() {
               ))}
             </div>
           ) : (
-            <RecommendedMentors mentors={recommendedMentors} />
+            <RecommendedMentors />
           )}
 
           {searchQuery && filteredMentors.length === 0 && (

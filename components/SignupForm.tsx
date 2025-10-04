@@ -4,6 +4,7 @@ import type React from "react";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,6 +29,7 @@ export default function SignupForm() {
     email: "",
     password: "",
     agreeToTerms: "",
+    general: "",
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -42,6 +44,7 @@ export default function SignupForm() {
       setErrors({
         ...errors,
         [name]: "",
+        general: "",
       });
     }
   };
@@ -87,8 +90,8 @@ export default function SignupForm() {
     if (!formData.password) {
       newErrors.password = "Password is required";
       valid = false;
-    } else if (formData.password.length < 8) {
-      newErrors.password = "Password must be at least 8 characters";
+    } else if (formData.password.length < 6) {
+      newErrors.password = "Password must be at least 6 characters";
       valid = false;
     }
 
@@ -107,16 +110,77 @@ export default function SignupForm() {
     if (!validateForm()) return;
 
     setIsLoading(true);
+    setErrors({ ...errors, general: "" });
 
     try {
-      // This would be replaced with your actual registration logic
-      await new Promise((resolve) => setTimeout(resolve, 1500)); // Simulate API call
+      console.log("🔄 Creating account...");
 
-      // Redirect to onboarding or dashboard after successful signup
-      router.push("/onboarding");
+      // Step 1: Create the account via API
+      const response = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: formData.fullName,
+          email: formData.email,
+          password: formData.password,
+          role: formData.accountType.toUpperCase(),
+          bio: "",
+          title: null,
+          school: null,
+        }),
+      });
+
+      const data = await response.json();
+      console.log("📋 Signup response:", data);
+
+      if (response.ok && data.success) {
+        console.log("✅ Account created successfully");
+
+        // Step 2: Automatically sign in the user
+        console.log("🔄 Attempting automatic sign-in...");
+        const signInResult = await signIn("credentials", {
+          email: formData.email,
+          password: formData.password,
+          redirect: false,
+        });
+
+        console.log("📋 Sign-in result:", signInResult);
+
+        if (signInResult?.ok && !signInResult?.error) {
+          console.log(
+            "✅ Auto sign-in successful! Redirecting to onboarding..."
+          );
+
+          // Add a small delay to ensure session is established
+          setTimeout(() => {
+            window.location.href = "/onboarding"; // Force full page refresh
+          }, 500);
+        } else {
+          console.error("❌ Auto sign-in failed:", signInResult?.error);
+
+          // Try alternative approach - redirect to login with credentials
+          const params = new URLSearchParams({
+            email: formData.email,
+            message: "Account created successfully. Please sign in.",
+          });
+
+          setTimeout(() => {
+            router.push(`/login?${params.toString()}`);
+          }, 1000);
+        }
+      } else {
+        console.error("❌ Signup failed:", data.error);
+        setErrors({
+          ...errors,
+          general: data.error || "Failed to create account",
+        });
+      }
     } catch (error) {
-      console.error("Signup failed:", error);
-      // Handle signup error
+      console.error("❌ Signup request failed:", error);
+      setErrors({
+        ...errors,
+        general: "Network error. Please try again.",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -124,6 +188,13 @@ export default function SignupForm() {
 
   return (
     <form onSubmit={handleSubmit} className="mt-8 space-y-6">
+      {/* General error message */}
+      {errors.general && (
+        <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded">
+          {errors.general}
+        </div>
+      )}
+
       <div className="space-y-4">
         <div>
           <Label htmlFor="fullName">Full name</Label>
@@ -191,7 +262,7 @@ export default function SignupForm() {
           )}
           {!errors.password && (
             <p className="mt-1 text-xs text-gray-500">
-              Password must be at least 8 characters
+              Password must be at least 6 characters
             </p>
           )}
         </div>

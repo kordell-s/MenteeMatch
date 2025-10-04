@@ -1,56 +1,72 @@
-import { NextAuthOptions } from 'next-auth';
-import CredentialsProvider from 'next-auth/providers/credentials';
-import { prisma } from './prisma';
-// import bcrypt from 'bcryptjs'; // Comment out for now
+import { NextAuthOptions } from "next-auth";
+import CredentialsProvider from "next-auth/providers/credentials";
+import { prisma } from "./prisma";
+
+declare module "next-auth" {
+  interface User {
+    role: string;
+    profilePicture?: string;
+    profileComplete?: boolean;
+  }
+  
+  interface Session {
+    user: {
+      id: string;
+      email: string;
+      name: string;
+      role: string;
+      profilePicture?: string;
+      profileComplete?: boolean;
+    }
+  }
+}
+
+declare module "next-auth/jwt" {
+  interface JWT {
+    id: string;
+    role: string;
+    profilePicture?: string;
+    profileComplete?: boolean;
+  }
+}
 
 export const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
-      name: 'credentials',
+      name: "credentials",
       credentials: {
-        email: { label: 'Email', type: 'email' },
-        password: { label: 'Password', type: 'password' }
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" }
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
-          console.log('Missing credentials');
+          console.log("❌ Missing credentials");
           return null;
         }
 
         try {
-          console.log('Attempting to authenticate user:', credentials.email);
+          console.log("🔍 Looking for user:", credentials.email);
           
           const user = await prisma.user.findUnique({
             where: { email: credentials.email }
           });
 
           if (!user) {
-            console.log('User not found:', credentials.email);
+            console.log("❌ User not found:", credentials.email);
             return null;
           }
 
-          console.log('User found:', {
+          if (user.password !== credentials.password) {
+            console.log("❌ Password mismatch for user:", credentials.email);
+            return null;
+          }
+
+          console.log("✅ User authenticated successfully:", {
             id: user.id,
             email: user.email,
             name: user.name,
-            hasPassword: !!user.password,
+            role: user.role
           });
-
-          // TEMPORARY: Plain text password comparison for testing
-          console.log('Checking password (plain text)...');
-          console.log('Input password:', credentials.password);
-          console.log('Stored password:', user.password);
-          
-          const isPasswordValid = user.password === credentials.password;
-
-          console.log('Password comparison result:', isPasswordValid);
-
-          if (!isPasswordValid) {
-            console.log('Invalid password for user:', credentials.email);
-            return null;
-          }
-
-          console.log('Authentication successful for user:', credentials.email);
 
           return {
             id: user.id,
@@ -58,43 +74,77 @@ export const authOptions: NextAuthOptions = {
             name: user.name,
             role: user.role,
             profilePicture: user.profilePicture || undefined,
+            profileComplete: user.profileComplete || false,
           };
         } catch (error) {
-          console.error('Authentication error:', error);
+          console.error("❌ Auth error:", error);
           return null;
         }
       }
     })
   ],
   session: {
-    strategy: 'jwt',
+    strategy: "jwt",
     maxAge: 30 * 24 * 60 * 60, // 30 days
+    updateAge: 24 * 60 * 60, // 24 hours
   },
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger }) {
+      // Initial sign in - this is where the problem usually is
       if (user) {
+        console.log("🔧 JWT callback - Adding user to token:", user.email);
         token.id = user.id;
         token.role = user.role;
-        token.name = user.name;
-        token.email = user.email;
         token.profilePicture = user.profilePicture;
+        token.profileComplete = user.profileComplete;
       }
+      
+      console.log("🔧 JWT token:", {
+        id: token.id,
+        email: token.email,
+        role: token.role,
+        sub: token.sub
+      });
+      
       return token;
     },
     async session({ session, token }) {
+      console.log("🔧 Session callback - Building session from token");
+      
       if (token && session.user) {
         session.user.id = token.id as string;
         session.user.role = token.role as string;
-        session.user.name = token.name as string;
-        session.user.email = token.email as string;
         session.user.profilePicture = token.profilePicture as string;
+        session.user.profileComplete = token.profileComplete as boolean;
+        
+        console.log("✅ Session built successfully:", {
+          id: session.user.id,
+          email: session.user.email,
+          role: session.user.role
+        });
+      } else {
+        console.error("❌ Session callback failed - missing token or session.user");
       }
+      
       return session;
-    }
+    },
   },
   pages: {
-    signIn: '/login',
-    signOut: '/' // Redirect to home page after logout
+    signIn: "/login",
+    error: "/login",
   },
-  debug: process.env.NODE_ENV === 'development',
+  cookies: {
+    sessionToken: {
+      name: process.env.NODE_ENV === 'production' 
+        ? '__Secure-next-auth.session-token' 
+        : 'next-auth.session-token',
+      options: {
+        httpOnly: true,
+        sameSite: 'lax',
+        path: '/',
+        secure: process.env.NODE_ENV === 'production'
+      }
+    }
+  },
+  debug: process.env.NODE_ENV === "development",
 };

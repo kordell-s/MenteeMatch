@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, redirect } from "next/navigation";
 import Link from "next/link";
 import {
   Card,
@@ -56,7 +56,7 @@ interface DashboardData {
   menteeData?: any;
 }
 
-export default function DashboardPage() {
+export default function Dashboard() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(
@@ -84,7 +84,7 @@ export default function DashboardPage() {
     // Redirect to sign-in if not authenticated
     if (status === "loading") return; // Still loading
     if (!session) {
-      router.push("/auth/signin");
+      redirect("/login");
       return;
     }
 
@@ -186,23 +186,30 @@ export default function DashboardPage() {
     action: "accept" | "decline"
   ) => {
     try {
+      console.log("🔄 Dashboard: Attempting to", action, "request:", requestId);
+
       setProcessingRequests((prev) => new Set(prev).add(requestId));
 
-      const response = await fetch("/api/mentorship-requests", {
+      const response = await fetch(`/api/mentorship-request/${requestId}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          requestId,
-          action: action.toUpperCase(),
+          action: action === "accept" ? "accept" : "reject",
           mentorId: userId,
         }),
       });
 
+      console.log("📋 Dashboard: Response status:", response.status);
+      const responseData = await response.json();
+      console.log("📋 Dashboard: Response data:", responseData);
+
       if (!response.ok) {
-        throw new Error(`Failed to ${action} request`);
+        throw new Error(responseData.error || `Failed to ${action} request`);
       }
+
+      console.log("✅ Dashboard: Request processed successfully");
 
       // Refresh dashboard data
       const mentorResponse = await fetch(`/api/dashboard/mentor?id=${userId}`);
@@ -210,9 +217,16 @@ export default function DashboardPage() {
         const mentorData = await mentorResponse.json();
         setDashboardData((prev) => (prev ? { ...prev, mentorData } : null));
       }
+
+      // Clear any previous errors
+      setError(null);
     } catch (error) {
-      console.error(`Error ${action}ing request:`, error);
-      setError(`Failed to ${action} mentorship request`);
+      console.error(`❌ Dashboard: Error ${action}ing request:`, error);
+      setError(
+        `Failed to ${action} mentorship request: ${
+          error instanceof Error ? error.message : "Unknown error occurred"
+        }`
+      );
     } finally {
       setProcessingRequests((prev) => {
         const newSet = new Set(prev);
@@ -322,17 +336,44 @@ export default function DashboardPage() {
     height: number;
     className?: string;
   }) => {
-    const imageSrc =
-      src && src !== "/placeholder.svg" ? src : "/images/default-avatar.png";
+    // Don't render an image if src is null/undefined
+    if (!src || src === "/placeholder.svg") {
+      // Create initials from the alt text (name)
+      const initials =
+        alt
+          ?.split(" ")
+          .map((n) => n[0])
+          .join("")
+          .toUpperCase()
+          .slice(0, 2) || "?";
+
+      return (
+        <div
+          className={`flex items-center justify-center bg-gradient-to-br from-blue-500 to-purple-600 text-white font-semibold rounded-full ${className}`}
+          style={{
+            width: width,
+            height: height,
+            fontSize: width * 0.35,
+            minWidth: width,
+            minHeight: height,
+          }}
+        >
+          {initials}
+        </div>
+      );
+    }
 
     return (
       <Image
-        src={imageSrc}
+        src={src}
         alt={alt}
         width={width}
         height={height}
         className={className}
-        onError={handleImageError}
+        onError={(e) => {
+          // Hide the image on error - the parent will handle fallback
+          e.currentTarget.style.display = "none";
+        }}
         priority={false}
       />
     );

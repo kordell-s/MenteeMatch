@@ -1,146 +1,244 @@
 "use client";
 
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
+import { useState } from "react";
 import { useSession, signOut } from "next-auth/react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { User, Settings, LogOut } from "lucide-react";
-import React from "react";
+import { ChevronDown, User, Settings, LogOut } from "lucide-react";
 
 export default function Navbar() {
   const { data: session, status } = useSession();
+  const router = useRouter();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 
-  // Get user initials for fallback
-  const getInitials = (name: string) => {
-    return name
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase()
-      .slice(0, 2);
-  };
-
-  const handleLogout = async () => {
-    try {
-      // Sign out with NextAuth
-      await signOut({
-        callbackUrl: "/",
-        redirect: true,
-      });
-    } catch (error) {
-      console.error("Logout error:", error);
-      // Force redirect even if signOut fails
-      window.location.href = "/";
-    }
+  const handleSignOut = async () => {
+    await signOut({ redirect: false });
+    router.push("/");
   };
 
   return (
-    <header className="border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
-      <div className="container mx-auto px-4">
-        <div className="flex h-16 items-center justify-between">
-          <Link href="/" className="font-bold text-xl">
-            MenteeMatch
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-white shadow-md">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center h-16">
+          {/* Logo */}
+          <Link href="/" className="flex items-center space-x-2">
+            <span className="text-2xl font-bold text-black-600">
+              MenteeMatch
+            </span>
           </Link>
 
-          <nav className="hidden md:flex items-center space-x-6">
-            <Link href="/browse" className="text-gray-600 hover:text-gray-900">
-              Find Mentors
-            </Link>
-            <Link
-              href="/become-mentor"
-              className="text-gray-600 hover:text-gray-900"
-            >
-              Become a Mentor
-            </Link>
-            {session?.user && (
-              <Link
-                href="/dashboard"
-                className="text-gray-600 hover:text-gray-900"
-              >
-                Dashboard
-              </Link>
-            )}
-          </nav>
+          {/* Desktop Menu */}
+          <div className="hidden md:flex items-center space-x-8">
+            {status === "authenticated" ? (
+              <>
+                <Link
+                  href="/dashboard"
+                  className="text-gray-700 hover:text-black-600"
+                >
+                  Dashboard
+                </Link>
+                <Link
+                  href="/browse"
+                  className="text-gray-700 hover:text-black-600"
+                >
+                  Browse Mentors
+                </Link>
 
-          <div className="flex items-center space-x-4">
-            {session?.user ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button className="relative h-8 w-8 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
-                    <Avatar className="h-8 w-8">
+                {/* User Avatar Dropdown */}
+                <div className="relative">
+                  <button
+                    onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                    className="flex items-center space-x-2 text-gray-700 hover:text-blue-600 focus:outline-none"
+                  >
+                    <Avatar className="w-8 h-8">
                       <AvatarImage
-                        src={session.user.profilePicture || undefined}
-                        alt={session.user.name || "User"}
+                        src={
+                          session?.user?.profilePicture || "/placeholder.svg"
+                        }
+                        alt={session?.user?.name || "User"}
                       />
-                      <AvatarFallback className="bg-primary text-primary-foreground text-sm">
-                        {getInitials(session.user.name || "U")}
+                      <AvatarFallback className="bg-blue-600 text-white text-sm">
+                        {session?.user?.name?.charAt(0)?.toUpperCase() || "U"}
                       </AvatarFallback>
                     </Avatar>
+                    <ChevronDown className="w-4 h-4" />
                   </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56" align="end" forceMount>
-                  <DropdownMenuLabel className="font-normal">
-                    <div className="flex flex-col space-y-1">
-                      <p className="text-sm font-medium leading-none">
-                        {session.user.name}
-                      </p>
-                      <p className="text-xs leading-none text-muted-foreground">
-                        {session.user.email}
-                      </p>
+
+                  {/* Dropdown Menu */}
+                  {isUserMenuOpen && (
+                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border">
+                      <Link
+                        href="/profile"
+                        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        onClick={() => setIsUserMenuOpen(false)}
+                      >
+                        <User className="w-4 h-4 mr-3" />
+                        View Profile
+                      </Link>
+                      <Link
+                        href="/dashboard/settings"
+                        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        onClick={() => setIsUserMenuOpen(false)}
+                      >
+                        <Settings className="w-4 h-4 mr-3" />
+                        Settings
+                      </Link>
+                      <button
+                        onClick={() => {
+                          setIsUserMenuOpen(false);
+                          handleSignOut();
+                        }}
+                        className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      >
+                        <LogOut className="w-4 h-4 mr-3" />
+                        Sign Out
+                      </button>
                     </div>
-                  </DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild>
-                    <Link
-                      href="/dashboard"
-                      className="flex items-center cursor-pointer"
-                    >
-                      <User className="mr-2 h-4 w-4" />
-                      <span>Dashboard</span>
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link
-                      href="/dashboard/settings"
-                      className="flex items-center cursor-pointer"
-                    >
-                      <Settings className="mr-2 h-4 w-4" />
-                      <span>Settings</span>
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    className="flex items-center text-red-600 cursor-pointer focus:text-red-600 focus:bg-red-50"
-                    onClick={handleLogout}
-                  >
-                    <LogOut className="mr-2 h-4 w-4" />
-                    <span>Log out</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+                  )}
+                </div>
+              </>
             ) : (
               <>
-                <Link href="/login">
-                  <Button variant="outline" className="hidden sm:inline-flex">
-                    Log In
-                  </Button>
+                <Link
+                  href="/browse"
+                  className="text-gray-700 hover:text-black-600"
+                >
+                  Browse Mentors
                 </Link>
-                <Link href="/signup">
+                <Link
+                  href="/login"
+                  className="text-gray-700 hover:text-black-600"
+                >
+                  Login
+                </Link>
+                <Link
+                  href="/signup"
+                  className="text-gray-700 hover:text-black-600"
+                >
                   <Button>Get Started</Button>
                 </Link>
               </>
             )}
           </div>
+
+          {/* Mobile menu button */}
+          <div className="md:hidden">
+            <button
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="text-gray-700 hover:text-blue-600"
+            >
+              <svg
+                className="h-6 w-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 6h16M4 12h16M4 18h16"
+                />
+              </svg>
+            </button>
+          </div>
         </div>
+
+        {/* Mobile Menu */}
+        {isMenuOpen && (
+          <div className="md:hidden">
+            <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-white border-t">
+              {status === "authenticated" ? (
+                <>
+                  <div className="flex items-center space-x-3 px-3 py-2 border-b border-gray-200 mb-2">
+                    <Avatar className="w-10 h-10">
+                      <AvatarImage
+                        src={
+                          session?.user?.profilePicture || "/placeholder.svg"
+                        }
+                        alt={session?.user?.name || "User"}
+                      />
+                      <AvatarFallback className="bg-blue-600 text-white">
+                        {session?.user?.name?.charAt(0)?.toUpperCase() || "U"}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">
+                        {session?.user?.name}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {session?.user?.email}
+                      </p>
+                    </div>
+                  </div>
+                  <Link
+                    href="/dashboard"
+                    className="block px-3 py-2 text-gray-700 hover:text-blue-600"
+                  >
+                    Dashboard
+                  </Link>
+                  <Link
+                    href="/browse"
+                    className="block px-3 py-2 text-gray-700 hover:text-blue-600"
+                  >
+                    Browse Mentors
+                  </Link>
+                  <Link
+                    href="/profile"
+                    className="block px-3 py-2 text-gray-700 hover:text-blue-600"
+                  >
+                    Profile
+                  </Link>
+                  <Link
+                    href="/dashboard/settings"
+                    className="block px-3 py-2 text-gray-700 hover:text-blue-600"
+                  >
+                    Settings
+                  </Link>
+                  <button
+                    onClick={handleSignOut}
+                    className="block w-full text-left px-3 py-2 text-gray-700 hover:text-blue-600"
+                  >
+                    Sign Out
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link
+                    href="/browse"
+                    className="block px-3 py-2 text-gray-700 hover:text-blue-600"
+                  >
+                    Browse Mentors
+                  </Link>
+                  <Link
+                    href="/login"
+                    className="block px-3 py-2 text-gray-700 hover:text-blue-600"
+                  >
+                    Login
+                  </Link>
+                  <Link
+                    href="/signup"
+                    className="block px-3 py-2 text-gray-700 hover:text-blue-600"
+                  >
+                    Get Started
+                  </Link>
+                </>
+              )}
+            </div>
+          </div>
+        )}
       </div>
-    </header>
+
+      {/* Overlay to close dropdown when clicking outside */}
+      {isUserMenuOpen && (
+        <div
+          className="fixed inset-0 z-40"
+          onClick={() => setIsUserMenuOpen(false)}
+        />
+      )}
+    </nav>
   );
 }
