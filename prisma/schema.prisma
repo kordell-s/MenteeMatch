@@ -102,7 +102,7 @@ model Session {
   date     DateTime
   time     String
   duration Int
-  status   String
+  status   SessionStatus @default(PENDING)
   description   String
   feedback String?
   rating   Float?
@@ -375,4 +375,11 @@ enum Specialization {
   TECHNICAL_WRITING
   API_DEVELOPMENT
   QUALITY_ASSURANCE
+}
+
+enum SessionStatus {
+  PENDING
+  CONFIRMED
+  COMPLETED
+  CANCELLED
 }

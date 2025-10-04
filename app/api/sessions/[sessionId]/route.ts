@@ -27,7 +27,7 @@ export async function PATCH(
     }
 
     // Validate status value
-    const validStatuses = ["PENDING", "CONFIRMED", "CANCELLED", "COMPLETED", "UPCOMING"];
+    const validStatuses = ["PENDING", "CONFIRMED", "CANCELLED", "COMPLETED"];
     if (!validStatuses.includes(status)) {
       return NextResponse.json(
         { error: "Invalid status value" },
@@ -67,12 +67,36 @@ export async function PATCH(
       },
       data: {
         status,
+        // If marking as completed, update the completion date
+        ...(status === "COMPLETED" && { 
+          completedAt: new Date() 
+        }),
+      },
+      include: {
+        mentor: {
+          select: {
+            id: true,
+            name: true,
+            profilePicture: true,
+          },
+        },
+        mentee: {
+          select: {
+            id: true,
+            name: true,
+            profilePicture: true,
+          },
+        },
       },
     });
 
     return NextResponse.json({
       id: updatedSession.id,
       status: updatedSession.status,
+      title: updatedSession.title,
+      date: updatedSession.date.toISOString(),
+      mentor: updatedSession.mentor,
+      mentee: updatedSession.mentee,
     });
   } catch (error) {
     console.error("Error updating session:", error);

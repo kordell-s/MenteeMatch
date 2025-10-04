@@ -20,6 +20,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -32,6 +39,7 @@ import {
   AlertCircle,
   CheckCircle,
   XCircle,
+  Edit,
 } from "lucide-react";
 import Image from "next/image";
 
@@ -68,6 +76,9 @@ export default function SessionsPage() {
   const [loading, setLoading] = useState(true);
   const [selectedSession, setSelectedSession] = useState<Session | null>(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [showEditStatusModal, setShowEditStatusModal] = useState(false);
+  const [selectedStatus, setSelectedStatus] = useState<string>("");
+  const [isUpdating, setIsUpdating] = useState(false);
 
   useEffect(() => {
     if (status === "loading") return;
@@ -115,6 +126,48 @@ export default function SessionsPage() {
   const handleViewDetails = (session: Session) => {
     setSelectedSession(session);
     setShowDetailsModal(true);
+  };
+
+  const handleEditStatus = (session: Session) => {
+    setSelectedSession(session);
+    setSelectedStatus(session.status);
+    setShowEditStatusModal(true);
+  };
+
+  const handleUpdateStatus = async () => {
+    if (!selectedSession || !selectedStatus) return;
+
+    setIsUpdating(true);
+    try {
+      const response = await fetch(`/api/sessions/${selectedSession.id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          status: selectedStatus,
+        }),
+      });
+
+      if (response.ok) {
+        // Refresh sessions
+        await fetchUserRoleAndSessions();
+        setShowEditStatusModal(false);
+
+        // Show success message
+        alert(
+          `Session status updated to ${selectedStatus.toLowerCase()} successfully!`
+        );
+      } else {
+        const error = await response.json();
+        alert(`Failed to update session: ${error.error || "Unknown error"}`);
+      }
+    } catch (error) {
+      console.error("Error updating session status:", error);
+      alert("Failed to update session status. Please try again.");
+    } finally {
+      setIsUpdating(false);
+    }
   };
 
   const handleCancelSession = async (sessionId: string) => {
@@ -218,6 +271,67 @@ export default function SessionsPage() {
   const upcomingSessions = filterSessionsByStatus("upcoming");
   const completedSessions = filterSessionsByStatus("completed");
   const cancelledSessions = filterSessionsByStatus("cancelled");
+
+  const renderSessionActions = (session: Session) => {
+    const actions = [];
+
+    // View Details (always available)
+    actions.push(
+      <Button
+        key="details"
+        size="sm"
+        variant="outline"
+        onClick={() => handleViewDetails(session)}
+      >
+        View Details
+      </Button>
+    );
+
+    // Status editing (only for mentors)
+    if (userRole === "mentor" && session.status !== "CANCELLED") {
+      actions.push(
+        <Button
+          key="edit-status"
+          size="sm"
+          variant="outline"
+          onClick={() => handleEditStatus(session)}
+        >
+          <Edit className="h-4 w-4 mr-1" />
+          Edit Status
+        </Button>
+      );
+    }
+
+    // Join Session (for confirmed sessions)
+    if (session.status === "CONFIRMED") {
+      actions.push(
+        <Button
+          key="join"
+          size="sm"
+          onClick={() => handleJoinSession(session.id)}
+        >
+          <Video className="h-4 w-4 mr-1" />
+          Join
+        </Button>
+      );
+    }
+
+    // Cancel Session (for pending/confirmed sessions)
+    if (session.status === "PENDING" || session.status === "CONFIRMED") {
+      actions.push(
+        <Button
+          key="cancel"
+          size="sm"
+          variant="destructive"
+          onClick={() => handleCancelSession(session.id)}
+        >
+          Cancel
+        </Button>
+      );
+    }
+
+    return actions;
+  };
 
   return (
     <div className="space-y-6">
@@ -324,31 +438,7 @@ export default function SessionsPage() {
                     </div>
 
                     <div className="flex flex-col gap-2">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleViewDetails(session)}
-                      >
-                        View Details
-                      </Button>
-
-                      {session.status === "CONFIRMED" && (
-                        <Button
-                          size="sm"
-                          onClick={() => handleJoinSession(session.id)}
-                        >
-                          <Video className="h-4 w-4 mr-1" />
-                          Join
-                        </Button>
-                      )}
-
-                      <Button
-                        size="sm"
-                        variant="destructive"
-                        onClick={() => handleCancelSession(session.id)}
-                      >
-                        Cancel
-                      </Button>
+                      {renderSessionActions(session)}
                     </div>
                   </div>
                 </CardContent>
@@ -519,6 +609,71 @@ export default function SessionsPage() {
           )}
         </TabsContent>
       </Tabs>
+
+      {/* Edit Status Modal */}
+      <Dialog open={showEditStatusModal} onOpenChange={setShowEditStatusModal}>
+        <DialogContent className="sm:max-w-[400px]">
+          <DialogHeader>
+            <DialogTitle>Update Session Status</DialogTitle>
+            <DialogDescription>
+              Change the status of this session
+            </DialogDescription>
+          </DialogHeader>
+
+          {selectedSession && (
+            <div className="grid gap-4 py-4">
+              <div>
+                <Label className="font-medium">Session</Label>
+                <p className="text-sm text-gray-600">{selectedSession.title}</p>
+              </div>
+
+              <div>
+                <Label className="font-medium">Current Status</Label>
+                <Badge className={getStatusColor(selectedSession.status)}>
+                  {selectedSession.status}
+                </Badge>
+              </div>
+
+              <div>
+                <Label htmlFor="status" className="font-medium">
+                  New Status
+                </Label>
+                <Select
+                  value={selectedStatus}
+                  onValueChange={setSelectedStatus}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select new status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="PENDING">Pending</SelectItem>
+                    <SelectItem value="CONFIRMED">Confirmed</SelectItem>
+                    <SelectItem value="COMPLETED">Completed</SelectItem>
+                    <SelectItem value="CANCELLED">Cancelled</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowEditStatusModal(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleUpdateStatus}
+              disabled={
+                isUpdating || selectedStatus === selectedSession?.status
+              }
+            >
+              {isUpdating ? "Updating..." : "Update Status"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Session Details Modal */}
       <Dialog open={showDetailsModal} onOpenChange={setShowDetailsModal}>

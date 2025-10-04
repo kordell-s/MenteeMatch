@@ -458,7 +458,7 @@ export default function MenteeDashboardPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {tasks.length > 0 ? (
+          {tasks.length >= 0 ? (
             <ul className="space-y-3">
               {tasks.map((task) => (
                 <li

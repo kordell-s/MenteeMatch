@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation"; // Fixed import
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -31,6 +31,7 @@ import {
   Users,
   BarChart,
   FileText,
+  CheckSquare,
 } from "lucide-react";
 import type {
   DashboardData,
@@ -38,23 +39,145 @@ import type {
 } from "@/app/types/dashboard/mentorDashboardData";
 import type { MenteeDashboardData } from "@/app/types/dashboard/menteeDashboardData";
 import TaskAssignmentModal from "@/components/TaskAssignmentModal";
-import { CheckSquare } from "lucide-react";
 import TaskCard from "@/components/TaskCard";
+
+// Enhanced types for dynamic data
+interface EnhancedMenteeData extends MenteeCardData {
+  completedTasks: number;
+  totalTasks: number;
+  completedSessions: number;
+  totalSessions: number;
+  primaryGoal: string;
+  progressPercentage: number;
+}
+
+interface DynamicDashboardStats {
+  totalTasksCompleted: number;
+  totalTasksCreated: number;
+  totalSessionsCompleted: number;
+  totalSessionsScheduled: number;
+}
+
+interface RecentSession {
+  id: string;
+  menteeName: string;
+  menteeProfilePicture?: string;
+  date: string;
+  status: "COMPLETED" | "UPCOMING" | "CANCELLED" | "PENDING" | "CONFIRMED";
+  title: string;
+}
 
 export default function MyMenteesPage() {
   const { data: session } = useSession();
-  const router = useRouter(); // Fixed: Added proper router initialization
+  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("all");
   const [goalFilter, setGoalFilter] = useState("all");
   const [assignedTasks, setAssignedTasks] = useState<any[]>([]);
+  const [dashboardStats, setDashboardStats] = useState<DynamicDashboardStats>({
+    totalTasksCompleted: 0,
+    totalTasksCreated: 0,
+    totalSessionsCompleted: 0,
+    totalSessionsScheduled: 0,
+  });
+  const [enhancedMentees, setEnhancedMentees] = useState<EnhancedMenteeData[]>(
+    []
+  );
+  const [recentSessions, setRecentSessions] = useState<RecentSession[]>([]);
 
-  // Use session user ID instead of hardcoded ID
   const mentorId = session?.user?.id;
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(
     null
   );
-  const myMentees: MenteeCardData[] = dashboardData?.confirmedMentees || [];
+
+  // Custom hook for fetching enhanced mentee data
+  const fetchEnhancedMenteeData = async (
+    menteeId: string
+  ): Promise<Partial<EnhancedMenteeData>> => {
+    try {
+      // Fetch all tasks assigned by this mentor and filter by mentee
+      const tasksResponse = await fetch(`/api/tasks/mentor/${mentorId}`);
+      const allTasks = tasksResponse.ok ? await tasksResponse.json() : [];
+
+      // Filter tasks for this specific mentee
+      const menteeTasks = allTasks.filter(
+        (task: any) => task.menteeId === menteeId
+      );
+
+      // For sessions, we'll need to use the dashboard data or create a proper sessions endpoint
+      // For now, let's use empty data until the sessions API is properly implemented
+      const menteeSessions: any[] = [];
+
+      const completedTasks = menteeTasks.filter(
+        (task: any) => task.status === "COMPLETED"
+      ).length;
+      const totalTasks = menteeTasks.length;
+      const completedSessions = menteeSessions.filter(
+        (session: any) => session.status === "COMPLETED"
+      ).length;
+      const totalSessions = menteeSessions.length;
+
+      // Calculate progress percentage based on completed tasks
+      const progressPercentage =
+        totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+
+      return {
+        completedTasks,
+        totalTasks,
+        completedSessions,
+        totalSessions,
+        progressPercentage,
+      };
+    } catch (error) {
+      console.error(
+        `Error fetching enhanced data for mentee ${menteeId}:`,
+        error
+      );
+      return {
+        completedTasks: 0,
+        totalTasks: 0,
+        completedSessions: 0,
+        totalSessions: 0,
+        progressPercentage: 0,
+      };
+    }
+  };
+
+  // Fetch recent sessions across all mentees (including pending sessions)
+  const fetchRecentSessions = async () => {
+    if (!mentorId) return;
+
+    try {
+      // Fetch sessions from the dashboard data and also directly from sessions API
+      const sessionsResponse = await fetch(`/api/sessions?role=MENTOR`);
+      if (sessionsResponse.ok) {
+        const allSessions = await sessionsResponse.json();
+
+        // Sort by date and include pending sessions first, then recent ones
+        const sortedSessions = allSessions
+          .sort((a: any, b: any) => {
+            // Prioritize pending sessions
+            if (a.status === "PENDING" && b.status !== "PENDING") return -1;
+            if (b.status === "PENDING" && a.status !== "PENDING") return 1;
+
+            // Then sort by date (most recent first)
+            return new Date(b.date).getTime() - new Date(a.date).getTime();
+          })
+          .slice(0, 5)
+          .map((session: any) => ({
+            id: session.id,
+            menteeName: session.mentee?.name || "Unknown Mentee",
+            menteeProfilePicture: session.mentee?.profilePicture,
+            date: session.date,
+            status: session.status,
+            title: session.title || "Session",
+          }));
+        setRecentSessions(sortedSessions);
+      }
+    } catch (error) {
+      console.error("Error fetching recent sessions:", error);
+    }
+  };
 
   const fetchDashboard = async () => {
     if (!mentorId) return;
@@ -64,12 +187,73 @@ export default function MyMenteesPage() {
       const data = await res.json();
       setDashboardData(data);
 
-      // Fetch assigned tasks
+      // Fetch all tasks assigned by this mentor first
       const tasksRes = await fetch(`/api/tasks/mentor/${mentorId}`);
-      if (tasksRes.ok) {
-        const tasksData = await tasksRes.json();
-        setAssignedTasks(tasksData);
+      const allMentorTasks = tasksRes.ok ? await tasksRes.json() : [];
+      setAssignedTasks(allMentorTasks);
+
+      // Fetch all sessions directly from sessions API to get most up-to-date data
+      const sessionsRes = await fetch(`/api/sessions?role=MENTOR`);
+      const allMentorSessions = sessionsRes.ok ? await sessionsRes.json() : [];
+
+      // Process enhanced data for each mentee
+      const enhancedMenteesData: EnhancedMenteeData[] = [];
+      let totalTasksCompleted = 0;
+      let totalTasksCreated = 0;
+      let totalSessionsCompleted = 0;
+      let totalSessionsScheduled = 0;
+
+      for (const mentee of data.confirmedMentees || []) {
+        // Filter tasks for this specific mentee
+        const menteeTasks = allMentorTasks.filter(
+          (task: any) => task.menteeId === mentee.id
+        );
+
+        // Filter sessions for this specific mentee from sessions API data
+        const menteeSessions = allMentorSessions.filter(
+          (session: any) => session.mentee?.id === mentee.id
+        );
+
+        const completedTasks = menteeTasks.filter(
+          (task: any) => task.status === "COMPLETED"
+        ).length;
+        const totalTasks = menteeTasks.length;
+        const completedSessions = menteeSessions.filter(
+          (session: any) => session.status === "COMPLETED"
+        ).length;
+        const totalSessions = menteeSessions.length;
+        const progressPercentage =
+          totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+
+        const enhancedMentee: EnhancedMenteeData = {
+          ...mentee,
+          completedTasks,
+          totalTasks,
+          completedSessions,
+          totalSessions,
+          primaryGoal: mentee.goals?.[0] || "No primary goal set",
+          progressPercentage,
+        };
+
+        enhancedMenteesData.push(enhancedMentee);
+
+        // Aggregate stats across all mentees
+        totalTasksCompleted += completedTasks;
+        totalTasksCreated += totalTasks;
+        totalSessionsCompleted += completedSessions;
+        totalSessionsScheduled += totalSessions;
       }
+
+      setEnhancedMentees(enhancedMenteesData);
+      setDashboardStats({
+        totalTasksCompleted,
+        totalTasksCreated,
+        totalSessionsCompleted,
+        totalSessionsScheduled,
+      });
+
+      // Fetch recent sessions using updated data
+      await fetchRecentSessions();
     } catch (error) {
       console.error("Error fetching dashboard data:", error);
     }
@@ -84,12 +268,11 @@ export default function MyMenteesPage() {
         },
         body: JSON.stringify({ status: newStatus }),
       });
-
       if (response.ok) {
         const result = await response.json();
         console.log("Task updated successfully:", result);
 
-        // Refresh tasks
+        // Refresh dashboard data to update all counters
         await fetchDashboard();
 
         // Show success message
@@ -109,6 +292,41 @@ export default function MyMenteesPage() {
     }
   };
 
+  const handleSessionStatusUpdate = async (
+    sessionId: string,
+    newStatus: string
+  ) => {
+    try {
+      const response = await fetch(`/api/sessions/${sessionId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ status: newStatus }),
+      });
+
+      if (response.ok) {
+        // First refresh the recent sessions to show immediate update
+        await fetchRecentSessions();
+
+        // Then refresh full dashboard data to update all counters
+        await fetchDashboard();
+
+        // Show success message
+        alert(
+          `Session status updated to ${newStatus.toLowerCase()} successfully!`
+        );
+      } else {
+        const error = await response.json();
+        console.error("Error updating session status:", error);
+        alert(`Failed to update session: ${error.error || "Unknown error"}`);
+      }
+    } catch (error) {
+      console.error("Error updating session status:", error);
+      alert("Failed to update session status. Please try again.");
+    }
+  };
+
   useEffect(() => {
     if (mentorId) {
       fetchDashboard();
@@ -119,14 +337,19 @@ export default function MyMenteesPage() {
     await fetchDashboard();
   };
 
+  // Handle View All Sessions navigation
+  const handleViewAllSessions = () => {
+    // CHECK: Verify a '/sessions' route doesn't already exist
+    router.push("/dashboard/sessions");
+  };
+
   // Get unique goals for filter dropdown
   const allGoals = Array.from(
-    new Set(myMentees.flatMap((mentee) => mentee.goals).filter(Boolean))
+    new Set(enhancedMentees.flatMap((mentee) => mentee.goals).filter(Boolean))
   );
 
   // Filter mentees based on search query, active tab, and goal filter
-  const filteredMentees = myMentees.filter((mentee) => {
-    const goalsArray = mentee.goals || [];
+  const filteredMentees = enhancedMentees.filter((mentee) => {
     // Filter by search query
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
@@ -166,6 +389,7 @@ export default function MyMenteesPage() {
         </p>
       </div>
 
+      {/* Enhanced Dashboard Statistics */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <Card>
           <CardHeader className="pb-2">
@@ -177,9 +401,12 @@ export default function MyMenteesPage() {
             <div className="flex items-center">
               <Users className="h-8 w-8 text-blue-500 mr-3" />
               <div>
-                <div className="text-2xl font-bold">{myMentees.length}</div>
+                <div className="text-2xl font-bold">
+                  {enhancedMentees.length}
+                </div>
                 <p className="text-xs text-gray-500">
-                  {myMentees.filter((m) => m.status === "active").length} active
+                  {enhancedMentees.filter((m) => m.status === "active").length}{" "}
+                  active
                 </p>
               </div>
             </div>
@@ -189,20 +416,18 @@ export default function MyMenteesPage() {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-gray-500">
-              Sessions Completed
+              Tasks Progress
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center">
-              <Calendar className="h-8 w-8 text-green-500 mr-3" />
+              <CheckSquare className="h-8 w-8 text-green-500 mr-3" />
               <div>
                 <div className="text-2xl font-bold">
-                  {myMentees.reduce(
-                    (total, mentee) => total + mentee.sessionsCompleted,
-                    0
-                  )}
+                  {dashboardStats.totalTasksCompleted} /{" "}
+                  {dashboardStats.totalTasksCreated}
                 </div>
-                <p className="text-xs text-gray-500">+5 this month</p>
+                <p className="text-xs text-gray-500">Tasks Completed</p>
               </div>
             </div>
           </CardContent>
@@ -211,29 +436,25 @@ export default function MyMenteesPage() {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-gray-500">
-              Average Progress
+              Sessions Progress
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center">
-              <BarChart className="h-8 w-8 text-purple-500 mr-3" />
+              <Calendar className="h-8 w-8 text-purple-500 mr-3" />
               <div>
                 <div className="text-2xl font-bold">
-                  {Math.round(
-                    myMentees.reduce(
-                      (sum, mentee) => sum + (mentee.progress ?? 0),
-                      0
-                    ) / myMentees.length
-                  )}
-                  %
+                  {dashboardStats.totalSessionsCompleted} /{" "}
+                  {dashboardStats.totalSessionsScheduled}
                 </div>
-                <p className="text-xs text-gray-500">Across all mentees</p>
+                <p className="text-xs text-gray-500">Sessions Completed</p>
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
 
+      {/* Search and Filter Controls */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
         <div className="relative max-w-md">
           <Search
@@ -277,6 +498,7 @@ export default function MyMenteesPage() {
           <TabsTrigger value="inactive">Inactive</TabsTrigger>
         </TabsList>
 
+        {/* Enhanced Mentee Cards */}
         <TabsContent value="all" className="mt-6">
           {filteredMentees.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -302,6 +524,9 @@ export default function MyMenteesPage() {
                           <CardDescription>
                             {mentee.title} at {mentee.company}
                           </CardDescription>
+                          <Badge variant="outline" className="mt-1 text-xs">
+                            {mentee.primaryGoal}
+                          </Badge>
                         </div>
                       </div>
                       {mentee.status === "inactive" && (
@@ -316,31 +541,42 @@ export default function MyMenteesPage() {
                       {mentee.bio}
                     </p>
 
+                    {/* Enhanced Progress Section */}
                     <div className="mb-4">
-                      <div className="flex justify-between items-center mb-1">
-                        <span className="text-sm font-medium">Progress</span>
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="text-sm font-medium">
+                          Task Progress
+                        </span>
                         <span className="text-sm text-gray-500">
-                          {mentee.progress}%
+                          {mentee.completedTasks}/{mentee.totalTasks} tasks
                         </span>
                       </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
                         <div
                           className="bg-primary h-2 rounded-full"
-                          style={{ width: `${mentee.progress}%` }}
+                          style={{ width: `${mentee.progressPercentage}%` }}
                         ></div>
+                      </div>
+                      <div className="flex justify-between items-center text-xs text-gray-500">
+                        <span>{mentee.progressPercentage}% complete</span>
+                        <span>
+                          {mentee.completedSessions}/{mentee.totalSessions}{" "}
+                          sessions
+                        </span>
                       </div>
                     </div>
 
+                    {/* Additional Goals */}
                     <div className="flex flex-wrap gap-2 mb-4">
-                      {mentee.goals && mentee.goals.length > 0 ? (
-                        mentee.goals.map((goal) => (
+                      {mentee.goals && mentee.goals.length > 1 ? (
+                        mentee.goals.slice(1).map((goal) => (
                           <Badge key={goal} variant="secondary">
                             {goal}
                           </Badge>
                         ))
                       ) : (
                         <Badge variant="outline" className="text-gray-400">
-                          No goals set
+                          No additional goals
                         </Badge>
                       )}
                     </div>
@@ -348,10 +584,6 @@ export default function MyMenteesPage() {
                     <div className="text-sm text-gray-600 mb-1">
                       <span className="font-medium">Joined:</span>{" "}
                       {mentee.joinedDate}
-                    </div>
-                    <div className="text-sm text-gray-600 mb-1">
-                      <span className="font-medium">Sessions:</span>{" "}
-                      {mentee.sessionsCompleted} completed
                     </div>
                     {mentee.lastSession && (
                       <div className="text-sm text-gray-600 mb-1">
@@ -411,6 +643,7 @@ export default function MyMenteesPage() {
           )}
         </TabsContent>
 
+        {/* Active Tab */}
         <TabsContent value="active" className="mt-6">
           {filteredMentees.filter((mentee) => mentee.status === "active")
             .length > 0 ? (
@@ -436,6 +669,9 @@ export default function MyMenteesPage() {
                             <CardDescription>
                               {mentee.title} at {mentee.company}
                             </CardDescription>
+                            <Badge variant="outline" className="mt-1 text-xs">
+                              {mentee.primaryGoal}
+                            </Badge>
                           </div>
                         </div>
                       </div>
@@ -445,31 +681,42 @@ export default function MyMenteesPage() {
                         {mentee.bio}
                       </p>
 
+                      {/* Enhanced Progress Section */}
                       <div className="mb-4">
-                        <div className="flex justify-between items-center mb-1">
-                          <span className="text-sm font-medium">Progress</span>
+                        <div className="flex justify-between items-center mb-2">
+                          <span className="text-sm font-medium">
+                            Task Progress
+                          </span>
                           <span className="text-sm text-gray-500">
-                            {mentee.progress}%
+                            {mentee.completedTasks}/{mentee.totalTasks} tasks
                           </span>
                         </div>
-                        <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
                           <div
                             className="bg-primary h-2 rounded-full"
-                            style={{ width: `${mentee.progress}%` }}
+                            style={{ width: `${mentee.progressPercentage}%` }}
                           ></div>
+                        </div>
+                        <div className="flex justify-between items-center text-xs text-gray-500">
+                          <span>{mentee.progressPercentage}% complete</span>
+                          <span>
+                            {mentee.completedSessions}/{mentee.totalSessions}{" "}
+                            sessions
+                          </span>
                         </div>
                       </div>
 
+                      {/* Additional Goals */}
                       <div className="flex flex-wrap gap-2 mb-4">
-                        {mentee.goals && mentee.goals.length > 0 ? (
-                          mentee.goals.map((goal) => (
+                        {mentee.goals && mentee.goals.length > 1 ? (
+                          mentee.goals.slice(1).map((goal) => (
                             <Badge key={goal} variant="secondary">
                               {goal}
                             </Badge>
                           ))
                         ) : (
                           <Badge variant="outline" className="text-gray-400">
-                            No goals set
+                            No additional goals
                           </Badge>
                         )}
                       </div>
@@ -477,10 +724,6 @@ export default function MyMenteesPage() {
                       <div className="text-sm text-gray-600 mb-1">
                         <span className="font-medium">Joined:</span>{" "}
                         {mentee.joinedDate}
-                      </div>
-                      <div className="text-sm text-gray-600 mb-1">
-                        <span className="font-medium">Sessions:</span>{" "}
-                        {mentee.sessionsCompleted} completed
                       </div>
                       {mentee.lastSession && (
                         <div className="text-sm text-gray-600 mb-1">
@@ -499,6 +742,30 @@ export default function MyMenteesPage() {
                           </Badge>
                         </div>
                       )}
+                      <div className="flex gap-2 mt-4">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            router.push(
+                              `/dashboard/messages?menteeId=${mentee.id}`
+                            );
+                          }}
+                        >
+                          <MessageSquare className="h-4 w-4 mr-1" />
+                          Message
+                        </Button>
+                        <TaskAssignmentModal
+                          menteeId={mentee.id}
+                          menteeName={mentee.name}
+                          onTaskAssigned={refreshDashboard}
+                        >
+                          <Button size="sm" className="flex items-center gap-2">
+                            <CheckSquare className="h-4 w-4" />
+                            Assign Task
+                          </Button>
+                        </TaskAssignmentModal>
+                      </div>
                     </CardContent>
                   </Card>
                 ))}
@@ -520,6 +787,7 @@ export default function MyMenteesPage() {
           )}
         </TabsContent>
 
+        {/* Inactive Tab */}
         <TabsContent value="inactive" className="mt-6">
           {filteredMentees.filter((mentee) => mentee.status === "inactive")
             .length > 0 ? (
@@ -545,6 +813,9 @@ export default function MyMenteesPage() {
                             <CardDescription>
                               {mentee.title} at {mentee.company}
                             </CardDescription>
+                            <Badge variant="outline" className="mt-1 text-xs">
+                              {mentee.primaryGoal}
+                            </Badge>
                           </div>
                         </div>
                         <Badge variant="outline" className="bg-gray-100">
@@ -557,31 +828,42 @@ export default function MyMenteesPage() {
                         {mentee.bio}
                       </p>
 
+                      {/* Enhanced Progress Section */}
                       <div className="mb-4">
-                        <div className="flex justify-between items-center mb-1">
-                          <span className="text-sm font-medium">Progress</span>
+                        <div className="flex justify-between items-center mb-2">
+                          <span className="text-sm font-medium">
+                            Task Progress
+                          </span>
                           <span className="text-sm text-gray-500">
-                            {mentee.progress}%
+                            {mentee.completedTasks}/{mentee.totalTasks} tasks
                           </span>
                         </div>
-                        <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
                           <div
                             className="bg-primary h-2 rounded-full"
-                            style={{ width: `${mentee.progress}%` }}
+                            style={{ width: `${mentee.progressPercentage}%` }}
                           ></div>
+                        </div>
+                        <div className="flex justify-between items-center text-xs text-gray-500">
+                          <span>{mentee.progressPercentage}% complete</span>
+                          <span>
+                            {mentee.completedSessions}/{mentee.totalSessions}{" "}
+                            sessions
+                          </span>
                         </div>
                       </div>
 
+                      {/* Additional Goals */}
                       <div className="flex flex-wrap gap-2 mb-4">
-                        {mentee.goals && mentee.goals.length > 0 ? (
-                          mentee.goals.map((goal) => (
+                        {mentee.goals && mentee.goals.length > 1 ? (
+                          mentee.goals.slice(1).map((goal) => (
                             <Badge key={goal} variant="secondary">
                               {goal}
                             </Badge>
                           ))
                         ) : (
                           <Badge variant="outline" className="text-gray-400">
-                            No goals set
+                            No additional goals
                           </Badge>
                         )}
                       </div>
@@ -590,16 +872,47 @@ export default function MyMenteesPage() {
                         <span className="font-medium">Joined:</span>{" "}
                         {mentee.joinedDate}
                       </div>
-                      <div className="text-sm text-gray-600 mb-1">
-                        <span className="font-medium">Sessions:</span>{" "}
-                        {mentee.sessionsCompleted} completed
-                      </div>
                       {mentee.lastSession && (
                         <div className="text-sm text-gray-600 mb-1">
                           <span className="font-medium">Last session:</span>{" "}
                           {mentee.lastSession}
                         </div>
                       )}
+                      {mentee.nextSession && (
+                        <div className="text-sm text-gray-600 flex items-center">
+                          <span className="font-medium mr-1">
+                            Next session:
+                          </span>
+                          <Badge variant="outline" className="font-normal">
+                            <Clock className="h-3 w-3 mr-1" />
+                            {mentee.nextSession}
+                          </Badge>
+                        </div>
+                      )}
+                      <div className="flex gap-2 mt-4">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            router.push(
+                              `/dashboard/messages?menteeId=${mentee.id}`
+                            );
+                          }}
+                        >
+                          <MessageSquare className="h-4 w-4 mr-1" />
+                          Message
+                        </Button>
+                        <TaskAssignmentModal
+                          menteeId={mentee.id}
+                          menteeName={mentee.name}
+                          onTaskAssigned={refreshDashboard}
+                        >
+                          <Button size="sm" className="flex items-center gap-2">
+                            <CheckSquare className="h-4 w-4" />
+                            Assign Task
+                          </Button>
+                        </TaskAssignmentModal>
+                      </div>
                     </CardContent>
                   </Card>
                 ))}
@@ -622,6 +935,7 @@ export default function MyMenteesPage() {
         </TabsContent>
       </Tabs>
 
+      {/* Assigned Tasks Section */}
       <Card className="mb-8">
         <CardHeader>
           <CardTitle>Assigned Tasks</CardTitle>
@@ -654,61 +968,105 @@ export default function MyMenteesPage() {
         </CardContent>
       </Card>
 
+      {/* Enhanced Recent Sessions */}
       <Card>
         <CardHeader>
-          <CardTitle>Recent Sessions</CardTitle>
+          <CardTitle>Recent & Pending Sessions</CardTitle>
           <CardDescription>
-            Review your recent mentoring sessions
+            Your 5 most recent sessions and pending requests across all mentees
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {(dashboardData?.completedSessions || []).map((session) => (
-              <div
-                key={session.id}
-                className="p-4 border rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                <div className="flex items-start">
-                  <Image
-                    src={session.mentee.profilePicture || "/images/avatar.png"}
-                    alt={session.mentee.name}
-                    width={40}
-                    height={40}
-                    className="rounded-full"
-                  />
-                  <div className="ml-4 flex-1">
-                    <div className="flex items-center justify-between">
-                      <h4 className="font-medium">{session.mentee.name}</h4>
-                      <div className="flex">
-                        {[...Array(5)].map((_, i) => (
-                          <Star
-                            key={i}
-                            className={`h-4 w-4 ${
-                              i < (session.rating || 0)
-                                ? "fill-yellow-400 text-yellow-400"
-                                : "text-gray-300"
-                            }`}
-                          />
-                        ))}
+            {recentSessions.length > 0 ? (
+              recentSessions.map((session) => (
+                <div
+                  key={session.id}
+                  className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  <div className="flex items-center">
+                    <Image
+                      src={session.menteeProfilePicture || "/images/avatar.png"}
+                      alt={session.menteeName}
+                      width={40}
+                      height={40}
+                      className="rounded-full mr-4"
+                    />
+                    <div>
+                      <h4 className="font-medium">{session.menteeName}</h4>
+                      <p className="text-sm text-gray-600">{session.title}</p>
+                      <p className="text-xs text-gray-500">
+                        {new Date(session.date).toLocaleDateString()}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Badge
+                      variant={
+                        session.status === "COMPLETED" ? "default" : "outline"
+                      }
+                      className={
+                        session.status === "COMPLETED"
+                          ? "bg-green-100 text-green-800"
+                          : session.status === "PENDING"
+                          ? "bg-yellow-100 text-yellow-800"
+                          : session.status === "CONFIRMED"
+                          ? "bg-blue-100 text-blue-800"
+                          : "bg-gray-100 text-gray-800"
+                      }
+                    >
+                      {session.status === "COMPLETED"
+                        ? "Completed"
+                        : session.status === "PENDING"
+                        ? "Pending"
+                        : session.status === "CONFIRMED"
+                        ? "Confirmed"
+                        : "Cancelled"}
+                    </Badge>
+
+                    {/* Quick action buttons for pending sessions */}
+                    {session.status === "PENDING" && (
+                      <div className="flex gap-1">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() =>
+                            handleSessionStatusUpdate(session.id, "CONFIRMED")
+                          }
+                          className="text-xs px-2 py-1"
+                        >
+                          Confirm
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() =>
+                            handleSessionStatusUpdate(session.id, "CANCELLED")
+                          }
+                          className="text-xs px-2 py-1 text-red-600 hover:text-red-700"
+                        >
+                          Decline
+                        </Button>
                       </div>
-                    </div>
-                    <div className="flex items-center text-sm text-gray-600 mb-2">
-                      <Badge variant="outline" className="mr-2">
-                        {session.sessionType}
-                      </Badge>
-                      <span>
-                        {session.date}, {session.time}
-                      </span>
-                    </div>
-                    <p className="text-sm text-gray-700">{session.notes}</p>
+                    )}
+
+                    {/* Mark as completed for confirmed sessions */}
+                    {session.status === "CONFIRMED" && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() =>
+                          handleSessionStatusUpdate(session.id, "COMPLETED")
+                        }
+                        className="text-xs px-2 py-1 text-green-600 hover:text-green-700"
+                      >
+                        Mark Complete
+                      </Button>
+                    )}
                   </div>
                 </div>
-              </div>
-            ))}
-
-            {/* Show empty state if no sessions */}
-            {(!dashboardData?.completedSessions ||
-              dashboardData.completedSessions.length === 0) && (
+              ))
+            ) : (
               <div className="text-center py-8 text-gray-500">
                 <Calendar className="h-12 w-12 mx-auto mb-4 text-gray-300" />
                 <p>No recent sessions found</p>
@@ -717,7 +1075,11 @@ export default function MyMenteesPage() {
           </div>
         </CardContent>
         <CardFooter>
-          <Button variant="outline" className="w-full">
+          <Button
+            variant="outline"
+            className="w-full"
+            onClick={handleViewAllSessions}
+          >
             View All Sessions
           </Button>
         </CardFooter>

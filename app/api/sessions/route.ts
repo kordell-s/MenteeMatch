@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth-helpers";
 import { prisma } from "@/lib/prisma";
 
-export async function GET(req: NextRequest) {
+export async function GET(request: NextRequest) {
   try {
     const user = await getCurrentUser();
     
@@ -13,24 +13,37 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const { searchParams } = new URL(req.url);
+    const { searchParams } = new URL(request.url);
     const role = searchParams.get("role");
 
     let sessions;
 
-    if (role === "MENTOR") {
+    if (role === "MENTOR" || user.role === "MENTOR") {
       // Fetch sessions where user is the mentor
       sessions = await prisma.session.findMany({
         where: {
           mentorId: user.id,
         },
         include: {
-          mentor: true,
-          mentee: true,
+          mentee: {
+            select: {
+              id: true,
+              name: true,
+              profilePicture: true,
+            },
+          },
+          mentor: {
+            select: {
+              id: true,
+              name: true,
+              profilePicture: true,
+            },
+          },
         },
-        orderBy: {
-          date: "asc",
-        },
+        orderBy: [
+          { status: "asc" }, // Pending first
+          { date: "desc" },  // Then by date
+        ],
       });
     } else {
       // Fetch sessions where user is the mentee
@@ -39,34 +52,39 @@ export async function GET(req: NextRequest) {
           menteeId: user.id,
         },
         include: {
-          mentor: true,
-          mentee: true,
+          mentee: {
+            select: {
+              id: true,
+              name: true,
+              profilePicture: true,
+            },
+          },
+          mentor: {
+            select: {
+              id: true,
+              name: true,
+              profilePicture: true,
+            },
+          },
         },
-        orderBy: {
-          date: "asc",
-        },
+        orderBy: [
+          { status: "asc" },
+          { date: "desc" },
+        ],
       });
     }
 
+    // Transform the sessions to include formatted data
     const formattedSessions = sessions.map((session) => ({
       id: session.id,
-      title: session.title,
+      title: session.title || "Mentoring Session",
       date: session.date.toISOString(),
-      time: session.time,
-      duration: session.duration,
+      time: session.time || "Time TBD",
+      duration: session.duration || 60,
       status: session.status,
       description: session.description,
-      // offeringType: session.offeringType,
-      mentor: {
-        id: session.mentor.id,
-        name: session.mentor.name,
-        profilePicture: session.mentor.profilePicture,
-      },
-      mentee: {
-        id: session.mentee.id,
-        name: session.mentee.name,
-        profilePicture: session.mentee.profilePicture,
-      },
+      mentor: session.mentor,
+      mentee: session.mentee,
     }));
 
     return NextResponse.json(formattedSessions);

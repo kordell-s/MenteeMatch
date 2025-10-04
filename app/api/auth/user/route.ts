@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth-helpers";
 
-export async function GET(req: NextRequest) {
+export async function GET(request: NextRequest) {
   try {
     const user = await getCurrentUser();
     
@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
       profilePicture: user.profilePicture,
     });
   } catch (error) {
-    console.error("Error fetching user:", error);
+    console.error("Error fetching user data:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
