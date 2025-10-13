@@ -54,3 +54,5 @@ test-*.js
 # model directory and files
 /model/
 wiki_gig_50d.txt
+wiki_giga_50d.txt
+model/wiki_giga_50d.txt
