@@ -80,14 +80,15 @@ export async function POST(req: NextRequest) {
     }
 
     console.log('🧠 Using TF-IDF + Word Embeddings Algorithm');
-    
+
     // Create mentee input text for smart algorithm
-    const menteeText = [
-      ...(mentee.skills || []),
-      ...(mentee.mentee?.goals?.map(g => g.toString()) || []),
-      mentee.bio || '',
-      mentee.experienceLevel || ''
-    ].join(' ');
+    // Weight skills and goals more heavily for better matching
+    const skillsText = (mentee.skills || []).join(' ').repeat(3); // 3x weight
+    const goalsText = (mentee.mentee?.goals?.map(g => g.toString()) || []).join(' ').repeat(2); // 2x weight
+    const bioText = mentee.bio || '';
+    const expText = mentee.experienceLevel || '';
+
+    const menteeText = `${skillsText} ${goalsText} ${bioText} ${expText}`;
 
 
     const formattedMentors = mentors.map(mentor => ({

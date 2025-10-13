@@ -146,7 +146,12 @@ export const getMentorRecommendations = async (menteeInput: string, mentors: any
     
     // Add all mentor documents to TF-IDF
     const mentorTexts = mentors.map(mentor => {
-      const text = `${mentor.skills.join(' ')} ${mentor.bio}`;
+      // Weight skills and specialization more heavily by repeating them
+      const skillsText = mentor.skills.join(' ').repeat(3); // 3x weight for skills
+      const specializationText = (mentor.specialization || []).join(' ').repeat(2); // 2x weight for specialization
+      const bioText = mentor.bio || '';
+
+      const text = `${skillsText} ${specializationText} ${bioText}`;
       const processedText = preprocessText(text).join(' ');
       tfidf.addDocument(processedText);
       return text;

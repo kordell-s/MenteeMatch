@@ -1,6 +1,7 @@
 import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { prisma } from "./prisma";
+import bcrypt from "bcryptjs";
 
 declare module "next-auth" {
   interface User {
@@ -56,7 +57,9 @@ export const authOptions: NextAuthOptions = {
             return null;
           }
 
-          if (user.password !== credentials.password) {
+          const isPasswordValid = await bcrypt.compare(credentials.password, user.password);
+
+          if (!isPasswordValid) {
             console.log("❌ Password mismatch for user:", credentials.email);
             return null;
           }
@@ -89,7 +92,7 @@ export const authOptions: NextAuthOptions = {
     updateAge: 24 * 60 * 60, // 24 hours
   },
   callbacks: {
-    async jwt({ token, user, trigger }) {
+    async jwt({ token, user }) {
       // Initial sign in - this is where the problem usually is
       if (user) {
         console.log("🔧 JWT callback - Adding user to token:", user.email);

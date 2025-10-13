@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import bcrypt from "bcryptjs";
 
 export async function POST(request: NextRequest) {
   try {
@@ -32,10 +33,22 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate password length
-    if (password.length < 6) {
+    // Validate password strength
+    if (password.length < 8) {
       return NextResponse.json(
-        { error: "Password must be at least 6 characters long" },
+        { error: "Password must be at least 8 characters long" },
+        { status: 400 }
+      );
+    }
+
+    // Check password complexity
+    const hasUpperCase = /[A-Z]/.test(password);
+    const hasLowerCase = /[a-z]/.test(password);
+    const hasNumber = /[0-9]/.test(password);
+
+    if (!hasUpperCase || !hasLowerCase || !hasNumber) {
+      return NextResponse.json(
+        { error: "Password must contain at least one uppercase letter, one lowercase letter, and one number" },
         { status: 400 }
       );
     }
@@ -63,12 +76,18 @@ export async function POST(request: NextRequest) {
 
     console.log("✅ No existing user found, attempting to create...");
 
+    // Hash password for secure storage
+    const saltRounds = process.env.NODE_ENV === 'production' ? 10 : 4;
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+    console.log("🔒 Password hashed securely");
+
     // Create user with basic information
     const user = await prisma.user.create({
       data: {
         name,
         email,
-        password: password, // Plain text for development
+        password: hashedPassword,
         role,
         bio: bio?.trim() || "",
         title: title?.trim() || null,
@@ -100,7 +119,7 @@ export async function POST(request: NextRequest) {
     console.log("🔍 User verification check:", savedUser);
 
     return NextResponse.json(
-      { 
+      {
         success: true,
         message: "User created successfully",
         user: {
@@ -109,11 +128,6 @@ export async function POST(request: NextRequest) {
           email: user.email,
           role: user.role,
           profileComplete: user.profileComplete,
-        },
-        // Add credentials for automatic sign-in
-        credentials: {
-          email: user.email,
-          password: password
         }
       },
       { status: 201 }

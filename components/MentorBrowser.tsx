@@ -18,6 +18,7 @@ import {
   Heart,
 } from "lucide-react";
 import MentorCard from "./MentorCard";
+import MentorCardSkeleton from "./MentorCardSkeleton";
 import RecommendedMentors from "./RecommendedMentors";
 import { Mentor } from "@/app/types/mentor";
 
@@ -218,8 +219,34 @@ export default function MentorBrowser() {
   if (loading) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <div className="text-center">
-          <p>Loading mentors...</p>
+        <h1 className="text-3xl font-bold mb-2">Find Your Mentor</h1>
+        <p className="text-gray-600 mb-8">
+          Browse mentors that match your goals and schedule a session
+        </p>
+
+        {/* Search and filter bar skeleton */}
+        <div className="flex flex-col md:flex-row gap-4 mb-8">
+          <div className="relative flex-grow">
+            <div className="h-10 bg-gray-200 rounded animate-pulse"></div>
+          </div>
+          <div className="flex gap-4">
+            <div className="h-10 w-24 bg-gray-200 rounded animate-pulse"></div>
+            <div className="h-10 w-32 bg-gray-200 rounded animate-pulse"></div>
+          </div>
+        </div>
+
+        {/* Categories tabs skeleton */}
+        <div className="flex gap-2 mb-8 overflow-x-auto pb-2">
+          {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+            <div key={i} className="h-10 w-32 bg-gray-200 rounded animate-pulse flex-shrink-0"></div>
+          ))}
+        </div>
+
+        {/* Loading mentor cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <MentorCardSkeleton key={i} />
+          ))}
         </div>
       </div>
     );
