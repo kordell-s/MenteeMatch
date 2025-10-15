@@ -203,7 +203,10 @@ export default function ProfilePage() {
   if (status === "loading" || isLoading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
-        Loading...
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-4 border-brand-sky border-t-brand-teal mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading profile...</p>
+        </div>
       </div>
     );
   }
@@ -211,33 +214,37 @@ export default function ProfilePage() {
   if (!profile) {
     return (
       <div className="flex justify-center items-center min-h-screen pt-20">
-        Profile not found
+        <div className="text-center">
+          <p className="text-brand-navy text-lg font-semibold">Profile not found</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto py-8 px-4 pt-24">
+    <div className="container mx-auto py-8 px-4 pt-24 bg-gradient-to-b from-white via-orange-50/20 to-white min-h-screen">
       <div className="max-w-6xl mx-auto">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
           <div>
-            <h1 className="text-3xl font-bold">My Profile</h1>
-            <p className="text-gray-600 mt-1">
-              {profile.role === "MENTOR" ? "Mentor Profile" : "Mentee Profile"}
+            <h1 className="text-3xl font-bold text-brand-navy">My Profile</h1>
+            <p className="text-gray-600 mt-1 flex items-center gap-2">
+              <Badge className={profile.role === "MENTOR" ? "bg-brand-teal" : "bg-brand-gold"}>
+                {profile.role === "MENTOR" ? "Mentor Profile" : "Mentee Profile"}
+              </Badge>
             </p>
           </div>
           {!isEditing ? (
-            <Button onClick={handleEdit}>
+            <Button onClick={handleEdit} className="bg-brand-teal hover:bg-brand-navy text-white font-semibold">
               <Pencil className="w-4 h-4 mr-2" />
               Edit Profile
             </Button>
           ) : (
             <div className="flex space-x-2">
-              <Button onClick={handleSave} disabled={isSaving}>
+              <Button onClick={handleSave} disabled={isSaving} className="bg-brand-teal hover:bg-brand-navy text-white font-semibold">
                 <Save className="w-4 h-4 mr-2" />
                 {isSaving ? "Saving..." : "Save"}
               </Button>
-              <Button variant="outline" onClick={handleCancel}>
+              <Button variant="outline" onClick={handleCancel} className="border-brand-orange text-brand-orange hover:bg-brand-orange hover:text-white">
                 <X className="w-4 h-4 mr-2" />
                 Cancel
               </Button>
@@ -255,10 +262,10 @@ export default function ProfilePage() {
           {/* Main Profile Information */}
           <div className="lg:col-span-2 space-y-6">
             {/* Basic Information Card */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Avatar className="w-8 h-8">
+            <Card className="border-2 border-brand-sky/30 shadow-lg">
+              <CardHeader className="border-b border-brand-sky/20 bg-brand-sky/5">
+                <CardTitle className="flex items-center gap-2 text-brand-navy">
+                  <Avatar className="w-8 h-8 ring-2 ring-brand-teal">
                     <AvatarImage
                       src={
                         photoPreview ||
@@ -268,7 +275,7 @@ export default function ProfilePage() {
                       }
                       alt={profile.name}
                     />
-                    <AvatarFallback>
+                    <AvatarFallback className="bg-brand-teal text-white">
                       {profile.name.charAt(0).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
@@ -349,7 +356,7 @@ export default function ProfilePage() {
 
                   <div className="space-y-2">
                     <Label>Experience Level</Label>
-                    <Badge variant="secondary" className="w-fit">
+                    <Badge variant="secondary" className="w-fit bg-brand-sky/20 text-brand-navy hover:bg-brand-sky/40">
                       {formatEnumValue(profile.experienceLevel)}
                     </Badge>
                   </div>
@@ -435,10 +442,10 @@ export default function ProfilePage() {
             </Card>
 
             {/* Availability Card */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Clock className="w-5 h-5" />
+            <Card className="border-2 border-brand-sky/30 shadow-lg">
+              <CardHeader className="border-b border-brand-sky/20 bg-brand-sky/5">
+                <CardTitle className="flex items-center gap-2 text-brand-navy">
+                  <Clock className="w-5 h-5 text-brand-teal" />
                   Availability
                 </CardTitle>
               </CardHeader>
@@ -490,9 +497,9 @@ export default function ProfilePage() {
           {/* Sidebar */}
           <div className="space-y-6">
             {/* Skills Card */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Technical Skills</CardTitle>
+            <Card className="border-2 border-brand-sky/30 shadow-lg">
+              <CardHeader className="border-b border-brand-sky/20 bg-brand-sky/5">
+                <CardTitle className="text-brand-navy">Technical Skills</CardTitle>
                 <CardDescription>
                   Technologies and tools I work with
                 </CardDescription>
@@ -501,7 +508,7 @@ export default function ProfilePage() {
                 {profile.skills && profile.skills.length > 0 ? (
                   <div className="flex flex-wrap gap-2">
                     {profile.skills.map((skill) => (
-                      <Badge key={skill} variant="outline">
+                      <Badge key={skill} variant="outline" className="border-brand-teal text-brand-teal">
                         {formatEnumValue(skill)}
                       </Badge>
                     ))}

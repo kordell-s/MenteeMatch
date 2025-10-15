@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
+import { useSearchParams } from "next/navigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -36,6 +37,7 @@ const categories = [
 
 export default function MentorBrowser() {
   const { data: session } = useSession();
+  const searchParams = useSearchParams();
   const [mentorData, setMentorData] = useState<Mentor[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -47,6 +49,28 @@ export default function MentorBrowser() {
 
   // Use session user ID instead of hardcoded ID
   const userId = session?.user?.id;
+
+  // Handle category from URL params
+  useEffect(() => {
+    const categoryParam = searchParams?.get("category");
+    if (categoryParam) {
+      // Map database enum to frontend category ID
+      const categoryMapping: { [key: string]: string } = {
+        TECHNOLOGY: "technology",
+        BUSINESS: "business",
+        DESIGN: "design",
+        MARKETING: "marketing",
+        CREATIVE: "creative",
+        MUSIC: "music",
+        HEALTH: "health",
+      };
+
+      const frontendCategory = categoryMapping[categoryParam];
+      if (frontendCategory) {
+        setActiveCategory(frontendCategory);
+      }
+    }
+  }, [searchParams]);
 
   // Fetch mentor data from API
   useEffect(() => {

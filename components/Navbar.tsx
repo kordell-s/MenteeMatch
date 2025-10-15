@@ -20,12 +20,12 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-white shadow-md">
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-brand-navy shadow-lg">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-2">
-            <span className="text-2xl font-bold text-black-600">
+            <span className="text-2xl font-bold text-brand-gold hover:text-brand-orange transition-colors">
               MenteeMatch
             </span>
           </Link>
@@ -36,13 +36,13 @@ export default function Navbar() {
               <>
                 <Link
                   href="/dashboard"
-                  className="text-gray-700 hover:text-black-600"
+                  className="text-white/90 hover:text-brand-gold transition-colors font-medium"
                 >
                   Dashboard
                 </Link>
                 <Link
                   href="/browse"
-                  className="text-gray-700 hover:text-black-600"
+                  className="text-white/90 hover:text-brand-gold transition-colors font-medium"
                 >
                   Browse Mentors
                 </Link>
@@ -51,16 +51,16 @@ export default function Navbar() {
                 <div className="relative">
                   <button
                     onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                    className="flex items-center space-x-2 text-gray-700 hover:text-blue-600 focus:outline-none"
+                    className="flex items-center space-x-2 text-white hover:text-brand-gold transition-colors focus:outline-none"
                   >
-                    <Avatar className="w-8 h-8">
+                    <Avatar className="w-8 h-8 ring-2 ring-brand-teal">
                       <AvatarImage
                         src={
                           session?.user?.profilePicture || "/placeholder.svg"
                         }
                         alt={session?.user?.name || "User"}
                       />
-                      <AvatarFallback className="bg-blue-600 text-white text-sm">
+                      <AvatarFallback className="bg-brand-teal text-white text-sm font-semibold">
                         {session?.user?.name?.charAt(0)?.toUpperCase() || "U"}
                       </AvatarFallback>
                     </Avatar>
@@ -69,29 +69,29 @@ export default function Navbar() {
 
                   {/* Dropdown Menu */}
                   {isUserMenuOpen && (
-                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border">
+                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border border-brand-sky">
                       <Link
                         href="/profile"
-                        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        className="flex items-center px-4 py-2 text-sm text-brand-navy hover:bg-brand-sky/20 transition-colors"
                         onClick={() => setIsUserMenuOpen(false)}
                       >
                         <User className="w-4 h-4 mr-3" />
                         View Profile
                       </Link>
                       <Link
-                        href="/dashboard/settings"
-                        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        href="/profile"
+                        className="flex items-center px-4 py-2 text-sm text-brand-navy hover:bg-brand-sky/20 transition-colors"
                         onClick={() => setIsUserMenuOpen(false)}
                       >
                         <Settings className="w-4 h-4 mr-3" />
-                        Settings
+                        Edit Profile
                       </Link>
                       <button
                         onClick={() => {
                           setIsUserMenuOpen(false);
                           handleSignOut();
                         }}
-                        className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        className="flex items-center w-full px-4 py-2 text-sm text-brand-navy hover:bg-brand-sky/20 transition-colors"
                       >
                         <LogOut className="w-4 h-4 mr-3" />
                         Sign Out
@@ -104,21 +104,20 @@ export default function Navbar() {
               <>
                 <Link
                   href="/browse"
-                  className="text-gray-700 hover:text-black-600"
+                  className="text-white/90 hover:text-brand-gold transition-colors font-medium"
                 >
                   Browse Mentors
                 </Link>
                 <Link
                   href="/login"
-                  className="text-gray-700 hover:text-black-600"
+                  className="text-white/90 hover:text-brand-gold transition-colors font-medium"
                 >
                   Login
                 </Link>
                 <Link
                   href="/signup"
-                  className="text-gray-700 hover:text-black-600"
                 >
-                  <Button>Get Started</Button>
+                  <Button className="bg-brand-orange hover:bg-brand-gold text-white font-semibold">Get Started</Button>
                 </Link>
               </>
             )}
@@ -128,7 +127,7 @@ export default function Navbar() {
           <div className="md:hidden">
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="text-gray-700 hover:text-blue-600"
+              className="text-white hover:text-brand-gold transition-colors"
             >
               <svg
                 className="h-6 w-6"
@@ -150,23 +149,23 @@ export default function Navbar() {
         {/* Mobile Menu */}
         {isMenuOpen && (
           <div className="md:hidden">
-            <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-white border-t">
+            <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-white border-t border-brand-sky">
               {status === "authenticated" ? (
                 <>
-                  <div className="flex items-center space-x-3 px-3 py-2 border-b border-gray-200 mb-2">
-                    <Avatar className="w-10 h-10">
+                  <div className="flex items-center space-x-3 px-3 py-2 border-b border-brand-sky mb-2">
+                    <Avatar className="w-10 h-10 ring-2 ring-brand-teal">
                       <AvatarImage
                         src={
                           session?.user?.profilePicture || "/placeholder.svg"
                         }
                         alt={session?.user?.name || "User"}
                       />
-                      <AvatarFallback className="bg-blue-600 text-white">
+                      <AvatarFallback className="bg-brand-teal text-white font-semibold">
                         {session?.user?.name?.charAt(0)?.toUpperCase() || "U"}
                       </AvatarFallback>
                     </Avatar>
                     <div>
-                      <p className="text-sm font-medium text-gray-900">
+                      <p className="text-sm font-medium text-brand-navy">
                         {session?.user?.name}
                       </p>
                       <p className="text-xs text-gray-500">
@@ -176,31 +175,31 @@ export default function Navbar() {
                   </div>
                   <Link
                     href="/dashboard"
-                    className="block px-3 py-2 text-gray-700 hover:text-blue-600"
+                    className="block px-3 py-2 text-brand-navy hover:bg-brand-sky/20 rounded transition-colors"
                   >
                     Dashboard
                   </Link>
                   <Link
                     href="/browse"
-                    className="block px-3 py-2 text-gray-700 hover:text-blue-600"
+                    className="block px-3 py-2 text-brand-navy hover:bg-brand-sky/20 rounded transition-colors"
                   >
                     Browse Mentors
                   </Link>
                   <Link
                     href="/profile"
-                    className="block px-3 py-2 text-gray-700 hover:text-blue-600"
+                    className="block px-3 py-2 text-brand-navy hover:bg-brand-sky/20 rounded transition-colors"
                   >
                     Profile
                   </Link>
                   <Link
-                    href="/dashboard/settings"
-                    className="block px-3 py-2 text-gray-700 hover:text-blue-600"
+                    href="/profile"
+                    className="block px-3 py-2 text-brand-navy hover:bg-brand-sky/20 rounded transition-colors"
                   >
-                    Settings
+                    Edit Profile
                   </Link>
                   <button
                     onClick={handleSignOut}
-                    className="block w-full text-left px-3 py-2 text-gray-700 hover:text-blue-600"
+                    className="block w-full text-left px-3 py-2 text-brand-navy hover:bg-brand-sky/20 rounded transition-colors"
                   >
                     Sign Out
                   </button>
@@ -209,19 +208,19 @@ export default function Navbar() {
                 <>
                   <Link
                     href="/browse"
-                    className="block px-3 py-2 text-gray-700 hover:text-blue-600"
+                    className="block px-3 py-2 text-brand-navy hover:bg-brand-sky/20 rounded transition-colors"
                   >
                     Browse Mentors
                   </Link>
                   <Link
                     href="/login"
-                    className="block px-3 py-2 text-gray-700 hover:text-blue-600"
+                    className="block px-3 py-2 text-brand-navy hover:bg-brand-sky/20 rounded transition-colors"
                   >
                     Login
                   </Link>
                   <Link
                     href="/signup"
-                    className="block px-3 py-2 text-gray-700 hover:text-blue-600"
+                    className="block px-3 py-2 text-brand-navy hover:bg-brand-sky/20 rounded transition-colors"
                   >
                     Get Started
                   </Link>

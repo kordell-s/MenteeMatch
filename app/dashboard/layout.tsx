@@ -47,7 +47,7 @@ export default function DashboardLayout({
     { name: "Messages", href: "/messages", icon: MessageSquare },
     { name: "Calendar", href: "/calendar", icon: Calendar },
     { name: "Reports", href: "/reports", icon: FileText },
-    { name: "Settings", href: "/settings", icon: Settings },
+    { name: "Edit Profile", href: "/profile", icon: Settings },
   ];
 
   const menteeNavItems: NavItem[] = [
@@ -55,8 +55,7 @@ export default function DashboardLayout({
     { name: "My Mentors", href: "/dashboard/my-mentors", icon: Users },
     { name: "Messages", href: "/messages", icon: MessageSquare },
     { name: "Calendar", href: "/calendar", icon: Calendar },
-    { name: "Progress", href: "/progress", icon: FileText },
-    { name: "Settings", href: "/settings", icon: Settings },
+    { name: "Edit Profile", href: "/profile", icon: Settings },
   ];
 
   const navItems = userRole === "mentor" ? mentorNavItems : menteeNavItems;

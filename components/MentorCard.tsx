@@ -46,17 +46,13 @@ export default function MentorCard({
       .slice(0, 2);
   };
 
-  // Generate a consistent color based on name
+  // Generate a consistent color based on name using brand colors
   const getAvatarColor = (name: string) => {
     const colors = [
-      "bg-blue-500",
-      "bg-purple-500",
-      "bg-green-500",
-      "bg-orange-500",
-      "bg-pink-500",
-      "bg-indigo-500",
-      "bg-teal-500",
-      "bg-red-500",
+      "bg-brand-teal",
+      "bg-brand-navy",
+      "bg-brand-sky",
+      "bg-brand-orange",
     ];
     const index = name.charCodeAt(0) % colors.length;
     return colors[index];
@@ -64,8 +60,8 @@ export default function MentorCard({
 
   return (
     <div
-      className={`bg-white rounded-xl shadow-md overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ${
-        recommended ? "ring-2 ring-purple-400 ring-offset-2" : ""
+      className={`bg-white rounded-xl shadow-lg overflow-hidden transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 border-2 ${
+        recommended ? "border-brand-gold ring-2 ring-brand-gold/50" : "border-transparent hover:border-brand-sky"
       }`}
     >
       <div className="relative">
@@ -94,17 +90,22 @@ export default function MentorCard({
             </div>
           </div>
         )}
-        <button className="absolute top-3 left-3 bg-white/90 p-2 rounded-full hover:bg-white transition-all">
-          <Bookmark size={18} className="text-gray-600" />
+        <button className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm p-2 rounded-full hover:bg-brand-gold hover:text-white transition-all shadow-md">
+          <Bookmark size={18} className="text-brand-navy" />
         </button>
+        {recommended && (
+          <div className="absolute top-3 right-3 bg-brand-gold text-white px-3 py-1 rounded-full text-xs font-bold shadow-md">
+            ⭐ Top Match
+          </div>
+        )}
       </div>
 
       <div className="p-5">
         <div className="flex justify-between items-start mb-2">
           <div className="flex-1">
-            <h3 className="font-bold text-lg">{mentor.name}</h3>
+            <h3 className="font-bold text-lg text-brand-navy">{mentor.name}</h3>
             {mentor.title && (
-              <p className="text-primary text-base font-semibold mb-1">
+              <p className="text-brand-teal text-base font-semibold mb-1">
                 {mentor.title}
               </p>
             )}
@@ -113,14 +114,14 @@ export default function MentorCard({
             </p>
             <p className="text-gray-600 text-sm">{mentor.location}</p>
           </div>
-          <div className="flex items-center">
-            <Star className="text-yellow-400 fill-yellow-400 h-4 w-4 mr-1" />
-            <span className="font-medium">
+          <div className="flex items-center bg-brand-gold/10 px-2 py-1 rounded-lg">
+            <Star className="text-brand-gold fill-brand-gold h-4 w-4 mr-1" />
+            <span className="font-bold text-brand-navy">
               {mentor.rating?.toFixed(1) || "New"}
             </span>
             {mentor.rating && (
-              <span className="text-gray-500 text-sm ml-1">
-                ({Math.floor(mentor.rating * 10)} reviews)
+              <span className="text-gray-600 text-xs ml-1">
+                ({Math.floor(mentor.rating * 10)})
               </span>
             )}
           </div>
@@ -134,7 +135,7 @@ export default function MentorCard({
               <Badge
                 key={index}
                 variant="secondary"
-                className="font-medium text-xs"
+                className="font-medium text-xs bg-brand-sky/20 text-brand-navy hover:bg-brand-sky/40 border-none"
               >
                 {skill.replaceAll("_", " ")}
               </Badge>
@@ -145,14 +146,14 @@ export default function MentorCard({
             </span>
           )}
           {mentor.skills && mentor.skills.length > 4 && (
-            <Badge variant="outline" className="text-xs">
+            <Badge variant="outline" className="text-xs border-brand-teal text-brand-teal">
               +{mentor.skills.length - 4} more
             </Badge>
           )}
         </div>
 
-        <div className="flex items-center text-sm text-gray-500 mb-4">
-          <Clock className="h-4 w-4 mr-1 flex-shrink-0" />
+        <div className="flex items-center text-sm text-gray-600 mb-4">
+          <Clock className="h-4 w-4 mr-1 flex-shrink-0 text-brand-teal" />
           <span className="line-clamp-1">
             {mentor.availability &&
             Array.isArray(mentor.availability) &&
@@ -168,7 +169,7 @@ export default function MentorCard({
         </div>
 
         <div className="flex gap-2">
-          <Button onClick={handleViewProfile} className="w-full">
+          <Button onClick={handleViewProfile} className="w-full bg-brand-teal hover:bg-brand-navy text-white font-semibold shadow-md hover:shadow-lg transition-all">
             <UserRound className="h-4 w-4 mr-2" />
             View Profile
           </Button>
