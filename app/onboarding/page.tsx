@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import Logo from "@/components/Logo";
 
 export default function OnboardingPage() {
   return (
@@ -7,7 +8,10 @@ export default function OnboardingPage() {
       <div className="flex-1 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-md w-full space-y-8 text-center">
           <div>
-            <h1 className="text-3xl font-bold">Welcome to MenteeMatch!</h1>
+            <div className="flex justify-center mb-6">
+              <Logo size="lg" showIcon={true} />
+            </div>
+            <h1 className="text-3xl font-bold text-brand-navy">Welcome to MenteeMatch!</h1>
             <p className="mt-4 text-gray-600">
               Your account has been created successfully. Let's set up your
               profile to help you get the most out of our platform.

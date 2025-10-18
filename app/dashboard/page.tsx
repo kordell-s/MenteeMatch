@@ -171,7 +171,10 @@ export default function Dashboard() {
   if (status === "loading") {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-lg">Loading...</div>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-4 border-brand-sky border-t-brand-teal mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
       </div>
     );
   }
@@ -382,7 +385,10 @@ export default function Dashboard() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-lg">Loading dashboard...</div>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-4 border-brand-sky border-t-brand-teal mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading dashboard...</p>
+        </div>
       </div>
     );
   }
@@ -390,7 +396,12 @@ export default function Dashboard() {
   if (error) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-lg text-red-600">{error}</div>
+        <div className="text-center">
+          <p className="text-lg text-red-600 mb-4">{error}</p>
+          <Button onClick={() => window.location.reload()} className="bg-brand-teal hover:bg-brand-navy">
+            Retry
+          </Button>
+        </div>
       </div>
     );
   }
@@ -398,7 +409,9 @@ export default function Dashboard() {
   if (!dashboardData) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-lg">No dashboard data available</div>
+        <div className="text-center">
+          <p className="text-lg text-gray-600">No dashboard data available</p>
+        </div>
       </div>
     );
   }
@@ -426,85 +439,93 @@ export default function Dashboard() {
       {userRole === "mentor" && mentorData && (
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-gray-500">
+            <Card className="border-2 border-brand-teal/30 shadow-lg hover:shadow-xl transition-shadow">
+              <CardHeader className="pb-2 bg-brand-teal/5">
+                <CardTitle className="text-sm font-medium text-gray-600">
                   Total Mentees
                 </CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="pt-4">
                 <div className="flex items-center">
-                  <Users className="h-8 w-8 text-blue-500 mr-3" />
-                  <div>
-                    <div className="text-2xl font-bold">
+                  <div className="p-3 bg-brand-teal/10 rounded-lg">
+                    <Users className="h-8 w-8 text-brand-teal" />
+                  </div>
+                  <div className="ml-4">
+                    <div className="text-3xl font-bold text-brand-navy">
                       {mentorData.confirmedMentees?.length || 0}
                     </div>
-                    <p className="text-xs text-gray-500">Active mentees</p>
+                    <p className="text-xs text-gray-600">Active mentees</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-gray-500">
+            <Card className="border-2 border-brand-gold/30 shadow-lg hover:shadow-xl transition-shadow">
+              <CardHeader className="pb-2 bg-brand-gold/5">
+                <CardTitle className="text-sm font-medium text-gray-600">
                   Pending Requests
                 </CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="pt-4">
                 <div className="flex items-center">
-                  <Calendar className="h-8 w-8 text-green-500 mr-3" />
-                  <div>
-                    <div className="text-2xl font-bold">
+                  <div className="p-3 bg-brand-gold/10 rounded-lg">
+                    <Calendar className="h-8 w-8 text-brand-gold" />
+                  </div>
+                  <div className="ml-4">
+                    <div className="text-3xl font-bold text-brand-navy">
                       {mentorData.recentRequests?.filter(
                         (r: { status: string }) => r.status === "PENDING"
                       ).length || 0}
                     </div>
-                    <p className="text-xs text-gray-500">Awaiting response</p>
+                    <p className="text-xs text-gray-600">Awaiting response</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-gray-500">
+            <Card className="border-2 border-brand-orange/30 shadow-lg hover:shadow-xl transition-shadow">
+              <CardHeader className="pb-2 bg-brand-orange/5">
+                <CardTitle className="text-sm font-medium text-gray-600">
                   Upcoming Sessions
                 </CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="pt-4">
                 <div className="flex items-center">
-                  <CheckCircle className="h-8 w-8 text-purple-500 mr-3" />
-                  <div>
-                    <div className="text-2xl font-bold">
+                  <div className="p-3 bg-brand-orange/10 rounded-lg">
+                    <CheckCircle className="h-8 w-8 text-brand-orange" />
+                  </div>
+                  <div className="ml-4">
+                    <div className="text-3xl font-bold text-brand-navy">
                       {mentorData.upcomingSessions?.length || 0}
                     </div>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-gray-600">
                       {mentorData.upcomingSessions?.[0]
                         ? `Next: ${new Date(
                             mentorData.upcomingSessions[0].date
                           ).toLocaleDateString()}`
-                        : "No sessions scheduled"}
+                        : "No sessions"}
                     </p>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-gray-500">
+            <Card className="border-2 border-brand-sky/30 shadow-lg hover:shadow-xl transition-shadow">
+              <CardHeader className="pb-2 bg-brand-sky/5">
+                <CardTitle className="text-sm font-medium text-gray-600">
                   Completed Sessions
                 </CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="pt-4">
                 <div className="flex items-center">
-                  <TrendingUp className="h-8 w-8 text-yellow-500 mr-3" />
-                  <div>
-                    <div className="text-2xl font-bold">
+                  <div className="p-3 bg-green-100 rounded-lg">
+                    <TrendingUp className="h-8 w-8 text-green-600" />
+                  </div>
+                  <div className="ml-4">
+                    <div className="text-3xl font-bold text-brand-navy">
                       {mentorData.completedSessions || 0}
                     </div>
-                    <p className="text-xs text-gray-500">Total completed</p>
+                    <p className="text-xs text-gray-600">Total completed</p>
                   </div>
                 </div>
               </CardContent>
@@ -513,9 +534,9 @@ export default function Dashboard() {
 
           {/* Recent Mentorship Requests */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <Card className="lg:col-span-2">
-              <CardHeader>
-                <CardTitle>Recent Mentorship Requests</CardTitle>
+            <Card className="lg:col-span-2 border-2 border-brand-sky/30 shadow-lg">
+              <CardHeader className="border-b border-brand-sky/20 bg-brand-sky/5">
+                <CardTitle className="text-brand-navy">Recent Mentorship Requests</CardTitle>
                 <CardDescription>
                   Manage your incoming mentorship requests
                 </CardDescription>
@@ -554,7 +575,7 @@ export default function Dashboard() {
                             <div className="flex flex-wrap gap-2 mt-2">
                               {request.mentee?.goals?.map(
                                 (goal: string, index: number) => (
-                                  <Badge key={index} variant="secondary">
+                                  <Badge key={index} variant="secondary" className="bg-brand-sky/20 text-brand-navy">
                                     {goal}
                                   </Badge>
                                 )
@@ -571,6 +592,7 @@ export default function Dashboard() {
                                       request.mentee?.id
                                     )
                                   }
+                                  className="border-brand-teal text-brand-teal hover:bg-brand-teal hover:text-white"
                                 >
                                   <MessageSquare className="h-4 w-4 mr-1" />
                                   Message Mentee
@@ -584,7 +606,7 @@ export default function Dashboard() {
                                 <Button
                                   size="sm"
                                   variant="outline"
-                                  className="text-red-500 border-red-200"
+                                  className="text-red-500 border-red-300 hover:bg-red-50"
                                   onClick={() =>
                                     handleMentorshipRequest(
                                       request.id,
@@ -606,6 +628,7 @@ export default function Dashboard() {
                                     )
                                   }
                                   disabled={processingRequests.has(request.id)}
+                                  className="bg-brand-teal hover:bg-brand-navy text-white"
                                 >
                                   {processingRequests.has(request.id)
                                     ? "Processing..."
@@ -613,11 +636,11 @@ export default function Dashboard() {
                                 </Button>
                               </div>
                             ) : request.status === "ACCEPTED" ? (
-                              <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
+                              <Badge className="bg-green-100 text-green-700 hover:bg-green-100 border border-green-200">
                                 Accepted
                               </Badge>
                             ) : (
-                              <Badge className="bg-red-100 text-red-800 hover:bg-red-100">
+                              <Badge className="bg-red-100 text-red-700 hover:bg-red-100 border border-red-200">
                                 Declined
                               </Badge>
                             )}
@@ -631,9 +654,9 @@ export default function Dashboard() {
                   )}
                 </div>
               </CardContent>
-              <CardFooter>
-                <Link href="/dashboard/my-mentees">
-                  <Button variant="outline" className="w-full">
+              <CardFooter className="bg-gray-50">
+                <Link href="/dashboard/my-mentees" className="w-full">
+                  <Button variant="outline" className="w-full border-brand-teal text-brand-teal hover:bg-brand-teal hover:text-white">
                     View All Mentees
                   </Button>
                 </Link>
@@ -641,9 +664,9 @@ export default function Dashboard() {
             </Card>
 
             {/* Upcoming Sessions */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Upcoming Sessions</CardTitle>
+            <Card className="border-2 border-brand-sky/30 shadow-lg">
+              <CardHeader className="border-b border-brand-sky/20 bg-brand-sky/5">
+                <CardTitle className="text-brand-navy">Upcoming Sessions</CardTitle>
                 <CardDescription>
                   Your scheduled mentoring sessions
                 </CardDescription>
@@ -695,9 +718,9 @@ export default function Dashboard() {
                   )}
                 </div>
               </CardContent>
-              <CardFooter>
-                <Link href="/dashboard/sessions">
-                  <Button variant="outline" className="w-full">
+              <CardFooter className="bg-gray-50">
+                <Link href="/calendar" className="w-full">
+                  <Button variant="outline" className="w-full border-brand-teal text-brand-teal hover:bg-brand-teal hover:text-white">
                     View Calendar
                   </Button>
                 </Link>
@@ -711,85 +734,91 @@ export default function Dashboard() {
       {userRole === "mentee" && menteeData && (
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-gray-500">
+            <Card className="border-2 border-brand-teal/30 shadow-lg hover:shadow-xl transition-shadow">
+              <CardHeader className="pb-2 bg-brand-teal/5">
+                <CardTitle className="text-sm font-medium text-gray-600">
                   My Mentors
                 </CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="pt-4">
                 <div className="flex items-center">
-                  <Users className="h-8 w-8 text-blue-500 mr-3" />
-                  <div>
-                    <div className="text-2xl font-bold">
+                  <div className="p-3 bg-brand-teal/10 rounded-lg">
+                    <Users className="h-8 w-8 text-brand-teal" />
+                  </div>
+                  <div className="ml-4">
+                    <div className="text-3xl font-bold text-brand-navy">
                       {menteeData.mentorInfo ? 1 : 0}
                     </div>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-gray-600">
                       {menteeData.mentorInfo
                         ? "Active mentor"
-                        : "No mentor assigned"}
+                        : "No mentor"}
                     </p>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-gray-500">
+            <Card className="border-2 border-brand-gold/30 shadow-lg hover:shadow-xl transition-shadow">
+              <CardHeader className="pb-2 bg-brand-gold/5">
+                <CardTitle className="text-sm font-medium text-gray-600">
                   Active Tasks
                 </CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="pt-4">
                 <div className="flex items-center">
-                  <Calendar className="h-8 w-8 text-green-500 mr-3" />
-                  <div>
-                    {/* <div className="text-2xl font-bold">
-                      {menteeData.tasks?.filter(
-                        (task) => task.status !== "COMPLETED"
-                      ).length || 0}
-                    </div> */}
-                    <p className="text-xs text-gray-500">Pending completion</p>
+                  <div className="p-3 bg-brand-gold/10 rounded-lg">
+                    <Calendar className="h-8 w-8 text-brand-gold" />
+                  </div>
+                  <div className="ml-4">
+                    <div className="text-3xl font-bold text-brand-navy">
+                      0
+                    </div>
+                    <p className="text-xs text-gray-600">Pending completion</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-gray-500">
+            <Card className="border-2 border-brand-sky/30 shadow-lg hover:shadow-xl transition-shadow">
+              <CardHeader className="pb-2 bg-brand-sky/5">
+                <CardTitle className="text-sm font-medium text-gray-600">
                   Completed Sessions
                 </CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="pt-4">
                 <div className="flex items-center">
-                  <CheckCircle className="h-8 w-8 text-purple-500 mr-3" />
-                  <div>
-                    <div className="text-2xl font-bold">
+                  <div className="p-3 bg-green-100 rounded-lg">
+                    <CheckCircle className="h-8 w-8 text-green-600" />
+                  </div>
+                  <div className="ml-4">
+                    <div className="text-3xl font-bold text-brand-navy">
                       {menteeData.completedSessions?.length || 0}
                     </div>
-                    <p className="text-xs text-gray-500">Total completed</p>
+                    <p className="text-xs text-gray-600">Total completed</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-gray-500">
+            <Card className="border-2 border-brand-orange/30 shadow-lg hover:shadow-xl transition-shadow">
+              <CardHeader className="pb-2 bg-brand-orange/5">
+                <CardTitle className="text-sm font-medium text-gray-600">
                   Upcoming Sessions
                 </CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="pt-4">
                 <div className="flex items-center">
-                  <Clock className="h-8 w-8 text-yellow-500 mr-3" />
-                  <div>
-                    <div className="text-2xl font-bold">
+                  <div className="p-3 bg-brand-orange/10 rounded-lg">
+                    <Clock className="h-8 w-8 text-brand-orange" />
+                  </div>
+                  <div className="ml-4">
+                    <div className="text-3xl font-bold text-brand-navy">
                       {menteeData.upcomingSessions?.length || 0}
                     </div>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-gray-600">
                       {menteeData.upcomingSessions?.[0]?.title ||
-                        "No sessions scheduled"}
+                        "No sessions"}
                     </p>
                   </div>
                 </div>
@@ -799,16 +828,16 @@ export default function Dashboard() {
 
           {/* Find Mentors Section - Show only if no mentor assigned */}
           {!menteeData.mentorInfo && (
-            <Card className="mb-8">
-              <CardHeader>
-                <CardTitle>Find Your Perfect Mentor</CardTitle>
+            <Card className="mb-8 border-2 border-brand-teal/30 shadow-lg bg-gradient-to-r from-brand-sky/10 to-brand-teal/10">
+              <CardHeader className="border-b border-brand-teal/20">
+                <CardTitle className="text-brand-navy">Find Your Perfect Mentor</CardTitle>
                 <CardDescription>
                   Discover mentors who can help you achieve your goals
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="text-center py-8">
-                  <h3 className="text-lg font-medium mb-4">
+                  <h3 className="text-lg font-semibold mb-4 text-brand-navy">
                     Ready to start your mentorship journey?
                   </h3>
                   <p className="text-gray-600 mb-6">
@@ -816,7 +845,7 @@ export default function Dashboard() {
                     fields and specialties.
                   </p>
                   <Link href="/browse">
-                    <Button className="w-full max-w-md">
+                    <Button className="w-full max-w-md bg-brand-teal hover:bg-brand-navy text-white font-semibold">
                       <Search className="h-4 w-4 mr-2" />
                       Browse All Mentors
                     </Button>
@@ -828,9 +857,9 @@ export default function Dashboard() {
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* My Mentor Section */}
-            <Card className="lg:col-span-2">
-              <CardHeader>
-                <CardTitle>My Mentor</CardTitle>
+            <Card className="lg:col-span-2 border-2 border-brand-sky/30 shadow-lg">
+              <CardHeader className="border-b border-brand-sky/20 bg-brand-sky/5">
+                <CardTitle className="text-brand-navy">My Mentor</CardTitle>
                 <CardDescription>Your current mentorship</CardDescription>
               </CardHeader>
               <CardContent>
@@ -869,11 +898,12 @@ export default function Dashboard() {
                           onClick={() =>
                             handleSendMessage(menteeData.mentorInfo.id)
                           }
+                          className="border-brand-teal text-brand-teal hover:bg-brand-teal hover:text-white"
                         >
                           <MessageSquare className="h-4 w-4 mr-1" />
                           Message
                         </Button>
-                        <Button size="sm" onClick={handleBookSession}>
+                        <Button size="sm" onClick={handleBookSession} className="bg-brand-orange hover:bg-brand-gold text-white">
                           <Calendar className="h-4 w-4 mr-1" />
                           Book Session
                         </Button>
@@ -881,19 +911,19 @@ export default function Dashboard() {
                     </div>
                   </div>
                 ) : (
-                  <div className="text-center py-8 text-gray-500">
+                  <div className="text-center py-8 text-gray-600">
                     <p className="mb-4">
                       You don't have a mentor assigned yet.
                     </p>
                     <Link href="/browse">
-                      <Button>Find a Mentor</Button>
+                      <Button className="bg-brand-teal hover:bg-brand-navy text-white">Find a Mentor</Button>
                     </Link>
                   </div>
                 )}
               </CardContent>
-              <CardFooter>
-                <Link href="/dashboard/my-mentors">
-                  <Button variant="outline" className="w-full">
+              <CardFooter className="bg-gray-50">
+                <Link href="/dashboard/my-mentors" className="w-full">
+                  <Button variant="outline" className="w-full border-brand-teal text-brand-teal hover:bg-brand-teal hover:text-white">
                     View Mentor Details
                   </Button>
                 </Link>

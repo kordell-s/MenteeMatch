@@ -53,6 +53,7 @@ interface UserProfile {
   };
   mentee?: {
     goals: string[];
+    detailedGoals?: string;
     rating?: number;
   };
 }
@@ -598,27 +599,63 @@ export default function ProfilePage() {
             )}
 
             {profile.role === "MENTEE" && profile.mentee && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Learning Goals</CardTitle>
+              <Card className="border-2 border-brand-sky/30 shadow-lg">
+                <CardHeader className="border-b border-brand-sky/20 bg-brand-sky/5">
+                  <CardTitle className="text-brand-navy">Learning Goals</CardTitle>
                   <CardDescription>What I'm looking to achieve</CardDescription>
                 </CardHeader>
-                <CardContent>
-                  {profile.mentee.goals && profile.mentee.goals.length > 0 ? (
-                    <div className="flex flex-wrap gap-2">
-                      {profile.mentee.goals.map((goal) => (
-                        <Badge key={goal} variant="secondary">
-                          {formatEnumValue(goal)}
-                        </Badge>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-sm text-gray-500">No goals specified</p>
-                  )}
+                <CardContent className="space-y-4">
+                  {/* Category badges */}
+                  <div>
+                    <Label className="text-sm font-medium text-brand-navy mb-2 block">Categories</Label>
+                    {profile.mentee.goals && profile.mentee.goals.length > 0 ? (
+                      <div className="flex flex-wrap gap-2">
+                        {profile.mentee.goals.map((goal) => (
+                          <Badge key={goal} variant="secondary" className="bg-brand-sky/20 text-brand-navy">
+                            {formatEnumValue(goal)}
+                          </Badge>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-gray-500">No goal categories specified</p>
+                    )}
+                  </div>
+
+                  {/* Detailed goals section */}
+                  <div className="pt-3 border-t border-brand-sky/20">
+                    <Label className="text-sm font-medium text-brand-navy mb-2 block">
+                      Detailed Goals
+                      <span className="text-xs text-gray-500 font-normal ml-2">
+                        (Used for AI matching)
+                      </span>
+                    </Label>
+                    {isEditing ? (
+                      <Textarea
+                        value={editData.mentee?.detailedGoals || ""}
+                        onChange={(e) =>
+                          handleInputChange("mentee", {
+                            ...editData.mentee,
+                            detailedGoals: e.target.value,
+                          })
+                        }
+                        rows={5}
+                        placeholder="e.g., I want to develop my UI design skills and learn industry best practices for creating accessible, user-friendly interfaces. I'm particularly interested in learning Figma and building a strong portfolio."
+                        className="text-sm"
+                      />
+                    ) : (
+                      <p className="text-sm text-gray-900 leading-relaxed whitespace-pre-wrap bg-gray-50 p-3 rounded-md border border-gray-200">
+                        {profile.mentee.detailedGoals || (
+                          <span className="text-gray-500 italic">
+                            No detailed goals provided. Add specific details to improve mentor matching!
+                          </span>
+                        )}
+                      </p>
+                    )}
+                  </div>
 
                   {profile.mentee.rating && (
-                    <div className="mt-4 pt-4 border-t">
-                      <Label>Rating</Label>
+                    <div className="pt-3 border-t border-brand-sky/20">
+                      <Label className="text-sm font-medium text-brand-navy">Rating</Label>
                       <div className="flex items-center gap-2 mt-1">
                         <div className="flex text-yellow-400">
                           {[...Array(5)].map((_, i) => (

@@ -119,14 +119,16 @@ export async function PUT(request: NextRequest) {
         where: { userId: session.user.id },
         update: {
           goals: data.goals,
+          detailedGoals: data.detailedGoals || null,
         },
         create: {
           userId: session.user.id,
           goals: data.goals,
+          detailedGoals: data.detailedGoals || null,
         },
       });
-      
-      console.log("✅ Updated mentee profile with goals:", data.goals?.length);
+
+      console.log("✅ Updated mentee profile with goals:", data.goals?.length, "and detailed goals:", data.detailedGoals?.length || 0, "chars");
     }
 
     console.log("✅ Profile completion successful");

@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ChevronDown, User, Settings, LogOut } from "lucide-react";
+import Logo from "@/components/Logo";
 
 export default function Navbar() {
   const { data: session, status } = useSession();
@@ -20,14 +21,12 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-brand-navy shadow-lg">
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-white border-b-2 border-brand-teal/20 shadow-md">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <Link href="/" className="flex items-center space-x-2">
-            <span className="text-2xl font-bold text-brand-gold hover:text-brand-orange transition-colors">
-              MenteeMatch
-            </span>
+          <Link href="/" className="flex items-center space-x-2 group">
+            <Logo size="md" showIcon={true} className="transition-transform group-hover:scale-105" />
           </Link>
 
           {/* Desktop Menu */}
@@ -36,13 +35,13 @@ export default function Navbar() {
               <>
                 <Link
                   href="/dashboard"
-                  className="text-white/90 hover:text-brand-gold transition-colors font-medium"
+                  className="text-brand-navy hover:text-brand-teal transition-colors font-medium"
                 >
                   Dashboard
                 </Link>
                 <Link
                   href="/browse"
-                  className="text-white/90 hover:text-brand-gold transition-colors font-medium"
+                  className="text-brand-navy hover:text-brand-teal transition-colors font-medium"
                 >
                   Browse Mentors
                 </Link>
@@ -51,7 +50,7 @@ export default function Navbar() {
                 <div className="relative">
                   <button
                     onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                    className="flex items-center space-x-2 text-white hover:text-brand-gold transition-colors focus:outline-none"
+                    className="flex items-center space-x-2 text-brand-navy hover:text-brand-teal transition-colors focus:outline-none"
                   >
                     <Avatar className="w-8 h-8 ring-2 ring-brand-teal">
                       <AvatarImage
@@ -104,13 +103,13 @@ export default function Navbar() {
               <>
                 <Link
                   href="/browse"
-                  className="text-white/90 hover:text-brand-gold transition-colors font-medium"
+                  className="text-brand-navy hover:text-brand-teal transition-colors font-medium"
                 >
                   Browse Mentors
                 </Link>
                 <Link
                   href="/login"
-                  className="text-white/90 hover:text-brand-gold transition-colors font-medium"
+                  className="text-brand-navy hover:text-brand-teal transition-colors font-medium"
                 >
                   Login
                 </Link>
@@ -127,7 +126,7 @@ export default function Navbar() {
           <div className="md:hidden">
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="text-white hover:text-brand-gold transition-colors"
+              className="text-brand-navy hover:text-brand-teal transition-colors"
             >
               <svg
                 className="h-6 w-6"

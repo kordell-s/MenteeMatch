@@ -27,6 +27,7 @@ export async function POST(req: NextRequest) {
         mentee: {
           select: {
             goals: true,
+            detailedGoals: true,
           }
         }
       },
@@ -82,9 +83,20 @@ export async function POST(req: NextRequest) {
     console.log('🧠 Using TF-IDF + Word Embeddings Algorithm');
 
     // Create mentee input text for smart algorithm
-    // Weight skills and goals more heavily for better matching
+    // Weight skills and detailed goals more heavily for better matching
     const skillsText = (mentee.skills || []).join(' ').repeat(3); // 3x weight
-    const goalsText = (mentee.mentee?.goals?.map(g => g.toString()) || []).join(' ').repeat(2); // 2x weight
+
+    // Use detailedGoals if available (much better for matching), fallback to enum goals
+    let goalsText = '';
+    if (mentee.mentee?.detailedGoals) {
+      // Detailed goals get 5x weight for better semantic matching
+      goalsText = mentee.mentee.detailedGoals.repeat(5);
+      console.log('✨ Using detailed goals for enhanced matching');
+    } else {
+      // Fallback to enum goals with 2x weight
+      goalsText = (mentee.mentee?.goals?.map((g: any) => g.toString()) || []).join(' ').repeat(2);
+    }
+
     const bioText = mentee.bio || '';
     const expText = mentee.experienceLevel || '';
 

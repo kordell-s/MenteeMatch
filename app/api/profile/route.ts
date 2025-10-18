@@ -56,6 +56,7 @@ export async function GET() {
       } : null,
       mentee: user.mentee ? {
         goals: user.mentee.goals || [],
+        detailedGoals: user.mentee.detailedGoals,
         rating: user.mentee.rating,
       } : null,
     });
@@ -131,11 +132,13 @@ export async function PUT(request: NextRequest) {
       await prisma.mentee.upsert({
         where: { userId: session.user.id },
         update: {
-          goals: data.goals || [],
+          goals: data.mentee?.goals || data.goals || [],
+          detailedGoals: data.mentee?.detailedGoals || null,
         },
         create: {
           userId: session.user.id,
-          goals: data.goals || [],
+          goals: data.mentee?.goals || data.goals || [],
+          detailedGoals: data.mentee?.detailedGoals || null,
         },
       });
     }
@@ -177,6 +180,7 @@ export async function PUT(request: NextRequest) {
       } : null,
       mentee: finalUser.mentee ? {
         goals: finalUser.mentee.goals || [],
+        detailedGoals: finalUser.mentee.detailedGoals,
         rating: finalUser.mentee.rating,
       } : null,
     });

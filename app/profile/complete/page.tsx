@@ -219,6 +219,7 @@ export default function CompleteProfilePage() {
     category: "OTHER",
     // Mentee specific
     goals: [] as string[],
+    detailedGoals: "",
   });
 
   const [profilePicture, setProfilePicture] = useState<File | null>(null);
@@ -530,29 +531,53 @@ export default function CompleteProfilePage() {
                   </div>
                 </>
               ) : (
-                <div className="space-y-3">
-                  <Label>Goals *</Label>
-                  <p className="text-sm text-gray-600">
-                    What are you looking to achieve through mentorship?
-                  </p>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                    {GOALS.map((goal) => (
-                      <div key={goal} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={`goal-${goal}`}
-                          checked={formData.goals.includes(goal)}
-                          onCheckedChange={(checked) =>
-                            handleMultiSelect("goals", goal, checked as boolean)
-                          }
-                        />
-                        <Label htmlFor={`goal-${goal}`} className="text-sm">
-                          {goal
-                            .replace(/_/g, " ")
-                            .toLowerCase()
-                            .replace(/\b\w/g, (l) => l.toUpperCase())}
-                        </Label>
-                      </div>
-                    ))}
+                <div className="space-y-4">
+                  <div className="space-y-3">
+                    <Label>Goal Categories *</Label>
+                    <p className="text-sm text-gray-600">
+                      Select general categories that match your goals
+                    </p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                      {GOALS.map((goal) => (
+                        <div key={goal} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={`goal-${goal}`}
+                            checked={formData.goals.includes(goal)}
+                            onCheckedChange={(checked) =>
+                              handleMultiSelect("goals", goal, checked as boolean)
+                            }
+                          />
+                          <Label htmlFor={`goal-${goal}`} className="text-sm">
+                            {goal
+                              .replace(/_/g, " ")
+                              .toLowerCase()
+                              .replace(/\b\w/g, (l) => l.toUpperCase())}
+                          </Label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="detailedGoals">
+                      Describe Your Goals in Detail *
+                      <span className="text-xs text-gray-500 font-normal ml-2">
+                        (This helps us find your perfect mentor match!)
+                      </span>
+                    </Label>
+                    <p className="text-sm text-gray-600">
+                      Be specific about what you want to learn, challenges you're facing, and what you hope to achieve.
+                      The more detail you provide, the better we can match you with the right mentor.
+                    </p>
+                    <Textarea
+                      id="detailedGoals"
+                      name="detailedGoals"
+                      value={formData.detailedGoals}
+                      onChange={handleInputChange}
+                      rows={5}
+                      placeholder="e.g., I want to develop my UI design skills and learn industry best practices for creating accessible, user-friendly interfaces. I'm particularly interested in learning Figma and building a strong portfolio to transition from graphic design into UX/UI design. I'm also looking for guidance on breaking into the tech industry and preparing for design interviews."
+                      className="text-sm"
+                    />
                   </div>
                 </div>
               )}

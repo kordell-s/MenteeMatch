@@ -58,10 +58,11 @@ model Mentor {
 }
 
 model Mentee {
-  userId String @id
-  rating Float?
-  goals  Goal[]
-  user   User   @relation(fields: [userId], references: [id])
+  userId        String  @id
+  rating        Float?
+  goals         Goal[]
+  detailedGoals String? // Free-form text description for better matching
+  user          User    @relation(fields: [userId], references: [id])
 }
 
 model Message {

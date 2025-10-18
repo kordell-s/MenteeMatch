@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Logo from "@/components/Logo";
 
 export default function Footer() {
   return (
@@ -6,7 +7,9 @@ export default function Footer() {
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
           <div>
-            <h3 className="text-lg font-bold mb-4 text-brand-gold">MenteeMatch</h3>
+            <div className="mb-4">
+              <Logo size="sm" showIcon={true} />
+            </div>
             <p className="text-gray-300 text-sm leading-relaxed">
               Connecting professionals with mentors who can help them grow and
               succeed.

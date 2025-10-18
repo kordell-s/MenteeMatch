@@ -1,5 +1,6 @@
 import Link from "next/link";
 import SignupForm from "../../components/SignupForm";
+import Logo from "@/components/Logo";
 
 export default function SignupPage() {
   return (
@@ -7,9 +8,14 @@ export default function SignupPage() {
       <div className="flex-1 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-md w-full space-y-8">
           <div className="text-center">
-            <h1 className="text-3xl font-bold">Create your account</h1>
+            <div className="flex justify-center mb-6">
+              <Link href="/">
+                <Logo size="lg" showIcon={true} />
+              </Link>
+            </div>
+            <h1 className="text-3xl font-bold text-brand-navy">Create your account</h1>
             <p className="mt-2 text-gray-600">
-              Join thousands of professionals growing with MentorMatch
+              Join thousands of professionals growing with MenteeMatch
             </p>
           </div>
 

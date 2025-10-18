@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
@@ -14,11 +14,11 @@ import {
   Menu,
   X,
   Bell,
-  Search,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import Logo from "@/components/Logo";
 
 export default function DashboardLayout({
   children,
@@ -26,7 +26,7 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { data: session, status } = useSession();
+  const { data: session } = useSession();
   const pathname = usePathname();
 
   // Get user role from session
@@ -65,18 +65,18 @@ export default function DashboardLayout({
       <div className="flex h-screen">
         {/* Sidebar */}
         <div
-          className={`fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 transform ${
+          className={`fixed inset-y-0 left-0 z-50 w-64 bg-white border-r-4 border-brand-teal/20 shadow-lg transform ${
             isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
           } transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 flex flex-col`}
         >
           {/* Logo/Header */}
-          <div className="flex items-center justify-between h-16 px-6 border-b border-gray-200 flex-shrink-0">
-            <Link href="/" className="text-xl font-bold text-primary">
-              MenteeMatch
+          <div className="flex items-center justify-between h-16 px-6 border-b-2 border-brand-sky/30 bg-gradient-to-r from-white to-brand-sky/5 flex-shrink-0">
+            <Link href="/" className="group">
+              <Logo size="sm" showIcon={true} className="transition-transform group-hover:scale-105" />
             </Link>
             <button
               onClick={() => setIsMobileMenuOpen(false)}
-              className="lg:hidden p-2 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100"
+              className="lg:hidden p-2 rounded-md text-brand-teal hover:text-brand-navy hover:bg-brand-sky/20 transition-colors"
             >
               <X className="h-5 w-5" />
             </button>
@@ -88,16 +88,18 @@ export default function DashboardLayout({
               <Link
                 key={item.name}
                 href={item.href}
-                className={`flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors group ${
+                className={`flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 group ${
                   pathname === item.href
-                    ? "bg-primary text-white shadow-sm"
-                    : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                    ? "bg-gradient-to-r from-brand-teal to-brand-navy text-white shadow-md"
+                    : "text-brand-navy hover:bg-brand-sky/20 hover:text-brand-teal"
                 }`}
               >
-                <item.icon className="mr-3 h-5 w-5 flex-shrink-0" />
+                <item.icon className={`mr-3 h-5 w-5 flex-shrink-0 ${
+                  pathname === item.href ? "text-white" : "text-brand-teal"
+                }`} />
                 <span className="truncate">{item.name}</span>
                 {item.badge && (
-                  <Badge className="ml-auto bg-red-500 text-white text-xs">
+                  <Badge className="ml-auto bg-brand-orange text-white text-xs shadow-sm">
                     {item.badge}
                   </Badge>
                 )}
@@ -106,22 +108,22 @@ export default function DashboardLayout({
           </nav>
 
           {/* User Profile Section */}
-          <div className="flex-shrink-0 p-4 border-t border-gray-200 bg-gray-50">
+          <div className="flex-shrink-0 p-4 border-t-2 border-brand-sky/30 bg-gradient-to-r from-brand-sky/10 to-white">
             <div className="flex items-center">
-              <Avatar className="h-10 w-10">
+              <Avatar className="h-10 w-10 ring-2 ring-brand-teal ring-offset-2">
                 <AvatarImage
                   src={session?.user?.profilePicture || "/placeholder.svg"}
                   alt={session?.user?.name || "User"}
                 />
-                <AvatarFallback className="bg-primary text-primary-foreground">
+                <AvatarFallback className="bg-brand-teal text-white font-semibold">
                   {session?.user?.name?.charAt(0) || "U"}
                 </AvatarFallback>
               </Avatar>
               <div className="ml-3 min-w-0 flex-1">
-                <p className="text-sm font-medium text-gray-900 truncate">
+                <p className="text-sm font-medium text-brand-navy truncate">
                   {session?.user?.name || "User"}
                 </p>
-                <p className="text-xs text-gray-500 capitalize truncate">
+                <p className="text-xs text-brand-teal capitalize truncate font-medium">
                   {userRole}
                 </p>
               </div>
@@ -140,16 +142,16 @@ export default function DashboardLayout({
         {/* Main content */}
         <div className="flex-1 flex flex-col min-w-0">
           {/* Mobile header */}
-          <div className="lg:hidden bg-white shadow-sm border-b border-gray-200 flex-shrink-0">
+          <div className="lg:hidden bg-white shadow-md border-b-2 border-brand-teal/30 flex-shrink-0">
             <div className="flex items-center justify-between px-4 py-3">
               <button
                 onClick={() => setIsMobileMenuOpen(true)}
-                className="p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+                className="p-2 rounded-md text-brand-teal hover:text-brand-navy hover:bg-brand-sky/20 transition-colors"
               >
                 <Menu className="h-5 w-5" />
               </button>
-              <h1 className="text-lg font-semibold text-gray-900">Dashboard</h1>
-              <Button variant="ghost" size="sm" className="p-2">
+              <h1 className="text-lg font-semibold text-brand-navy">Dashboard</h1>
+              <Button variant="ghost" size="sm" className="p-2 text-brand-teal hover:text-brand-navy hover:bg-brand-sky/20">
                 <Bell className="h-5 w-5" />
               </Button>
             </div>
