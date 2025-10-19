@@ -35,6 +35,8 @@ import {
 } from "@/components/ui/card";
 import type { MenteeDashboardData } from "@/app/types/dashboard/menteeDashboardData";
 import { useSession } from "next-auth/react";
+import RatingModal from "@/components/RatingModal";
+import StarRating from "@/components/StarRating";
 
 export default function MenteeDashboardPage() {
   const { data: session, status } = useSession();
@@ -44,8 +46,10 @@ export default function MenteeDashboardPage() {
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [showSessionModal, setShowSessionModal] = useState(false);
   const [showTaskModal, setShowTaskModal] = useState(false);
+  const [showRatingModal, setShowRatingModal] = useState(false);
   const [selectedSession, setSelectedSession] = useState<any>(null);
   const [selectedTask, setSelectedTask] = useState<any>(null);
+  const [sessionToRate, setSessionToRate] = useState<any>(null);
   const [bookingData, setBookingData] = useState({
     date: "",
     time: "",
@@ -110,7 +114,7 @@ export default function MenteeDashboardPage() {
     if (personInfo) {
       const partnerId = isUserMentor ? personInfo.id : mentorInfo?.id;
       router.push(
-        `/dashboard/messages?${
+        `/messages?${
           isUserMentor ? "menteeId" : "mentorId"
         }=${partnerId}`
       );
@@ -269,6 +273,22 @@ export default function MenteeDashboardPage() {
     }
   };
 
+  const handleRateSession = (sessionData: any) => {
+    setSessionToRate(sessionData);
+    setShowRatingModal(true);
+  };
+
+  const handleRatingSuccess = () => {
+    // Refresh dashboard data after successful rating
+    if (session?.user?.id) {
+      const apiEndpoint =
+        session.user.role === "MENTOR"
+          ? `/api/dashboard/mentor?id=${session.user.id}`
+          : `/api/dashboard/mentee?id=${session.user.id}`;
+      fetchDashboardData(session.user.id, apiEndpoint);
+    }
+  };
+
   // Show loading while session is loading
   if (status === "loading" || loading) {
     return <div>Loading...</div>;
@@ -277,7 +297,7 @@ export default function MenteeDashboardPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold mb-2">{relationshipLabel}</h1>
+        <h1 className="text-2xl font-bold text-brand-navy mb-2">{relationshipLabel}</h1>
         <p className="text-gray-600">
           {isUserMentor
             ? "Your current mentees and their progress"
@@ -322,13 +342,13 @@ export default function MenteeDashboardPage() {
           <CardFooter className="flex gap-2">
             <Button
               variant="outline"
-              className="flex-1"
+              className="flex-1 border-brand-teal text-brand-teal hover:bg-brand-teal hover:text-white"
               onClick={handleMessage}
             >
               <MessageSquare className="h-4 w-4 mr-2" />
               Message
             </Button>
-            <Button className="flex-1" onClick={handleBookSession}>
+            <Button className="flex-1 bg-brand-teal hover:bg-brand-navy" onClick={handleBookSession}>
               <Calendar className="h-4 w-4 mr-2" />
               {isUserMentor ? "Schedule Session" : "Book Session"}
             </Button>
@@ -344,7 +364,7 @@ export default function MenteeDashboardPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Upcoming Sessions</CardTitle>
+          <CardTitle className="text-brand-navy">Upcoming Sessions</CardTitle>
           <CardDescription>
             Stay prepared for your upcoming sessions
           </CardDescription>
@@ -369,13 +389,14 @@ export default function MenteeDashboardPage() {
                     )}
                   </div>
                   <div className="flex items-center gap-2">
-                    <Badge variant="outline">
+                    <Badge variant="outline" className="border-brand-teal text-brand-teal">
                       <Clock className="h-4 w-4 mr-1" />
                       {session.status}
                     </Badge>
                     <Button
                       size="sm"
                       variant="outline"
+                      className="border-brand-teal text-brand-teal hover:bg-brand-teal hover:text-white"
                       onClick={() => handleViewSession(session)}
                     >
                       View
@@ -383,6 +404,7 @@ export default function MenteeDashboardPage() {
                     {session.status === "UPCOMING" && (
                       <Button
                         size="sm"
+                        className="bg-brand-teal hover:bg-brand-navy"
                         onClick={() => handleJoinSession(session.id)}
                       >
                         Join
@@ -407,7 +429,7 @@ export default function MenteeDashboardPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Completed Sessions</CardTitle>
+          <CardTitle className="text-brand-navy">Completed Sessions</CardTitle>
           <CardDescription>Review your learning history</CardDescription>
         </CardHeader>
         <CardContent>
@@ -424,21 +446,37 @@ export default function MenteeDashboardPage() {
                       {new Date(session.date).toLocaleDateString()}
                     </div>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 items-center">
                     <Button
                       size="sm"
                       variant="outline"
+                      className="border-brand-teal text-brand-teal hover:bg-brand-teal hover:text-white"
                       onClick={() => handleViewSession(session)}
                     >
                       View Details
                     </Button>
-                    {(session as any).rating && (
-                      <div className="flex items-center">
-                        <Star className="h-4 w-4 text-yellow-400 fill-yellow-400" />
-                        <span className="text-sm ml-1">
-                          {(session as any).rating}
+                    {(session as any).rating ? (
+                      <div className="flex items-center gap-1">
+                        <StarRating
+                          rating={(session as any).rating}
+                          readOnly
+                          size={16}
+                        />
+                        <span className="text-sm font-medium text-gray-700">
+                          {(session as any).rating.toFixed(1)}
                         </span>
                       </div>
+                    ) : (
+                      !isUserMentor && (
+                        <Button
+                          size="sm"
+                          className="bg-brand-gold hover:bg-brand-orange text-white"
+                          onClick={() => handleRateSession(session)}
+                        >
+                          <Star className="h-4 w-4 mr-1" />
+                          Rate
+                        </Button>
+                      )
                     )}
                   </div>
                 </li>
@@ -452,7 +490,7 @@ export default function MenteeDashboardPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Assigned Tasks</CardTitle>
+          <CardTitle className="text-brand-navy">Assigned Tasks</CardTitle>
           <CardDescription>
             Keep up with your mentor-assigned tasks
           </CardDescription>
@@ -483,12 +521,14 @@ export default function MenteeDashboardPage() {
                       variant={
                         task.status === "COMPLETED" ? "default" : "outline"
                       }
+                      className={task.status === "COMPLETED" ? "bg-brand-teal" : "border-brand-teal text-brand-teal"}
                     >
                       {task.status}
                     </Badge>
                     <Button
                       size="sm"
                       variant="outline"
+                      className="border-brand-teal text-brand-teal hover:bg-brand-teal hover:text-white"
                       onClick={() => handleViewTask(task)}
                     >
                       View
@@ -496,6 +536,7 @@ export default function MenteeDashboardPage() {
                     {task.status !== "COMPLETED" && (
                       <Button
                         size="sm"
+                        className="bg-brand-teal hover:bg-brand-navy"
                         onClick={() => handleTaskAction(task.id, "COMPLETE")}
                       >
                         Complete
@@ -554,7 +595,7 @@ export default function MenteeDashboardPage() {
             </div>
           )}
           <DialogFooter>
-            <Button onClick={() => setShowSessionModal(false)}>Close</Button>
+            <Button className="bg-brand-teal hover:bg-brand-navy" onClick={() => setShowSessionModal(false)}>Close</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -603,6 +644,7 @@ export default function MenteeDashboardPage() {
           <DialogFooter className="flex gap-2">
             {selectedTask?.status !== "COMPLETED" && (
               <Button
+                className="bg-brand-teal hover:bg-brand-navy"
                 onClick={() => {
                   handleTaskAction(selectedTask.id, "COMPLETE");
                   setShowTaskModal(false);
@@ -611,7 +653,7 @@ export default function MenteeDashboardPage() {
                 Mark Complete
               </Button>
             )}
-            <Button variant="outline" onClick={() => setShowTaskModal(false)}>
+            <Button variant="outline" className="border-brand-teal text-brand-teal hover:bg-brand-teal hover:text-white" onClick={() => setShowTaskModal(false)}>
               Close
             </Button>
           </DialogFooter>
@@ -696,12 +738,14 @@ export default function MenteeDashboardPage() {
           <DialogFooter>
             <Button
               variant="outline"
+              className="border-brand-teal text-brand-teal hover:bg-brand-teal hover:text-white"
               onClick={() => setShowBookingModal(false)}
             >
               Cancel
             </Button>
             <Button
               type="submit"
+              className="bg-brand-teal hover:bg-brand-navy"
               onClick={handleBookingSubmit}
               disabled={
                 !bookingData.date || !bookingData.time || !bookingData.topic
@@ -712,6 +756,21 @@ export default function MenteeDashboardPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Rating Modal */}
+      {sessionToRate && mentorInfo && (
+        <RatingModal
+          isOpen={showRatingModal}
+          onClose={() => {
+            setShowRatingModal(false);
+            setSessionToRate(null);
+          }}
+          sessionId={sessionToRate.id}
+          mentorId={mentorInfo.id}
+          mentorName={mentorInfo.name}
+          onSuccess={handleRatingSuccess}
+        />
+      )}
     </div>
   );
 }

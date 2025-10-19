@@ -30,9 +30,8 @@ export type Mentor = {
   createdAt?: Date;
   role: "MENTOR";
   verified?: boolean;
-  category: MentorCategory; 
+  category: MentorCategory;
   mentor: {
     specialization: string[];
-    pricing: number | null;
   };
 };

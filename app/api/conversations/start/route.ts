@@ -19,27 +19,41 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if there's an accepted mentorship between these users
-    const mentorship = await prisma.mentorship.findFirst({
-      where: {
-        OR: [
-          { mentorId: currentUser.id, menteeId: userId },
-          { mentorId: userId, menteeId: currentUser.id }
-        ],
-        status: "ACCEPTED"
-      }
-    });
+    // Check if there's an accepted mentorship OR mentorship request between these users
+    const [mentorship, mentorshipRequest] = await Promise.all([
+      prisma.mentorship.findFirst({
+        where: {
+          OR: [
+            { mentorId: currentUser.id, menteeId: userId },
+            { mentorId: userId, menteeId: currentUser.id }
+          ],
+          status: "ACCEPTED"
+        }
+      }),
+      prisma.mentorshipRequest.findFirst({
+        where: {
+          OR: [
+            { mentorId: currentUser.id, menteeId: userId },
+            { mentorId: userId, menteeId: currentUser.id }
+          ],
+          status: "ACCEPTED"
+        }
+      })
+    ]);
 
-    if (!mentorship) {
+    // Check if either exists
+    const relationship = mentorship || mentorshipRequest;
+
+    if (!relationship) {
       return NextResponse.json(
         { error: "No accepted mentorship found between these users" },
         { status: 403 }
       );
     }
 
-    // Determine mentor and mentee IDs
-    const mentorId = mentorship.mentorId;
-    const menteeId = mentorship.menteeId;
+    // Determine mentor and mentee IDs from the relationship
+    const mentorId = relationship.mentorId;
+    const menteeId = relationship.menteeId;
 
     // Check if conversation already exists
     const existingConversation = await prisma.conversation.findFirst({

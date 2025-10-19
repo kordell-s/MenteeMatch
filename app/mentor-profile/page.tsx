@@ -16,7 +16,6 @@ import {
   Building,
   GraduationCap,
   Globe,
-  DollarSign,
   CheckCircle,
   Mail,
 } from "lucide-react";
@@ -131,7 +130,7 @@ function MentorProfilePage() {
       <div className="max-w-6xl mx-auto">
         <div className="bg-white rounded-lg shadow-lg overflow-hidden">
           {/* Header Section */}
-          <div className="bg-gray-800 px-8 py-6">
+          <div className="bg-brand-navy px-8 py-6">
             <div className="flex flex-col md:flex-row gap-6 items-start">
               <div className="flex-shrink-0">
                 <img
@@ -188,7 +187,7 @@ function MentorProfilePage() {
                     >
                       <Button
                         variant="secondary"
-                        className="flex items-center gap-2 text-black"
+                        className="flex items-center gap-2"
                       >
                         <Calendar size={16} />
                         Schedule Session
@@ -199,7 +198,7 @@ function MentorProfilePage() {
                       <DialogTrigger asChild>
                         <Button
                           variant="secondary"
-                          className="flex items-center gap-2 text-black"
+                          className="flex items-center gap-2"
                         >
                           <Calendar size={16} />
                           Request Mentorship
@@ -221,14 +220,14 @@ function MentorProfilePage() {
                   )}
                   <Button
                     variant="outline"
-                    className="flex items-center gap-2 text-black border-white hover:bg-white hover:text-gray-800"
+                    className="flex items-center gap-2 text-white border-white bg-transparent hover:bg-transparent hover:border-brand-teal hover:text-brand-teal"
                   >
                     <MessageCircle size={16} />
                     Message
                   </Button>
                   <Button
                     variant="outline"
-                    className="flex items-center gap-2 text-black border-white hover:bg-white hover:text-gray-800"
+                    className="flex items-center gap-2 text-white border-white bg-transparent hover:bg-transparent hover:border-brand-teal hover:text-brand-teal"
                   >
                     <Mail size={16} />
                     Contact
@@ -447,22 +446,6 @@ function MentorProfilePage() {
                       </div>
                     )}
 
-                  {/* Pricing */}
-                  {mentor.mentor?.pricing && (
-                    <div className="mb-4">
-                      <p className="text-sm text-gray-600 mb-1">
-                        Session Price
-                      </p>
-                      <div className="flex items-center gap-2">
-                        <DollarSign size={20} className="text-gray-600" />
-                        <span className="text-2xl font-bold text-gray-600">
-                          {mentor.mentor.pricing}
-                        </span>
-                        <span className="text-gray-500">/session</span>
-                      </div>
-                    </div>
-                  )}
-
                   {/* Member Since */}
                   {mentor.createdAt && (
                     <div className="mb-4">
@@ -498,12 +481,12 @@ function MentorProfilePage() {
                             alert("Session scheduled successfully!");
                           }}
                         >
-                          <Button className="w-full">
+                          <Button className="w-full bg-brand-teal hover:bg-brand-navy">
                             <Calendar className="mr-2" size={16} />
                             Schedule Session
                           </Button>
                         </SessionSchedulingModal>
-                        <Button variant="outline" className="w-full">
+                        <Button variant="outline" className="w-full border-brand-teal text-brand-teal hover:bg-brand-teal hover:text-white">
                           <MessageCircle className="mr-2" size={16} />
                           Send Message
                         </Button>
@@ -514,7 +497,7 @@ function MentorProfilePage() {
                         onOpenChange={setIsDialogOpen}
                       >
                         <DialogTrigger asChild>
-                          <Button className="w-full">
+                          <Button className="w-full bg-brand-teal hover:bg-brand-navy">
                             <Calendar className="mr-2" size={16} />
                             Request Mentorship
                           </Button>

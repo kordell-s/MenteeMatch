@@ -215,7 +215,6 @@ export default function CompleteProfilePage() {
     timeAvailability: [] as string[],
     // Mentor specific
     specialization: [] as string[], // This will use SPECIALIZATIONS array
-    pricing: "",
     category: "OTHER",
     // Mentee specific
     goals: [] as string[],
@@ -311,7 +310,6 @@ export default function CompleteProfilePage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...formData,
-          pricing: formData.pricing ? parseFloat(formData.pricing) : null,
           profilePicture: profilePictureUrl || undefined,
         }),
       });
@@ -514,20 +512,6 @@ export default function CompleteProfilePage() {
                         {formData.specialization.length > 1 ? "s" : ""}
                       </p>
                     )}
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="pricing">Hourly Rate (Optional)</Label>
-                    <Input
-                      id="pricing"
-                      name="pricing"
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      value={formData.pricing}
-                      onChange={handleInputChange}
-                      placeholder="50.00"
-                    />
                   </div>
                 </>
               ) : (

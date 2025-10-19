@@ -24,7 +24,6 @@ interface SmartMatch {
     title: string;
     company: string;
     rating: number;
-    pricing: number;
     category: string;
     skills: string[];
     bio: string;
@@ -39,14 +38,19 @@ interface RecommendedMentorsProps {
   loading: boolean; // Loading state from parent
 }
 
-export default function RecommendedMentors({ mentors, allMentors, loading }: RecommendedMentorsProps) {
+export default function RecommendedMentors({
+  mentors,
+  allMentors,
+  loading,
+}: RecommendedMentorsProps) {
   const { data: session } = useSession();
   const [smartMatches, setSmartMatches] = useState<SmartMatch[]>([]);
   const [userGoals, setUserGoals] = useState<string[]>([]);
   const [selectedGoals, setSelectedGoals] = useState<string[]>([]);
   const [updating, setUpdating] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [algorithmInfo, setAlgorithmInfo] = useState<string>("TF-IDF + Word2Vec");
+  const [algorithmInfo, setAlgorithmInfo] =
+    useState<string>("TF-IDF + Word2Vec");
   const [menteeProfile, setMenteeProfile] = useState<any>(null);
 
   // Available goals based on the Goal enum from schema
@@ -77,7 +81,6 @@ export default function RecommendedMentors({ mentors, allMentors, loading }: Rec
           title: match.mentorData?.title || "",
           company: match.mentorData?.company || "",
           rating: match.mentorData?.rating || 0,
-          pricing: match.mentorData?.pricing || 0,
           category: match.mentorData?.category || "",
           skills: match.mentorData?.skills || [],
           bio: match.mentorData?.bio || "",
@@ -202,7 +205,8 @@ export default function RecommendedMentors({ mentors, allMentors, loading }: Rec
 
         <p className="text-gray-700 mb-4 leading-relaxed">
           These mentors are intelligently ranked using advanced semantic
-          matching that understands the <strong className="text-brand-teal">meaning</strong> behind your
+          matching that understands the{" "}
+          <strong className="text-brand-teal">meaning</strong> behind your
           profile, skills, and goals - not just keyword matching.
         </p>
 
@@ -340,7 +344,6 @@ export default function RecommendedMentors({ mentors, allMentors, loading }: Rec
                     profilePicture: match.mentorData.profilePicture,
                     mentor: {
                       specialization: [],
-                      pricing: null,
                     },
                   }}
                   recommended={true}
@@ -424,7 +427,6 @@ export default function RecommendedMentors({ mentors, allMentors, loading }: Rec
                     profilePicture: match.mentorData.profilePicture,
                     mentor: {
                       specialization: [],
-                      pricing: null,
                     },
                   }}
                 />

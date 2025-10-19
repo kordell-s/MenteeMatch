@@ -92,13 +92,11 @@ export async function PUT(request: NextRequest) {
         where: { userId: session.user.id },
         update: {
           specialization: validSpecializations as Specialization[],
-          pricing: data.pricing ? parseFloat(data.pricing) : null,
           category: data.category || "OTHER",
         },
         create: {
           userId: session.user.id,
           specialization: validSpecializations as Specialization[],
-          pricing: data.pricing ? parseFloat(data.pricing) : null,
           category: data.category || "OTHER",
         },
       });

@@ -110,6 +110,7 @@ model Session {
   title    String
   offeringType String?
   booking  Booking? @relation("SessionBooking")
+  ratings  Rating[] // Link to detailed ratings
   mentee   User     @relation("SessionsAsMentee", fields: [menteeId], references: [id])
   mentor   User     @relation("SessionsAsMentor", fields: [mentorId], references: [id])
 }
@@ -126,10 +127,14 @@ model Mentorship {
 
 model Rating {
   id          String   @id @default(uuid())
-  userId      String
-  ratedById   String
-  ratingValue Float
+  sessionId   String?  // Link to specific session
+  userId      String   // Mentor being rated
+  ratedById   String   // Mentee who gave rating
+  ratingValue Float    // 1-5 stars
+  feedback    String?  // Optional written feedback
   date        DateTime @default(now())
+
+  session     Session? @relation(fields: [sessionId], references: [id])
   ratedBy     User     @relation("RatingsGiven", fields: [ratedById], references: [id])
   user        User     @relation("RatingsReceived", fields: [userId], references: [id])
 }

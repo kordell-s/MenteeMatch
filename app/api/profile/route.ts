@@ -51,7 +51,6 @@ export async function GET() {
       profileComplete: user.profileComplete,
       mentor: user.mentor ? {
         specialization: user.mentor.specialization || [],
-        pricing: user.mentor.pricing,
         category: user.mentor.category,
       } : null,
       mentee: user.mentee ? {
@@ -117,13 +116,11 @@ export async function PUT(request: NextRequest) {
         where: { userId: session.user.id },
         update: {
           specialization: data.specialization || [],
-          pricing: data.pricing ? parseFloat(data.pricing) : null,
           category: data.category || "OTHER",
         },
         create: {
           userId: session.user.id,
           specialization: data.specialization || [],
-          pricing: data.pricing ? parseFloat(data.pricing) : null,
           category: data.category || "OTHER",
         },
       });
@@ -175,7 +172,6 @@ export async function PUT(request: NextRequest) {
       profileComplete: finalUser.profileComplete,
       mentor: finalUser.mentor ? {
         specialization: finalUser.mentor.specialization || [],
-        pricing: finalUser.mentor.pricing,
         category: finalUser.mentor.category,
       } : null,
       mentee: finalUser.mentee ? {

@@ -48,7 +48,6 @@ interface UserProfile {
   profileComplete: boolean;
   mentor?: {
     specialization: string[];
-    pricing?: number;
     category: string;
   };
   mentee?: {
@@ -554,20 +553,6 @@ export default function ProfilePage() {
                         </Badge>
                       </div>
                     </div>
-
-                    {profile.mentor.pricing && (
-                      <div>
-                        <Label>Hourly Rate</Label>
-                        <div className="mt-1">
-                          <span className="text-2xl font-bold text-green-600">
-                            ${profile.mentor.pricing}
-                          </span>
-                          <span className="text-sm text-gray-500 ml-1">
-                            /hour
-                          </span>
-                        </div>
-                      </div>
-                    )}
                   </CardContent>
                 </Card>
 
