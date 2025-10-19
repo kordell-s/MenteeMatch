@@ -90,15 +90,15 @@ export default function MessagesPage() {
   return (
     <div className="flex h-screen bg-gray-50">
       {/* Sidebar */}
-      <div className="w-1/3 bg-white border-r border-gray-200 flex flex-col">
+      <div className="w-1/3 bg-white border-r-2 border-brand-sky/30 flex flex-col">
         {/* Header */}
-        <div className="p-4 border-b border-gray-200">
+        <div className="p-4 border-b-2 border-brand-sky/30 bg-gradient-to-r from-brand-sky/10 to-brand-teal/10">
           <div className="flex items-center justify-between">
-            <h1 className="text-xl font-semibold text-gray-800">Messages</h1>
+            <h1 className="text-2xl font-bold text-brand-navy">Messages</h1>
             <Button
               onClick={() => setShowNewChatModal(true)}
               size="sm"
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 bg-brand-teal hover:bg-brand-navy"
             >
               <Plus size={16} />
               New Chat
@@ -107,25 +107,37 @@ export default function MessagesPage() {
         </div>
 
         {/* Conversations List */}
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto flex flex-col">
           {conversations.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-gray-500">
-              <MessageCircle size={48} className="mb-4" />
-              <p>No conversations yet</p>
+              <MessageCircle size={48} className="mb-4 text-brand-teal" />
+              <p className="text-brand-navy font-medium">No conversations yet</p>
               <Button
                 onClick={() => setShowNewChatModal(true)}
                 variant="outline"
-                className="mt-4"
+                className="mt-4 border-brand-teal text-brand-teal hover:bg-brand-teal hover:text-white"
               >
                 Start your first chat
               </Button>
             </div>
           ) : (
-            <ConversationList
-              conversations={conversations}
-              selectedConversation={selectedConversation}
-              onSelectConversation={setSelectedConversation}
-            />
+            <>
+              <ConversationList
+                conversations={conversations}
+                selectedConversation={selectedConversation}
+                onSelectConversation={setSelectedConversation}
+              />
+              {/* Add New Chat button at bottom for easy access */}
+              <div className="p-4 border-t-2 border-brand-sky/30 bg-white">
+                <Button
+                  onClick={() => setShowNewChatModal(true)}
+                  className="w-full bg-brand-teal hover:bg-brand-navy flex items-center justify-center gap-2"
+                >
+                  <Plus size={18} />
+                  Start New Conversation
+                </Button>
+              </div>
+            </>
           )}
         </div>
       </div>
@@ -137,11 +149,11 @@ export default function MessagesPage() {
         ) : (
           <div className="flex items-center justify-center h-full text-gray-500">
             <div className="text-center">
-              <MessageCircle size={64} className="mx-auto mb-4" />
-              <h2 className="text-xl font-semibold mb-2">
+              <MessageCircle size={64} className="mx-auto mb-4 text-brand-teal" />
+              <h2 className="text-xl font-semibold mb-2 text-brand-navy">
                 Select a conversation
               </h2>
-              <p>Choose a conversation from the sidebar to start messaging</p>
+              <p className="text-gray-600">Choose a conversation from the sidebar to start messaging</p>
             </div>
           </div>
         )}

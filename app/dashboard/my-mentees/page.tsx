@@ -32,6 +32,7 @@ import {
   BarChart,
   FileText,
   CheckSquare,
+  User,
 } from "lucide-react";
 import type {
   DashboardData,
@@ -383,7 +384,7 @@ export default function MyMenteesPage() {
   return (
     <div>
       <div className="mb-6">
-        <h1 className="text-2xl font-bold mb-2">My Mentees</h1>
+        <h1 className="text-3xl font-bold mb-2 text-brand-navy">My Mentees</h1>
         <p className="text-gray-600">
           Manage your mentees and track their progress
         </p>
@@ -391,7 +392,7 @@ export default function MyMenteesPage() {
 
       {/* Enhanced Dashboard Statistics */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <Card>
+        <Card className="border-brand-sky/30">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-gray-500">
               Total Mentees
@@ -399,9 +400,9 @@ export default function MyMenteesPage() {
           </CardHeader>
           <CardContent>
             <div className="flex items-center">
-              <Users className="h-8 w-8 text-blue-500 mr-3" />
+              <Users className="h-8 w-8 text-brand-teal mr-3" />
               <div>
-                <div className="text-2xl font-bold">
+                <div className="text-2xl font-bold text-brand-navy">
                   {enhancedMentees.length}
                 </div>
                 <p className="text-xs text-gray-500">
@@ -413,7 +414,7 @@ export default function MyMenteesPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-brand-sky/30">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-gray-500">
               Tasks Progress
@@ -421,9 +422,9 @@ export default function MyMenteesPage() {
           </CardHeader>
           <CardContent>
             <div className="flex items-center">
-              <CheckSquare className="h-8 w-8 text-green-500 mr-3" />
+              <CheckSquare className="h-8 w-8 text-brand-orange mr-3" />
               <div>
-                <div className="text-2xl font-bold">
+                <div className="text-2xl font-bold text-brand-navy">
                   {dashboardStats.totalTasksCompleted} /{" "}
                   {dashboardStats.totalTasksCreated}
                 </div>
@@ -433,7 +434,7 @@ export default function MyMenteesPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-brand-sky/30">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-gray-500">
               Sessions Progress
@@ -441,9 +442,9 @@ export default function MyMenteesPage() {
           </CardHeader>
           <CardContent>
             <div className="flex items-center">
-              <Calendar className="h-8 w-8 text-purple-500 mr-3" />
+              <Calendar className="h-8 w-8 text-brand-gold mr-3" />
               <div>
-                <div className="text-2xl font-bold">
+                <div className="text-2xl font-bold text-brand-navy">
                   {dashboardStats.totalSessionsCompleted} /{" "}
                   {dashboardStats.totalSessionsScheduled}
                 </div>
@@ -484,7 +485,7 @@ export default function MyMenteesPage() {
             </SelectContent>
           </Select>
 
-          <Button>
+          <Button className="bg-brand-teal hover:bg-brand-navy">
             <FileText className="h-4 w-4 mr-2" />
             Export Report
           </Button>
@@ -505,7 +506,7 @@ export default function MyMenteesPage() {
               {filteredMentees.map((mentee) => (
                 <Card
                   key={mentee.id}
-                  className={mentee.status === "inactive" ? "opacity-75" : ""}
+                  className={`border-brand-sky/30 hover:shadow-lg transition-shadow ${mentee.status === "inactive" ? "opacity-75" : ""}`}
                 >
                   <CardHeader className="pb-2">
                     <div className="flex items-start justify-between">
@@ -518,7 +519,7 @@ export default function MyMenteesPage() {
                           className="rounded-full"
                         />
                         <div>
-                          <CardTitle className="text-lg">
+                          <CardTitle className="text-lg text-brand-navy">
                             {mentee.name}
                           </CardTitle>
                           <CardDescription>
@@ -553,7 +554,7 @@ export default function MyMenteesPage() {
                       </div>
                       <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
                         <div
-                          className="bg-primary h-2 rounded-full"
+                          className="bg-brand-teal h-2 rounded-full"
                           style={{ width: `${mentee.progressPercentage}%` }}
                         ></div>
                       </div>
@@ -600,14 +601,23 @@ export default function MyMenteesPage() {
                         </Badge>
                       </div>
                     )}
-                    <div className="flex gap-2 mt-4">
+                    <div className="flex flex-wrap gap-2 mt-4">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="bg-brand-sky/10 border-brand-teal text-brand-navy hover:bg-brand-sky/20"
+                        onClick={() => {
+                          router.push(`/dashboard/mentee/${mentee.id}`);
+                        }}
+                      >
+                        <User className="h-4 w-4 mr-1" />
+                        View Profile
+                      </Button>
                       <Button
                         size="sm"
                         variant="outline"
                         onClick={() => {
-                          router.push(
-                            `/dashboard/messages?menteeId=${mentee.id}`
-                          );
+                          router.push(`/messages?userId=${mentee.id}`);
                         }}
                       >
                         <MessageSquare className="h-4 w-4 mr-1" />
@@ -618,7 +628,7 @@ export default function MyMenteesPage() {
                         menteeName={mentee.name}
                         onTaskAssigned={refreshDashboard}
                       >
-                        <Button size="sm" className="flex items-center gap-2">
+                        <Button size="sm" className="flex items-center gap-2 bg-brand-teal hover:bg-brand-navy">
                           <CheckSquare className="h-4 w-4" />
                           Assign Task
                         </Button>
@@ -651,7 +661,7 @@ export default function MyMenteesPage() {
               {filteredMentees
                 .filter((mentee) => mentee.status === "active")
                 .map((mentee) => (
-                  <Card key={mentee.id}>
+                  <Card key={mentee.id} className="border-brand-sky/30 hover:shadow-lg transition-shadow">
                     <CardHeader className="pb-2">
                       <div className="flex items-start justify-between">
                         <div className="flex items-start space-x-4">
@@ -663,7 +673,7 @@ export default function MyMenteesPage() {
                             className="rounded-full"
                           />
                           <div>
-                            <CardTitle className="text-lg">
+                            <CardTitle className="text-lg text-brand-navy">
                               {mentee.name}
                             </CardTitle>
                             <CardDescription>
@@ -693,7 +703,7 @@ export default function MyMenteesPage() {
                         </div>
                         <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
                           <div
-                            className="bg-primary h-2 rounded-full"
+                            className="bg-brand-teal h-2 rounded-full"
                             style={{ width: `${mentee.progressPercentage}%` }}
                           ></div>
                         </div>
@@ -742,14 +752,23 @@ export default function MyMenteesPage() {
                           </Badge>
                         </div>
                       )}
-                      <div className="flex gap-2 mt-4">
+                      <div className="flex flex-wrap gap-2 mt-4">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="bg-brand-sky/10 border-brand-teal text-brand-navy hover:bg-brand-sky/20"
+                          onClick={() => {
+                            router.push(`/dashboard/mentee/${mentee.id}`);
+                          }}
+                        >
+                          <User className="h-4 w-4 mr-1" />
+                          View Profile
+                        </Button>
                         <Button
                           size="sm"
                           variant="outline"
                           onClick={() => {
-                            router.push(
-                              `/dashboard/messages?menteeId=${mentee.id}`
-                            );
+                            router.push(`/messages?userId=${mentee.id}`);
                           }}
                         >
                           <MessageSquare className="h-4 w-4 mr-1" />
@@ -760,7 +779,7 @@ export default function MyMenteesPage() {
                           menteeName={mentee.name}
                           onTaskAssigned={refreshDashboard}
                         >
-                          <Button size="sm" className="flex items-center gap-2">
+                          <Button size="sm" className="flex items-center gap-2 bg-brand-teal hover:bg-brand-navy">
                             <CheckSquare className="h-4 w-4" />
                             Assign Task
                           </Button>
@@ -795,7 +814,7 @@ export default function MyMenteesPage() {
               {filteredMentees
                 .filter((mentee) => mentee.status === "inactive")
                 .map((mentee) => (
-                  <Card key={mentee.id} className="opacity-75">
+                  <Card key={mentee.id} className="border-brand-sky/30 hover:shadow-lg transition-shadow opacity-75">
                     <CardHeader className="pb-2">
                       <div className="flex items-start justify-between">
                         <div className="flex items-start space-x-4">
@@ -807,7 +826,7 @@ export default function MyMenteesPage() {
                             className="rounded-full"
                           />
                           <div>
-                            <CardTitle className="text-lg">
+                            <CardTitle className="text-lg text-brand-navy">
                               {mentee.name}
                             </CardTitle>
                             <CardDescription>
@@ -840,7 +859,7 @@ export default function MyMenteesPage() {
                         </div>
                         <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
                           <div
-                            className="bg-primary h-2 rounded-full"
+                            className="bg-brand-teal h-2 rounded-full"
                             style={{ width: `${mentee.progressPercentage}%` }}
                           ></div>
                         </div>
@@ -889,14 +908,23 @@ export default function MyMenteesPage() {
                           </Badge>
                         </div>
                       )}
-                      <div className="flex gap-2 mt-4">
+                      <div className="flex flex-wrap gap-2 mt-4">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="bg-brand-sky/10 border-brand-teal text-brand-navy hover:bg-brand-sky/20"
+                          onClick={() => {
+                            router.push(`/dashboard/mentee/${mentee.id}`);
+                          }}
+                        >
+                          <User className="h-4 w-4 mr-1" />
+                          View Profile
+                        </Button>
                         <Button
                           size="sm"
                           variant="outline"
                           onClick={() => {
-                            router.push(
-                              `/dashboard/messages?menteeId=${mentee.id}`
-                            );
+                            router.push(`/messages?userId=${mentee.id}`);
                           }}
                         >
                           <MessageSquare className="h-4 w-4 mr-1" />
@@ -907,7 +935,7 @@ export default function MyMenteesPage() {
                           menteeName={mentee.name}
                           onTaskAssigned={refreshDashboard}
                         >
-                          <Button size="sm" className="flex items-center gap-2">
+                          <Button size="sm" className="flex items-center gap-2 bg-brand-teal hover:bg-brand-navy">
                             <CheckSquare className="h-4 w-4" />
                             Assign Task
                           </Button>
@@ -936,9 +964,9 @@ export default function MyMenteesPage() {
       </Tabs>
 
       {/* Assigned Tasks Section */}
-      <Card className="mb-8">
+      <Card className="mb-8 border-brand-sky/30">
         <CardHeader>
-          <CardTitle>Assigned Tasks</CardTitle>
+          <CardTitle className="text-brand-navy">Assigned Tasks</CardTitle>
           <CardDescription>
             Tasks you've assigned to your mentees
           </CardDescription>
@@ -969,9 +997,9 @@ export default function MyMenteesPage() {
       </Card>
 
       {/* Enhanced Recent Sessions */}
-      <Card>
+      <Card className="border-brand-sky/30">
         <CardHeader>
-          <CardTitle>Recent & Pending Sessions</CardTitle>
+          <CardTitle className="text-brand-navy">Recent & Pending Sessions</CardTitle>
           <CardDescription>
             Your 5 most recent sessions and pending requests across all mentees
           </CardDescription>

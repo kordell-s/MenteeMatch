@@ -11,7 +11,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Edit, Sparkles, TrendingUp, Brain, Zap, Clock } from "lucide-react";
+import { Edit, Sparkles, TrendingUp, Brain, Zap } from "lucide-react";
 import MentorCard from "./MentorCard";
 
 interface SmartMatch {
@@ -33,32 +33,21 @@ interface SmartMatch {
   };
 }
 
-interface SmartRecommendationsResponse {
-  matches: SmartMatch[];
-  algorithm: string;
-  totalMentors: number;
-  success: boolean;
-  error?: string;
-  menteeProfile: {
-    name: string;
-    skills: string[];
-    goals: string[];
-    experienceLevel: string;
-  };
+interface RecommendedMentorsProps {
+  mentors: any[]; // Recommended mentors from parent
+  allMentors: any[]; // All mentors for fallback
+  loading: boolean; // Loading state from parent
 }
 
-export default function RecommendedMentors() {
+export default function RecommendedMentors({ mentors, allMentors, loading }: RecommendedMentorsProps) {
   const { data: session } = useSession();
   const [smartMatches, setSmartMatches] = useState<SmartMatch[]>([]);
   const [userGoals, setUserGoals] = useState<string[]>([]);
   const [selectedGoals, setSelectedGoals] = useState<string[]>([]);
-  const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [algorithmInfo, setAlgorithmInfo] = useState<string>("");
+  const [algorithmInfo, setAlgorithmInfo] = useState<string>("TF-IDF + Word2Vec");
   const [menteeProfile, setMenteeProfile] = useState<any>(null);
-  const [loadingProgress, setLoadingProgress] = useState<string>("");
-  const [loadingTime, setLoadingTime] = useState<number>(0);
 
   // Available goals based on the Goal enum from schema
   const availableGoals = [
@@ -74,83 +63,44 @@ export default function RecommendedMentors() {
     { value: "NETWORKING", label: "Networking" },
   ];
 
-  // Fetch smart recommendations using your algorithm
+  // Process mentors data passed from parent
   useEffect(() => {
-    async function fetchSmartRecommendations() {
-      if (!session?.user?.id) {
-        setLoading(false);
-        return;
+    if (mentors && mentors.length > 0) {
+      // Convert the mentor data to SmartMatch format
+      const matches: SmartMatch[] = mentors.map((match: any) => ({
+        mentorId: match.mentorId,
+        score: match.score,
+        rank: match.rank,
+        algorithm: match.algorithm || "TF-IDF + Word2Vec",
+        mentorData: {
+          name: match.mentorData?.name || "",
+          title: match.mentorData?.title || "",
+          company: match.mentorData?.company || "",
+          rating: match.mentorData?.rating || 0,
+          pricing: match.mentorData?.pricing || 0,
+          category: match.mentorData?.category || "",
+          skills: match.mentorData?.skills || [],
+          bio: match.mentorData?.bio || "",
+          profilePicture: match.mentorData?.profilePicture || "",
+          location: match.mentorData?.location,
+        },
+      }));
+
+      setSmartMatches(matches);
+
+      // Extract algorithm info and profile data if available
+      if (mentors[0]?.algorithm) {
+        setAlgorithmInfo(mentors[0].algorithm);
       }
 
-      try {
-        setLoading(true);
-        const startTime = Date.now();
-
-        console.log(
-          "🔍 Fetching smart recommendations for user:",
-          session.user.id
-        );
-
-        // Add progress updates
-        setLoadingProgress("Loading your profile...");
-        await new Promise((resolve) => setTimeout(resolve, 300));
-
-        setLoadingProgress("Analyzing mentors with AI...");
-        await new Promise((resolve) => setTimeout(resolve, 300));
-
-        setLoadingProgress("Calculating semantic matches...");
-
-        // Call your smart matching API
-        const response = await fetch("/api/match", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            menteeId: session.user.id,
-          }),
-        });
-
-        const endTime = Date.now();
-        setLoadingTime(endTime - startTime);
-
-        if (response.ok) {
-          const data: SmartRecommendationsResponse = await response.json();
-
-          if (data.success) {
-            console.log(
-              `✅ Got ${data.matches.length} smart matches using ${data.algorithm}`
-            );
-            console.log(
-              "🎯 Top matches:",
-              data.matches
-                .slice(0, 3)
-                .map(
-                  (m) => `${m.mentorData.name} (${(m.score * 100).toFixed(1)}%)`
-                )
-            );
-
-            setSmartMatches(data.matches);
-            setAlgorithmInfo(data.algorithm);
-            setMenteeProfile(data.menteeProfile);
-            setUserGoals(data.menteeProfile.goals || []);
-            setSelectedGoals(data.menteeProfile.goals || []);
-          } else {
-            console.error("❌ Smart matching failed:", data.error);
-          }
-        } else {
-          console.error("❌ API request failed");
-        }
-      } catch (error) {
-        console.error("Failed to fetch smart recommendations:", error);
-      } finally {
-        setLoading(false);
-        setLoadingProgress("");
+      // Set mentee profile if provided
+      if (mentors[0]?.menteeProfile) {
+        setMenteeProfile(mentors[0].menteeProfile);
+        setUserGoals(mentors[0].menteeProfile.goals || []);
+        setSelectedGoals(mentors[0].menteeProfile.goals || []);
       }
     }
-
-    fetchSmartRecommendations();
-  }, [session?.user?.id]);
+  }, [mentors]);
 
   const handleGoalToggle = (goalValue: string) => {
     setSelectedGoals((prev) =>
@@ -207,17 +157,11 @@ export default function RecommendedMentors() {
               AI is Finding Your Perfect Mentors
             </h3>
             <p className="text-brand-teal font-medium mb-2">
-              {loadingProgress || "Initializing smart algorithm..."}
+              Analyzing mentors with semantic matching...
             </p>
             <p className="text-sm text-gray-600">
-              Using TF-IDF + Word Embeddings for semantic matching
+              Using TF-IDF + Word Embeddings for intelligent recommendations
             </p>
-            {loadingTime > 0 && (
-              <div className="flex items-center justify-center gap-1 mt-2 text-xs text-gray-500">
-                <Clock className="w-3 h-3" />
-                <span>{(loadingTime / 1000).toFixed(1)}s elapsed</span>
-              </div>
-            )}
           </div>
         </div>
       </div>
@@ -252,11 +196,6 @@ export default function RecommendedMentors() {
               <span className="text-sm bg-brand-gold/20 text-brand-navy px-3 py-1 rounded-full font-medium border border-brand-gold">
                 {algorithmInfo}
               </span>
-              {loadingTime > 0 && (
-                <span className="text-xs text-gray-600">
-                  • Processed in {(loadingTime / 1000).toFixed(1)}s
-                </span>
-              )}
             </div>
           </div>
         </div>
@@ -520,10 +459,6 @@ export default function RecommendedMentors() {
               </p>
             </div>
             <div className="space-y-1">
-              <p>
-                <span className="font-medium">Processing time:</span>{" "}
-                {(loadingTime / 1000).toFixed(2)}s
-              </p>
               <p>
                 <span className="font-medium">Top scores:</span>{" "}
                 {topMatches.map((m) => Math.round(m.score * 100)).join("%, ")}%

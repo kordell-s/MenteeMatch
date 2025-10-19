@@ -104,9 +104,9 @@ export default function NewChatModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md border-2 border-brand-sky/30">
         <DialogHeader>
-          <DialogTitle>Start New Chat</DialogTitle>
+          <DialogTitle className="text-brand-navy text-xl">Start New Chat</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4">
@@ -127,28 +127,28 @@ export default function NewChatModal({
           {/* Users List */}
           <div className="max-h-64 overflow-y-auto space-y-2">
             {loading ? (
-              <div className="text-center py-4">Loading users...</div>
+              <div className="text-center py-4 text-brand-teal">Loading your mentees...</div>
             ) : filteredUsers.length === 0 ? (
               <div className="text-center py-4 text-gray-500">
                 {searchTerm
-                  ? "No users found"
-                  : "No available users to chat with"}
+                  ? "No mentees found matching your search"
+                  : "No mentees available to chat with"}
               </div>
             ) : (
               filteredUsers.map((user) => (
                 <div
                   key={user.id}
-                  className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 transition-colors"
+                  className="flex items-center justify-between p-3 rounded-lg border border-brand-sky/20 hover:bg-brand-sky/10 hover:border-brand-teal/40 transition-all"
                 >
                   <div className="flex items-center space-x-3">
-                    <Avatar className="h-10 w-10">
+                    <Avatar className="h-10 w-10 border-2 border-brand-sky/30">
                       <AvatarImage src={user.image} />
-                      <AvatarFallback>
+                      <AvatarFallback className="bg-brand-teal text-white">
                         {user.name.charAt(0).toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
                     <div>
-                      <p className="font-medium text-gray-900">{user.name}</p>
+                      <p className="font-medium text-brand-navy">{user.name}</p>
                       <p className="text-sm text-gray-500">{user.email}</p>
                     </div>
                   </div>
@@ -156,6 +156,7 @@ export default function NewChatModal({
                     onClick={() => startConversation(user.id)}
                     disabled={starting}
                     size="sm"
+                    className="bg-brand-teal hover:bg-brand-navy"
                   >
                     Chat
                   </Button>

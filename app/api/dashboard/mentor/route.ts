@@ -27,16 +27,82 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    // Get confirmed mentees
-    const confirmedMentees = await prisma.mentorship.findMany({
-      where: {
-        mentorId: user.id,
-        status: "ACCEPTED",
-      },
-      include: {
-        mentee: true,
-      },
+    // Get confirmed mentees from both Mentorship table AND accepted MentorshipRequests
+    const [confirmedMentorships, acceptedRequests] = await Promise.all([
+      prisma.mentorship.findMany({
+        where: {
+          mentorId: user.id,
+          status: "ACCEPTED",
+        },
+        include: {
+          mentee: {
+            include: {
+              mentee: {
+                select: {
+                  goals: true,
+                },
+              },
+            },
+          },
+        },
+      }),
+      prisma.mentorshipRequest.findMany({
+        where: {
+          mentorId: user.id,
+          status: "ACCEPTED",
+        },
+        include: {
+          mentee: {
+            include: {
+              mentee: {
+                select: {
+                  goals: true,
+                },
+              },
+            },
+          },
+        },
+      }),
+    ]);
+
+    // Combine mentees from both sources and remove duplicates
+    const menteeMap = new Map();
+
+    // Add mentees from Mentorship table
+    confirmedMentorships.forEach((mentorship) => {
+      menteeMap.set(mentorship.mentee.id, {
+        id: mentorship.mentee.id,
+        name: mentorship.mentee.name,
+        profilePicture: mentorship.mentee.profilePicture,
+        email: mentorship.mentee.email,
+        title: mentorship.mentee.title,
+        company: mentorship.mentee.company,
+        bio: mentorship.mentee.bio,
+        goals: mentorship.mentee.mentee?.goals || [],
+        status: "active",
+        joinedDate: mentorship.createdAt.toISOString().split('T')[0],
+      });
     });
+
+    // Add mentees from accepted MentorshipRequests (if not already in map)
+    acceptedRequests.forEach((request) => {
+      if (!menteeMap.has(request.mentee.id)) {
+        menteeMap.set(request.mentee.id, {
+          id: request.mentee.id,
+          name: request.mentee.name,
+          profilePicture: request.mentee.profilePicture,
+          email: request.mentee.email,
+          title: request.mentee.title,
+          company: request.mentee.company,
+          bio: request.mentee.bio,
+          goals: request.mentee.mentee?.goals || [],
+          status: "active",
+          joinedDate: request.createdAt.toISOString().split('T')[0],
+        });
+      }
+    });
+
+    const confirmedMentees = Array.from(menteeMap.values());
 
     // Get recent mentorship requests
     const recentRequests = await prisma.mentorshipRequest.findMany({
@@ -89,11 +155,7 @@ export async function GET(req: NextRequest) {
     });
 
     const dashboardData = {
-      confirmedMentees: confirmedMentees.map((mentorship) => ({
-      id: mentorship.mentee.id,
-      name: mentorship.mentee.name,
-      profilePicture: mentorship.mentee.profilePicture,
-      })),
+      confirmedMentees: confirmedMentees,
       recentRequests: recentRequests.map((request) => ({
       id: request.id,
       status: request.status,

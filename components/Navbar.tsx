@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useSession, signOut } from "next-auth/react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ChevronDown, User, Settings, LogOut } from "lucide-react";
@@ -11,13 +10,12 @@ import Logo from "@/components/Logo";
 
 export default function Navbar() {
   const { data: session, status } = useSession();
-  const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 
   const handleSignOut = async () => {
-    await signOut({ redirect: false });
-    router.push("/");
+    // Use signOut with callbackUrl to automatically redirect and refresh
+    await signOut({ callbackUrl: "/", redirect: true });
   };
 
   return (

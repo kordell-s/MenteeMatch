@@ -40,10 +40,11 @@ export default function MentorBrowser() {
   const searchParams = useSearchParams();
   const [mentorData, setMentorData] = useState<Mentor[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingRecommendations, setLoadingRecommendations] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [activeCategory, setActiveCategory] = useState("recommended");
+  const [activeCategory, setActiveCategory] = useState("technology"); // Default to first category, not recommendations
   const [searchQuery, setSearchQuery] = useState("");
-  const [recommendedMentors, setRecommendedMentors] = useState<Mentor[]>([]);
+  const [recommendedMatchData, setRecommendedMatchData] = useState<any[]>([]); // Full match data with scores
   const [filteredMentors, setFilteredMentors] = useState<Mentor[]>([]);
   const [sortOption, setSortOption] = useState("recommended");
 
@@ -72,14 +73,13 @@ export default function MentorBrowser() {
     }
   }, [searchParams]);
 
-  // Fetch mentor data from API
+  // Phase 1: Fetch all mentors FIRST (fast, immediate display)
   useEffect(() => {
     async function fetchMentors() {
       try {
         setError(null);
-        console.log("Fetching mentors from API...");
+        console.log("🚀 Phase 1: Fetching all mentors...");
 
-        // 1. Get all mentors
         const res = await fetch("/api/mentors");
         if (!res.ok) {
           const errorText = await res.text();
@@ -90,12 +90,10 @@ export default function MentorBrowser() {
 
         const data = await res.json();
 
-        // Validate the response structure
         if (!Array.isArray(data)) {
           throw new Error("Invalid response format: expected array of mentors");
         }
 
-        // Validate each mentor has required fields
         const validMentors = data.filter((mentor) => {
           const isValid =
             mentor &&
@@ -110,69 +108,71 @@ export default function MentorBrowser() {
         });
 
         console.log(
-          `Fetched ${validMentors.length} valid mentors out of ${data.length} total`
+          `✅ Phase 1 Complete: ${validMentors.length} mentors loaded`
         );
-        console.log("Sample mentor:", validMentors[0]);
 
         setMentorData(validMentors);
-
-        // 2. Get AI-matched mentors (only if we have mentor data and user ID)
-        if (validMentors.length > 0 && userId) {
-          try {
-            console.log("Fetching AI recommendations...");
-            const matchRes = await fetch("/api/match", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ menteeId: userId }),
-            });
-
-            if (matchRes.ok) {
-              const matched = await matchRes.json();
-              if (Array.isArray(matched)) {
-                const recommended = matched
-                  .map((match: { mentorId: string }) =>
-                    validMentors.find((m: Mentor) => m.id === match.mentorId)
-                  )
-                  .filter(Boolean);
-
-                console.log(`Found ${recommended.length} recommended mentors`);
-                setRecommendedMentors(recommended);
-              } else {
-                console.warn("Match API returned non-array:", matched);
-                setRecommendedMentors([]);
-              }
-            } else {
-              const errorText = await matchRes.text();
-              console.warn(`Match API failed (${matchRes.status}):`, errorText);
-              setRecommendedMentors([]);
-            }
-          } catch (matchError) {
-            console.warn("Match API error:", matchError);
-            setRecommendedMentors([]);
-          }
-        } else {
-          console.log("No mentors available for AI matching or no user ID");
-          setRecommendedMentors([]);
-        }
+        setLoading(false); // ⚡ Immediately show mentors!
       } catch (err) {
         console.error("Error fetching mentors:", err);
         const errorMessage =
           err instanceof Error ? err.message : "Failed to load mentors";
         setError(errorMessage);
-
-        // Set fallback empty arrays to prevent component breaking
         setMentorData([]);
-        setRecommendedMentors([]);
-      } finally {
         setLoading(false);
       }
     }
 
-    if (session !== undefined) {
-      // Wait for session to load
-      fetchMentors();
+    fetchMentors();
+  }, []); // Only run once on mount
+
+  // Phase 2: Fetch AI recommendations ASYNCHRONOUSLY (in background)
+  useEffect(() => {
+    async function fetchRecommendations() {
+      if (!userId || mentorData.length === 0) {
+        console.log("⏭️  Skipping recommendations: No user or mentors");
+        return;
+      }
+
+      try {
+        setLoadingRecommendations(true);
+        console.log("🧠 Phase 2: Fetching AI recommendations in background...");
+
+        const matchRes = await fetch("/api/match", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ menteeId: userId }),
+        });
+
+        if (matchRes.ok) {
+          const matchData = await matchRes.json();
+
+          // Store the full match data structure (with scores, algorithm info, etc.)
+          if (matchData.success && Array.isArray(matchData.matches)) {
+            console.log(`✅ Phase 2 Complete: ${matchData.matches.length} recommendations loaded`);
+            setRecommendedMatchData(matchData.matches);
+          } else {
+            console.warn("Match API returned unexpected format:", matchData);
+            setRecommendedMatchData([]);
+          }
+        } else {
+          const errorText = await matchRes.text();
+          console.warn(`Match API failed (${matchRes.status}):`, errorText);
+          setRecommendedMatchData([]);
+        }
+      } catch (matchError) {
+        console.warn("AI recommendations error:", matchError);
+        setRecommendedMatchData([]);
+      } finally {
+        setLoadingRecommendations(false);
+      }
     }
-  }, [userId, session]);
+
+    // Only fetch recommendations after mentors are loaded
+    if (mentorData.length > 0 && userId) {
+      fetchRecommendations();
+    }
+  }, [userId, mentorData.length]); // Trigger when user or mentor data changes
 
   // Filter mentors based on active category and search query
   useEffect(() => {
@@ -182,15 +182,18 @@ export default function MentorBrowser() {
       activeCategory,
       totalMentors: mentorData.length,
       searchQuery: searchQuery || "none",
-      recommendedCount: recommendedMentors.length,
+      recommendedCount: recommendedMatchData.length,
     });
 
     if (activeCategory === "recommended") {
-      // For recommended tab, use recommended mentors as base
-      result =
-        recommendedMentors.length > 0
-          ? recommendedMentors
-          : mentorData.slice(0, 6);
+      // For recommended tab, extract mentors from match data
+      if (recommendedMatchData.length > 0) {
+        result = recommendedMatchData
+          .map((match: any) => mentorData.find((m: Mentor) => m.id === match.mentorId))
+          .filter((m): m is Mentor => m !== undefined);
+      } else {
+        result = mentorData.slice(0, 6);
+      }
     } else {
       // Map frontend category IDs to database enum values
       const categoryMapping: { [key: string]: string } = {
@@ -238,7 +241,7 @@ export default function MentorBrowser() {
     }
 
     setFilteredMentors(result);
-  }, [mentorData, activeCategory, searchQuery, sortOption, recommendedMentors]);
+  }, [mentorData, activeCategory, searchQuery, sortOption, recommendedMatchData]);
 
   if (loading) {
     return (
@@ -394,7 +397,11 @@ export default function MentorBrowser() {
               ))}
             </div>
           ) : (
-            <RecommendedMentors />
+            <RecommendedMentors
+              mentors={recommendedMatchData}
+              allMentors={mentorData}
+              loading={loadingRecommendations}
+            />
           )}
 
           {searchQuery && filteredMentors.length === 0 && (

@@ -13,11 +13,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Clock, Search, Calendar, MessageSquare, Inbox } from "lucide-react";
+import { Clock, Search, Calendar, MessageSquare, Inbox, User } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 // Define TypeScript interface for mentorship request
 interface MentorshipRequest {
   id: number;
+  menteeId?: string; // Add mentee ID to enable profile viewing
   mentee: {
     name: string;
     avatar?: string;
@@ -36,6 +38,7 @@ interface MentorshipRequest {
 }
 
 export default function RequestsPage() {
+  const router = useRouter();
   const [filter, setFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [sessionTypeFilter, setSessionTypeFilter] = useState("all");
@@ -372,6 +375,20 @@ export default function RequestsPage() {
 
                         {request.status === "pending" && (
                           <div className="flex flex-col sm:flex-row gap-3 mt-4">
+                            {request.menteeId && (
+                              <Button
+                                variant="outline"
+                                className="sm:w-auto bg-brand-sky/10 border-brand-teal text-brand-navy hover:bg-brand-sky/20"
+                                onClick={() =>
+                                  router.push(
+                                    `/dashboard/mentee/${request.menteeId}`
+                                  )
+                                }
+                              >
+                                <User className="h-4 w-4 mr-2" />
+                                View Profile
+                              </Button>
+                            )}
                             <Button
                               className="sm:w-auto"
                               onClick={() => handleAcceptRequest(request.id)}
@@ -392,7 +409,21 @@ export default function RequestsPage() {
                         )}
 
                         {request.status === "accepted" && (
-                          <div className="flex gap-3 mt-4">
+                          <div className="flex flex-wrap gap-3 mt-4">
+                            {request.menteeId && (
+                              <Button
+                                variant="outline"
+                                className="bg-brand-sky/10 border-brand-teal text-brand-navy hover:bg-brand-sky/20"
+                                onClick={() =>
+                                  router.push(
+                                    `/dashboard/mentee/${request.menteeId}`
+                                  )
+                                }
+                              >
+                                <User className="h-4 w-4 mr-2" />
+                                View Profile
+                              </Button>
+                            )}
                             <Button>
                               <Calendar className="h-4 w-4 mr-2" />
                               View in Calendar
@@ -400,6 +431,23 @@ export default function RequestsPage() {
                             <Button variant="outline">
                               <MessageSquare className="h-4 w-4 mr-2" />
                               Message Mentee
+                            </Button>
+                          </div>
+                        )}
+
+                        {request.status === "declined" && request.menteeId && (
+                          <div className="flex flex-wrap gap-3 mt-4">
+                            <Button
+                              variant="outline"
+                              className="bg-brand-sky/10 border-brand-teal text-brand-navy hover:bg-brand-sky/20"
+                              onClick={() =>
+                                router.push(
+                                  `/dashboard/mentee/${request.menteeId}`
+                                )
+                              }
+                            >
+                              <User className="h-4 w-4 mr-2" />
+                              View Profile
                             </Button>
                           </div>
                         )}

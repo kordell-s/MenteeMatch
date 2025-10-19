@@ -1,0 +1,14 @@
+<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+  <!-- Simplified seedling icon for favicon -->
+  <rect width="32" height="32" fill="white"/>
+  <g transform="translate(16, 16)">
+    <!-- Left leaf - Turquoise -->
+    <path d="M0,0 Q-4,-4 -6,-2.5 Q-5,-7.5 0,-5" fill="none" stroke="#219EBC" stroke-width="2" stroke-linecap="round"/>
+    <!-- Right leaf - Orange -->
+    <path d="M0,-5 Q4,-9 6,-7.5 Q5,-4 0,-2.5" fill="none" stroke="#FB8500" stroke-width="2" stroke-linecap="round"/>
+    <!-- Stem - Turquoise -->
+    <line x1="0" y1="0" x2="0" y2="6" stroke="#219EBC" stroke-width="2" stroke-linecap="round"/>
+    <!-- Optional: Add a small circle at stem base for visual weight -->
+    <circle cx="0" cy="6" r="1.5" fill="#219EBC"/>
+  </g>
+</svg>

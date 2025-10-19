@@ -80,7 +80,7 @@ export default function UserAvatar() {
         <DropdownMenuSeparator />
         <DropdownMenuItem
           className="flex items-center text-red-600"
-          onClick={() => signOut()}
+          onClick={() => signOut({ callbackUrl: "/", redirect: true })}
         >
           <LogOut className="mr-2 h-4 w-4" />
           <span>Log out</span>
