@@ -152,7 +152,7 @@ export default function CalendarPage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto">
+    <div className="max-w-7xl mx-auto pt-20 px-4">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-brand-navy mb-2">Calendar</h1>
         <p className="text-gray-600">

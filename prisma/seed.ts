@@ -46,6 +46,7 @@ async function main() {
       verified: true,
       profileComplete: true,
       rating: 4.8,
+      gender: "FEMALE",
     },
   });
 
@@ -68,6 +69,7 @@ async function main() {
       verified: true,
       profileComplete: true,
       rating: 4.9,
+      gender: "MALE",
     },
   });
 
@@ -90,6 +92,7 @@ async function main() {
       verified: true,
       profileComplete: true,
       rating: 4.7,
+      gender: "FEMALE",
     },
   });
 
@@ -105,13 +108,14 @@ async function main() {
       school: "Carnegie Mellon",
       location: "San Francisco, CA",
       experienceLevel: "SENIOR",
-      skills: ["REACT", "JAVASCRIPT", "TYPESCRIPT"],
+      skills: ["JAVASCRIPT", "REACT"],
       languages: ["English", "Mandarin"],
       availability: ["WEDNESDAY", "THURSDAY", "SATURDAY"],
       timeAvailability: ["MORNING", "AFTERNOON"],
       verified: true,
       profileComplete: true,
       rating: 4.9,
+      gender: "MALE",
     },
   });
 
@@ -134,6 +138,7 @@ async function main() {
       verified: true,
       profileComplete: true,
       rating: 4.8,
+      gender: "FEMALE",
     },
   });
 
@@ -156,6 +161,7 @@ async function main() {
       verified: true,
       profileComplete: true,
       rating: 4.6,
+      gender: "MALE",
     },
   });
 
@@ -171,13 +177,14 @@ async function main() {
       school: "Northwestern",
       location: "Chicago, IL",
       experienceLevel: "LEAD",
-      skills: ["PRODUCT_MANAGEMENT", "LEADERSHIP", "AGILE", "TEAM_MANAGEMENT"],
+      skills: ["PRODUCT_MANAGEMENT", "AGILE", "TEAM_MANAGEMENT", "LEADERSHIP"],
       languages: ["English"],
       availability: ["MONDAY", "TUESDAY", "WEDNESDAY"],
       timeAvailability: ["MORNING", "AFTERNOON"],
       verified: true,
       profileComplete: true,
       rating: 4.7,
+      gender: "FEMALE",
     },
   });
 
@@ -200,6 +207,587 @@ async function main() {
       verified: true,
       profileComplete: true,
       rating: 4.9,
+      gender: "MALE",
+    },
+  });
+
+  // BUSINESS MENTORS (5 more)
+  const mentor9 = await prisma.user.create({
+    data: {
+      name: "Jennifer Adams",
+      email: "jennifer.mentor@test.com",
+      password: hashedPassword,
+      role: "MENTOR",
+      bio: "MBA graduate turned entrepreneur. Founded 2 successful startups. Help aspiring entrepreneurs launch their ventures.",
+      title: "Founder & CEO",
+      company: "StartupLab",
+      school: "Harvard Business School",
+      location: "Boston, MA",
+      experienceLevel: "LEAD",
+      skills: ["BUSINESS_STRATEGY", "STARTUPS", "LEADERSHIP", "PUBLIC_SPEAKING"],
+      languages: ["English"],
+      availability: ["TUESDAY", "THURSDAY", "FRIDAY"],
+      timeAvailability: ["AFTERNOON", "EVENING"],
+      verified: true,
+      profileComplete: true,
+      rating: 4.9,
+      gender: "FEMALE",
+    },
+  });
+
+  const mentor10 = await prisma.user.create({
+    data: {
+      name: "Marcus Thompson",
+      email: "marcus.mentor@test.com",
+      password: hashedPassword,
+      role: "MENTOR",
+      bio: "Financial analyst with 12 years in investment banking. Specialize in corporate finance and financial modeling.",
+      title: "Senior Investment Banker",
+      company: "Goldman Sachs",
+      school: "Wharton School",
+      location: "New York, NY",
+      experienceLevel: "SENIOR",
+      skills: ["BUSINESS_STRATEGY", "STATISTICS", "SQL", "DATA_SCIENCE"],
+      languages: ["English"],
+      availability: ["MONDAY", "WEDNESDAY", "SATURDAY"],
+      timeAvailability: ["MORNING", "AFTERNOON"],
+      verified: true,
+      profileComplete: true,
+      rating: 4.7,
+      gender: "MALE",
+    },
+  });
+
+  const mentor11 = await prisma.user.create({
+    data: {
+      name: "Sophia Martinez",
+      email: "sophia.mentor@test.com",
+      password: hashedPassword,
+      role: "MENTOR",
+      bio: "Human Resources Director passionate about talent development and organizational culture. 10+ years experience.",
+      title: "HR Director",
+      company: "Fortune 500 Tech",
+      school: "Cornell University",
+      location: "San Francisco, CA",
+      experienceLevel: "SENIOR",
+      skills: ["LEADERSHIP", "TEAM_MANAGEMENT", "CAREER_COACHING", "PUBLIC_SPEAKING"],
+      languages: ["English", "Spanish"],
+      availability: ["TUESDAY", "WEDNESDAY", "THURSDAY"],
+      timeAvailability: ["AFTERNOON", "EVENING"],
+      verified: true,
+      profileComplete: true,
+      rating: 4.8,
+      gender: "FEMALE",
+    },
+  });
+
+  const mentor12 = await prisma.user.create({
+    data: {
+      name: "Robert Kim",
+      email: "robert.mentor@test.com",
+      password: hashedPassword,
+      role: "MENTOR",
+      bio: "Operations consultant helping businesses scale efficiently. Former McKinsey consultant with expertise in process optimization.",
+      title: "Operations Consultant",
+      company: "McKinsey & Company",
+      school: "Stanford GSB",
+      location: "Los Angeles, CA",
+      experienceLevel: "LEAD",
+      skills: ["BUSINESS_STRATEGY", "AGILE", "LEADERSHIP", "TEAM_MANAGEMENT"],
+      languages: ["English", "Korean"],
+      availability: ["MONDAY", "THURSDAY", "FRIDAY"],
+      timeAvailability: ["MORNING", "AFTERNOON"],
+      verified: true,
+      profileComplete: true,
+      rating: 4.9,
+      gender: "MALE",
+    },
+  });
+
+  const mentor13 = await prisma.user.create({
+    data: {
+      name: "Amanda Foster",
+      email: "amanda.mentor@test.com",
+      password: hashedPassword,
+      role: "MENTOR",
+      bio: "Sales executive with track record of building high-performing teams. Expert in B2B sales and account management.",
+      title: "VP of Sales",
+      company: "SaaS Unicorn",
+      school: "UC Berkeley Haas",
+      location: "San Francisco, CA",
+      experienceLevel: "LEAD",
+      skills: ["BUSINESS_STRATEGY", "DIGITAL_MARKETING", "LEADERSHIP", "TEAM_MANAGEMENT"],
+      languages: ["English"],
+      availability: ["TUESDAY", "WEDNESDAY", "FRIDAY"],
+      timeAvailability: ["AFTERNOON", "EVENING"],
+      verified: true,
+      profileComplete: true,
+      rating: 4.8,
+      gender: "FEMALE",
+    },
+  });
+
+  // DESIGN MENTORS (5 more)
+  const mentor14 = await prisma.user.create({
+    data: {
+      name: "James Lee",
+      email: "james.l.mentor@test.com",
+      password: hashedPassword,
+      role: "MENTOR",
+      bio: "Creative director with 15 years in branding and visual identity. Worked with Fortune 500 brands.",
+      title: "Creative Director",
+      company: "Ogilvy",
+      school: "Parsons School of Design",
+      location: "New York, NY",
+      experienceLevel: "LEAD",
+      skills: ["BRANDING", "UX", "UI", "DESIGN_SYSTEMS"],
+      languages: ["English"],
+      availability: ["MONDAY", "TUESDAY", "THURSDAY"],
+      timeAvailability: ["AFTERNOON", "EVENING"],
+      verified: true,
+      profileComplete: true,
+      rating: 4.9,
+      gender: "MALE",
+    },
+  });
+
+  const mentor15 = await prisma.user.create({
+    data: {
+      name: "Nina Patel",
+      email: "nina.mentor@test.com",
+      password: hashedPassword,
+      role: "MENTOR",
+      bio: "Product designer focused on mobile-first experiences. Ex-Airbnb designer passionate about design systems.",
+      title: "Senior Product Designer",
+      company: "Airbnb",
+      school: "Rhode Island School of Design",
+      location: "San Francisco, CA",
+      experienceLevel: "SENIOR",
+      skills: ["UX", "UI", "FIGMA", "DESIGN_SYSTEMS"],
+      languages: ["English", "Hindi"],
+      availability: ["TUESDAY", "WEDNESDAY", "SATURDAY"],
+      timeAvailability: ["MORNING", "AFTERNOON"],
+      verified: true,
+      profileComplete: true,
+      rating: 4.8,
+      gender: "FEMALE",
+    },
+  });
+
+  const mentor16 = await prisma.user.create({
+    data: {
+      name: "Oliver Wright",
+      email: "oliver.mentor@test.com",
+      password: hashedPassword,
+      role: "MENTOR",
+      bio: "Motion graphics designer and animator. Specialize in explainer videos and brand animations for startups.",
+      title: "Motion Designer",
+      company: "Buck Design",
+      school: "CalArts",
+      location: "Los Angeles, CA",
+      experienceLevel: "SENIOR",
+      skills: ["MOTION_DESIGN", "UX", "UI", "FIGMA"],
+      languages: ["English"],
+      availability: ["MONDAY", "WEDNESDAY", "FRIDAY"],
+      timeAvailability: ["AFTERNOON", "EVENING"],
+      verified: true,
+      profileComplete: true,
+      rating: 4.7,
+      gender: "MALE",
+    },
+  });
+
+  const mentor17 = await prisma.user.create({
+    data: {
+      name: "Isabella Romano",
+      email: "isabella.mentor@test.com",
+      password: hashedPassword,
+      role: "MENTOR",
+      bio: "UX researcher specializing in user testing and qualitative research. Help teams build user-centered products.",
+      title: "Lead UX Researcher",
+      company: "Meta",
+      school: "Carnegie Mellon HCI",
+      location: "Seattle, WA",
+      experienceLevel: "LEAD",
+      skills: ["UX", "USER_RESEARCH", "FIGMA", "ACCESSIBILITY"],
+      languages: ["English", "Italian"],
+      availability: ["TUESDAY", "THURSDAY", "SATURDAY"],
+      timeAvailability: ["MORNING", "AFTERNOON"],
+      verified: true,
+      profileComplete: true,
+      rating: 4.9,
+      gender: "FEMALE",
+    },
+  });
+
+  const mentor18 = await prisma.user.create({
+    data: {
+      name: "Daniel Brown",
+      email: "daniel.mentor@test.com",
+      password: hashedPassword,
+      role: "MENTOR",
+      bio: "Graphic designer specializing in print and editorial design. 10+ years creating stunning publications.",
+      title: "Senior Graphic Designer",
+      company: "Pentagram",
+      school: "Yale School of Art",
+      location: "New York, NY",
+      experienceLevel: "SENIOR",
+      skills: ["UX", "UI", "FIGMA", "BRANDING"],
+      languages: ["English"],
+      availability: ["MONDAY", "WEDNESDAY", "FRIDAY"],
+      timeAvailability: ["AFTERNOON", "EVENING"],
+      verified: true,
+      profileComplete: true,
+      rating: 4.8,
+      gender: "MALE",
+    },
+  });
+
+  // MARKETING MENTORS (5)
+  const mentor19 = await prisma.user.create({
+    data: {
+      name: "Rachel Green",
+      email: "rachel.mentor@test.com",
+      password: hashedPassword,
+      role: "MENTOR",
+      bio: "Digital marketing strategist with expertise in SEO, SEM, and content marketing. Grew startups from 0 to millions in revenue.",
+      title: "Head of Growth",
+      company: "Growth Agency",
+      school: "Northwestern Kellogg",
+      location: "Chicago, IL",
+      experienceLevel: "LEAD",
+      skills: ["DIGITAL_MARKETING", "SEO", "GROWTH_HACKING", "CONTENT_STRATEGY"],
+      languages: ["English"],
+      availability: ["MONDAY", "TUESDAY", "THURSDAY"],
+      timeAvailability: ["AFTERNOON", "EVENING"],
+      verified: true,
+      profileComplete: true,
+      rating: 4.9,
+      gender: "FEMALE",
+    },
+  });
+
+  const mentor20 = await prisma.user.create({
+    data: {
+      name: "Kevin Wong",
+      email: "kevin.mentor@test.com",
+      password: hashedPassword,
+      role: "MENTOR",
+      bio: "Social media marketing expert. Built brands with millions of followers across Instagram, TikTok, and YouTube.",
+      title: "Social Media Director",
+      company: "Influencer Marketing Co",
+      school: "USC Annenberg",
+      location: "Los Angeles, CA",
+      experienceLevel: "SENIOR",
+      skills: ["SOCIAL_MEDIA", "CONTENT_STRATEGY", "DIGITAL_MARKETING", "COPYWRITING"],
+      languages: ["English", "Cantonese"],
+      availability: ["TUESDAY", "WEDNESDAY", "SATURDAY"],
+      timeAvailability: ["MORNING", "AFTERNOON"],
+      verified: true,
+      profileComplete: true,
+      rating: 4.8,
+      gender: "MALE",
+    },
+  });
+
+  const mentor21 = await prisma.user.create({
+    data: {
+      name: "Laura Mitchell",
+      email: "laura.mentor@test.com",
+      password: hashedPassword,
+      role: "MENTOR",
+      bio: "Brand strategist helping companies define their unique voice and positioning. Former VP Marketing at Nike.",
+      title: "Brand Strategist",
+      company: "Independent",
+      school: "Columbia Business School",
+      location: "Portland, OR",
+      experienceLevel: "LEAD",
+      skills: ["BRANDING", "DIGITAL_MARKETING", "CONTENT_STRATEGY", "BUSINESS_STRATEGY"],
+      languages: ["English"],
+      availability: ["MONDAY", "WEDNESDAY", "FRIDAY"],
+      timeAvailability: ["AFTERNOON", "EVENING"],
+      verified: true,
+      profileComplete: true,
+      rating: 4.9,
+      gender: "FEMALE",
+    },
+  });
+
+  const mentor22 = await prisma.user.create({
+    data: {
+      name: "Tyler Johnson",
+      email: "tyler.mentor@test.com",
+      password: hashedPassword,
+      role: "MENTOR",
+      bio: "Email marketing specialist. Expert in automation, segmentation, and conversion optimization for e-commerce.",
+      title: "Email Marketing Manager",
+      company: "Shopify",
+      school: "University of Texas",
+      location: "Austin, TX",
+      experienceLevel: "SENIOR",
+      skills: ["DIGITAL_MARKETING", "CONTENT_STRATEGY", "COPYWRITING", "SEO"],
+      languages: ["English"],
+      availability: ["TUESDAY", "THURSDAY", "SATURDAY"],
+      timeAvailability: ["MORNING", "AFTERNOON"],
+      verified: true,
+      profileComplete: true,
+      rating: 4.7,
+      gender: "MALE",
+    },
+  });
+
+  const mentor23 = await prisma.user.create({
+    data: {
+      name: "Maya Singh",
+      email: "maya.mentor@test.com",
+      password: hashedPassword,
+      role: "MENTOR",
+      bio: "Content marketing leader specializing in B2B SaaS. Built content programs that generated millions in pipeline.",
+      title: "Content Marketing Director",
+      company: "HubSpot",
+      school: "MIT Sloan",
+      location: "Boston, MA",
+      experienceLevel: "LEAD",
+      skills: ["CONTENT_STRATEGY", "COPYWRITING", "DIGITAL_MARKETING", "SEO"],
+      languages: ["English", "Hindi"],
+      availability: ["MONDAY", "WEDNESDAY", "FRIDAY"],
+      timeAvailability: ["AFTERNOON", "EVENING"],
+      verified: true,
+      profileComplete: true,
+      rating: 4.9,
+      gender: "FEMALE",
+    },
+  });
+
+  // CREATIVE MENTORS (5)
+  const mentor24 = await prisma.user.create({
+    data: {
+      name: "Christopher Davis",
+      email: "christopher.mentor@test.com",
+      password: hashedPassword,
+      role: "MENTOR",
+      bio: "Award-winning photographer specializing in portrait and commercial photography. Published in major magazines.",
+      title: "Commercial Photographer",
+      company: "Independent",
+      school: "School of Visual Arts",
+      location: "New York, NY",
+      experienceLevel: "SENIOR",
+      skills: ["UX", "UI", "FIGMA", "BRANDING"],
+      languages: ["English"],
+      availability: ["TUESDAY", "THURSDAY", "SATURDAY"],
+      timeAvailability: ["MORNING", "AFTERNOON"],
+      verified: true,
+      profileComplete: true,
+      rating: 4.8,
+      gender: "MALE",
+    },
+  });
+
+  const mentor25 = await prisma.user.create({
+    data: {
+      name: "Zoe Anderson",
+      email: "zoe.mentor@test.com",
+      password: hashedPassword,
+      role: "MENTOR",
+      bio: "Video editor and filmmaker. Edited commercials for major brands and worked on Netflix documentaries.",
+      title: "Senior Video Editor",
+      company: "Post Production House",
+      school: "AFI Conservatory",
+      location: "Los Angeles, CA",
+      experienceLevel: "SENIOR",
+      skills: ["MOTION_DESIGN", "STORYTELLING", "UX", "UI"],
+      languages: ["English"],
+      availability: ["MONDAY", "WEDNESDAY", "FRIDAY"],
+      timeAvailability: ["AFTERNOON", "EVENING"],
+      verified: true,
+      profileComplete: true,
+      rating: 4.9,
+      gender: "FEMALE",
+    },
+  });
+
+  const mentor26 = await prisma.user.create({
+    data: {
+      name: "Nathan Clark",
+      email: "nathan.mentor@test.com",
+      password: hashedPassword,
+      role: "MENTOR",
+      bio: "Illustrator and concept artist for video games and animation. Worked on AAA games and Pixar films.",
+      title: "Concept Artist",
+      company: "Pixar Animation Studios",
+      school: "CalArts",
+      location: "San Francisco, CA",
+      experienceLevel: "SENIOR",
+      skills: ["UX", "UI", "FIGMA", "DESIGN_SYSTEMS"],
+      languages: ["English"],
+      availability: ["TUESDAY", "THURSDAY", "SATURDAY"],
+      timeAvailability: ["MORNING", "AFTERNOON"],
+      verified: true,
+      profileComplete: true,
+      rating: 4.8,
+      gender: "MALE",
+    },
+  });
+
+  const mentor27 = await prisma.user.create({
+    data: {
+      name: "Victoria Hughes",
+      email: "victoria.mentor@test.com",
+      password: hashedPassword,
+      role: "MENTOR",
+      bio: "3D artist specializing in character modeling and texturing for games and film. 8 years in the industry.",
+      title: "Senior 3D Artist",
+      company: "Blizzard Entertainment",
+      school: "Gnomon School",
+      location: "Irvine, CA",
+      experienceLevel: "SENIOR",
+      skills: ["UX", "UI", "FIGMA", "DESIGN_SYSTEMS"],
+      languages: ["English"],
+      availability: ["MONDAY", "WEDNESDAY", "FRIDAY"],
+      timeAvailability: ["AFTERNOON", "EVENING"],
+      verified: true,
+      profileComplete: true,
+      rating: 4.9,
+      gender: "FEMALE",
+    },
+  });
+
+  const mentor28 = await prisma.user.create({
+    data: {
+      name: "Samuel White",
+      email: "samuel.mentor@test.com",
+      password: hashedPassword,
+      role: "MENTOR",
+      bio: "Copywriter and creative writer. Craft compelling stories for brands and helped authors publish their first books.",
+      title: "Creative Copywriter",
+      company: "Wieden+Kennedy",
+      school: "Iowa Writers Workshop",
+      location: "Portland, OR",
+      experienceLevel: "SENIOR",
+      skills: ["COPYWRITING", "STORYTELLING", "CONTENT_STRATEGY", "DIGITAL_MARKETING"],
+      languages: ["English"],
+      availability: ["TUESDAY", "THURSDAY", "SATURDAY"],
+      timeAvailability: ["MORNING", "AFTERNOON"],
+      verified: true,
+      profileComplete: true,
+      rating: 4.7,
+      gender: "MALE",
+    },
+  });
+
+  // HEALTH MENTORS (5)
+  const mentor29 = await prisma.user.create({
+    data: {
+      name: "Dr. Jessica Taylor",
+      email: "jessica.t.mentor@test.com",
+      password: hashedPassword,
+      role: "MENTOR",
+      bio: "Registered dietitian helping people achieve sustainable health goals. Specialize in sports nutrition and meal planning.",
+      title: "Registered Dietitian",
+      company: "Nutrition Clinic",
+      school: "Tufts University",
+      location: "Boston, MA",
+      experienceLevel: "SENIOR",
+      skills: ["CAREER_COACHING", "PUBLIC_SPEAKING", "NETWORKING", "LEADERSHIP"],
+      languages: ["English"],
+      availability: ["MONDAY", "WEDNESDAY", "FRIDAY"],
+      timeAvailability: ["MORNING", "AFTERNOON"],
+      verified: true,
+      profileComplete: true,
+      rating: 4.9,
+      gender: "FEMALE",
+    },
+  });
+
+  const mentor30 = await prisma.user.create({
+    data: {
+      name: "Brandon Miller",
+      email: "brandon.mentor@test.com",
+      password: hashedPassword,
+      role: "MENTOR",
+      bio: "Certified personal trainer and strength coach. Help clients transform their bodies and build lasting fitness habits.",
+      title: "Personal Trainer",
+      company: "Equinox",
+      school: "NASM Certified",
+      location: "Miami, FL",
+      experienceLevel: "SENIOR",
+      skills: ["CAREER_COACHING", "LEADERSHIP", "TEAM_MANAGEMENT", "PUBLIC_SPEAKING"],
+      languages: ["English", "Spanish"],
+      availability: ["TUESDAY", "THURSDAY", "SATURDAY"],
+      timeAvailability: ["MORNING", "AFTERNOON"],
+      verified: true,
+      profileComplete: true,
+      rating: 4.8,
+      gender: "MALE",
+    },
+  });
+
+  const mentor31 = await prisma.user.create({
+    data: {
+      name: "Dr. Alicia Gomez",
+      email: "alicia.mentor@test.com",
+      password: hashedPassword,
+      role: "MENTOR",
+      bio: "Clinical psychologist specializing in cognitive behavioral therapy. Help professionals manage stress and anxiety.",
+      title: "Clinical Psychologist",
+      company: "Private Practice",
+      school: "Stanford University",
+      location: "Palo Alto, CA",
+      experienceLevel: "LEAD",
+      skills: ["CAREER_COACHING", "PUBLIC_SPEAKING", "NETWORKING", "LEADERSHIP"],
+      languages: ["English", "Spanish"],
+      availability: ["MONDAY", "TUESDAY", "THURSDAY"],
+      timeAvailability: ["AFTERNOON", "EVENING"],
+      verified: true,
+      profileComplete: true,
+      rating: 4.9,
+      gender: "FEMALE",
+    },
+  });
+
+  const mentor32 = await prisma.user.create({
+    data: {
+      name: "Eric Chen",
+      email: "eric.mentor@test.com",
+      password: hashedPassword,
+      role: "MENTOR",
+      bio: "Yoga instructor and meditation teacher. Taught thousands of students to find balance and inner peace.",
+      title: "Yoga Instructor",
+      company: "Wellness Studio",
+      school: "RYT-500 Certified",
+      location: "San Diego, CA",
+      experienceLevel: "SENIOR",
+      skills: ["CAREER_COACHING", "PUBLIC_SPEAKING", "NETWORKING", "LEADERSHIP"],
+      languages: ["English", "Mandarin"],
+      availability: ["MONDAY", "WEDNESDAY", "FRIDAY", "SUNDAY"],
+      timeAvailability: ["MORNING", "EVENING"],
+      verified: true,
+      profileComplete: true,
+      rating: 4.8,
+      gender: "MALE",
+    },
+  });
+
+  const mentor33 = await prisma.user.create({
+    data: {
+      name: "Hannah Lewis",
+      email: "hannah.mentor@test.com",
+      password: hashedPassword,
+      role: "MENTOR",
+      bio: "Holistic health coach integrating nutrition, fitness, and mindset. Help busy professionals optimize their wellbeing.",
+      title: "Health Coach",
+      company: "Wellness Coaching",
+      school: "Institute for Integrative Nutrition",
+      location: "Austin, TX",
+      experienceLevel: "SENIOR",
+      skills: ["CAREER_COACHING", "LEADERSHIP", "PUBLIC_SPEAKING", "NETWORKING"],
+      languages: ["English"],
+      availability: ["TUESDAY", "THURSDAY", "SATURDAY"],
+      timeAvailability: ["MORNING", "AFTERNOON"],
+      verified: true,
+      profileComplete: true,
+      rating: 4.9,
+      gender: "FEMALE",
     },
   });
 
@@ -221,6 +809,7 @@ async function main() {
       timeAvailability: ["EVENING", "LATE_EVENING"],
       verified: true,
       profileComplete: true,
+      gender: "MALE",
     },
   });
 
@@ -242,6 +831,7 @@ async function main() {
       timeAvailability: ["MORNING", "AFTERNOON"],
       verified: true,
       profileComplete: true,
+      gender: "FEMALE",
     },
   });
 
@@ -262,6 +852,7 @@ async function main() {
       timeAvailability: ["AFTERNOON", "EVENING"],
       verified: true,
       profileComplete: true,
+      gender: "MALE",
     },
   });
 
@@ -381,6 +972,7 @@ async function main() {
     data: {
       userId: mentee1.id,
       goals: ["LEARN_CODING", "BUILD_PROJECTS", "INTERVIEW_PREP"],
+      detailedGoals: "I'm a computer science student at UC Berkeley looking to master web development with JavaScript and React. I want to build impressive full-stack projects for my portfolio and prepare for technical interviews at top tech companies. I'm particularly interested in learning modern frontend frameworks, backend API development with Node.js, and database design. My goal is to land a software engineering internship at a FAANG company or promising startup.",
     },
   });
 
@@ -388,6 +980,7 @@ async function main() {
     data: {
       userId: mentee2.id,
       goals: ["TRANSITION_CAREER", "LEARN_CODING", "CAREER_GUIDANCE"],
+      detailedGoals: "I'm transitioning from a marketing career into data science and need guidance on machine learning fundamentals. I want to learn how to build predictive models, work with large datasets, and understand statistical analysis. I'm currently working as a junior data analyst but want to become a machine learning engineer. I need help with Python programming, data visualization, and understanding when to apply different ML algorithms. I'm also looking for career advice on making this transition successfully.",
     },
   });
 
@@ -395,6 +988,7 @@ async function main() {
     data: {
       userId: mentee3.id,
       goals: ["INTERVIEW_PREP", "RESUME_REVIEW", "BUILD_PROJECTS"],
+      detailedGoals: "I recently graduated from a coding bootcamp and need help preparing for technical interviews and building a strong portfolio. I know React and Node.js but want to deepen my understanding of system design, algorithms, and data structures. I need guidance on how to approach coding challenges, explain my thought process clearly, and build production-quality full-stack applications that will impress employers. I'm targeting mid-level frontend and full-stack developer positions.",
     },
   });
 

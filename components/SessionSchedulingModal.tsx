@@ -355,24 +355,17 @@ export default function SessionSchedulingModal({
         return;
       }
 
-      // Combine date and time into proper ISO format
-      const sessionDateTime = new Date(`${formData.date}T${formData.time}:00`);
-
-      if (isNaN(sessionDateTime.getTime())) {
-        alert("Invalid date or time selected");
-        setLoading(false);
-        return;
-      }
-
+      // Send separate date and time fields as expected by API
       const sessionData = {
         menteeId: session.user.id, // Use session ID
         mentorId,
-        date: sessionDateTime.toISOString(),
+        date: formData.date, // Send date as string (YYYY-MM-DD)
+        time: formData.time, // Send time as string (HH:MM)
         duration: parseInt(formData.duration),
         title: formData.title.trim(),
         description: formData.description.trim() || "",
         offeringType: formData.offeringType,
-        status: "UPCOMING",
+        // Note: status is set by API to "PENDING", no need to send
       };
 
       console.log("Scheduling session with data:", sessionData);

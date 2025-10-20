@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx prisma generate)",
+      "Bash(npx ts-node --compiler-options '{\"\"module\"\":\"\"CommonJS\"\"}' prisma/seed.ts)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

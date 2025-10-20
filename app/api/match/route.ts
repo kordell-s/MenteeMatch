@@ -1,6 +1,94 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getMentorRecommendations } from "@/lib/matching"; 
+import { getMentorRecommendations } from "@/lib/matching";
 import { prisma } from "@/lib/prisma";
+
+// Map Prisma enum skills to embedding-friendly text for better semantic matching
+function mapSkillToEmbeddingText(skill: string): string {
+  const skillMapping: { [key: string]: string } = {
+    // Core Tech Skills
+    'REACT': 'react javascript frontend framework',
+    'NODE_JS': 'nodejs backend javascript server',
+    'TYPESCRIPT': 'typescript javascript types',
+    'JAVASCRIPT': 'javascript programming web',
+    'PYTHON': 'python programming coding',
+    'JAVA': 'java programming enterprise',
+    'CSHARP': 'csharp dotnet microsoft',
+    'CPLUSPLUS': 'cpp programming systems',
+    'RUBY': 'ruby rails programming',
+    'GO': 'golang programming backend',
+    'PHP': 'php web programming',
+    'SQL': 'sql database queries',
+    'NOSQL': 'nosql database mongodb',
+
+    // Architecture & Systems
+    'SYSTEM_DESIGN': 'system design architecture scalability',
+    'MICROSERVICES': 'microservices architecture distributed',
+    'DEVOPS': 'devops deployment automation',
+    'AWS': 'aws cloud amazon infrastructure',
+    'AZURE': 'azure microsoft cloud',
+    'DOCKER': 'docker containers deployment',
+    'KUBERNETES': 'kubernetes orchestration containers',
+
+    // Data & ML
+    'DATA_SCIENCE': 'data science analytics statistics',
+    'MACHINE_LEARNING': 'machine learning ai models',
+    'DEEP_LEARNING': 'deep learning neural networks',
+    'COMPUTER_VISION': 'computer vision image recognition',
+    'NLP': 'natural language processing text',
+    'MLOPS': 'mlops machine learning operations',
+    'BIG_DATA': 'big data hadoop spark',
+    'STATISTICS': 'statistics math data analysis',
+
+    // Design
+    'UX': 'ux user experience design',
+    'UI': 'ui user interface design',
+    'FIGMA': 'figma design prototyping',
+    'DESIGN_SYSTEMS': 'design systems components ui',
+    'ACCESSIBILITY': 'accessibility usability inclusive',
+    'PORTFOLIO_REVIEW': 'portfolio review feedback critique',
+    'MOTION_DESIGN': 'motion design animation graphics',
+
+    // Product & Management
+    'PRODUCT_MANAGEMENT': 'product management strategy roadmap',
+    'AGILE': 'agile scrum methodology',
+    'SCRUM': 'scrum agile sprint',
+    'USER_RESEARCH': 'user research testing interviews',
+    'MARKET_ANALYSIS': 'market analysis research competition',
+
+    // Business
+    'BUSINESS_STRATEGY': 'business strategy planning growth',
+    'STARTUPS': 'startup entrepreneurship business',
+    'DIGITAL_MARKETING': 'digital marketing online advertising',
+    'CONTENT_STRATEGY': 'content strategy marketing writing',
+    'SEO': 'seo search optimization google',
+    'SOCIAL_MEDIA': 'social media marketing community',
+    'BRANDING': 'branding identity visual design',
+    'GROWTH_HACKING': 'growth hacking marketing acquisition',
+    'COPYWRITING': 'copywriting content writing marketing',
+    'STORYTELLING': 'storytelling narrative communication',
+
+    // Career
+    'INTERVIEW_PREP': 'interview preparation practice coaching',
+    'RESUME_REVIEW': 'resume review cv feedback',
+    'CAREER_COACHING': 'career coaching guidance development',
+    'PUBLIC_SPEAKING': 'public speaking presentation communication',
+    'NETWORKING': 'networking connections professional',
+    'LEADERSHIP': 'leadership management team development',
+    'TEAM_MANAGEMENT': 'team management leadership people',
+
+    // Mobile Development
+    'REACT_NATIVE': 'react native mobile app development',
+    'FLUTTER': 'flutter mobile app development',
+    'IOS': 'ios apple mobile development',
+    'ANDROID': 'android mobile app development',
+    'SWIFT': 'swift ios apple programming',
+    'KOTLIN': 'kotlin android programming',
+    'MOBILE_UI': 'mobile ui design interface',
+    'APP_STORE': 'app store publishing deployment',
+  };
+
+  return skillMapping[skill] || skill.toLowerCase().replace(/_/g, ' ');
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -83,8 +171,9 @@ export async function POST(req: NextRequest) {
     console.log('🧠 Using TF-IDF + Word Embeddings Algorithm');
 
     // Create mentee input text for smart algorithm
-    // Weight skills and detailed goals more heavily for better matching
-    const skillsText = (mentee.skills || []).join(' ').repeat(3); // 3x weight
+    // Map skills to embedding-friendly text for better semantic matching
+    const mappedSkills = (mentee.skills || []).map(mapSkillToEmbeddingText);
+    const skillsText = mappedSkills.join(' ').repeat(3); // 3x weight
 
     // Use detailedGoals if available (much better for matching), fallback to enum goals
     let goalsText = '';
@@ -102,26 +191,37 @@ export async function POST(req: NextRequest) {
 
     const menteeText = `${skillsText} ${goalsText} ${bioText} ${expText}`;
 
+    console.log('🔍 Mentee Skills Mapped:', {
+      original: mentee.skills?.slice(0, 3),
+      mapped: mappedSkills.slice(0, 3)
+    });
 
-    const formattedMentors = mentors.map(mentor => ({
-      id: mentor.id,
-      name: mentor.name,
-      email: mentor.email,
-      bio: mentor.bio || '',
-      skills: mentor.skills || [],
-      profilePicture: mentor.profilePicture,
-      title: mentor.title,
-      company: mentor.company,
-      location: mentor.location,
-      rating: mentor.rating,
-      languages: mentor.languages || [],
-      pricing: mentor.mentor?.pricing || 0,
-      category: mentor.mentor?.category || 'TECHNOLOGY',
-      specialization: mentor.mentor?.specialization || [], 
-      experienceLevel: mentor.experienceLevel || 'ENTRY',
-      availability: mentor.availability || [],
-      timeAvailability: mentor.timeAvailability || []
-    }));
+
+    const formattedMentors = mentors.map(mentor => {
+      // Map mentor skills to embedding-friendly text for matching
+      const mappedMentorSkills = (mentor.skills || []).map(mapSkillToEmbeddingText);
+
+      return {
+        id: mentor.id,
+        name: mentor.name,
+        email: mentor.email,
+        bio: mentor.bio || '',
+        skills: mappedMentorSkills, // Use mapped skills for matching algorithm
+        originalSkills: mentor.skills || [], // Keep original skills for display
+        profilePicture: mentor.profilePicture,
+        title: mentor.title,
+        company: mentor.company,
+        location: mentor.location,
+        rating: mentor.rating,
+        languages: mentor.languages || [],
+        pricing: mentor.mentor?.pricing || 0,
+        category: mentor.mentor?.category || 'TECHNOLOGY',
+        specialization: mentor.mentor?.specialization || [],
+        experienceLevel: mentor.experienceLevel || 'ENTRY',
+        availability: mentor.availability || [],
+        timeAvailability: mentor.timeAvailability || []
+      };
+    });
 
     console.log('📝 Mentee Profile:', menteeText);
     console.log('👥 Analyzing', formattedMentors.length, 'mentors using TF-IDF + Word Embeddings...');
@@ -144,7 +244,7 @@ export async function POST(req: NextRequest) {
         category: mentor.category,
         specialization: mentor.specialization,
         profilePicture: mentor.profilePicture,
-        skills: mentor.skills,
+        skills: (mentor as any).originalSkills || mentor.skills, // Use original enum skills for display
         bio: mentor.bio
       }
     }));

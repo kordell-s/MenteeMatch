@@ -37,6 +37,7 @@ import type { MenteeDashboardData } from "@/app/types/dashboard/menteeDashboardD
 import { useSession } from "next-auth/react";
 import RatingModal from "@/components/RatingModal";
 import StarRating from "@/components/StarRating";
+import DashboardSkeleton from "@/components/DashboardSkeleton";
 
 export default function MenteeDashboardPage() {
   const { data: session, status } = useSession();
@@ -291,7 +292,7 @@ export default function MenteeDashboardPage() {
 
   // Show loading while session is loading
   if (status === "loading" || loading) {
-    return <div>Loading...</div>;
+    return <DashboardSkeleton />;
   }
 
   return (

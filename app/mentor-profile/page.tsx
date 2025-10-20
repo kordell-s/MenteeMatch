@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { Mentor } from "@/app/types/mentor";
 import { Button } from "@/components/ui/button";
@@ -22,10 +22,13 @@ import {
 import MentorshipRequestForm from "@/components/MentorshipRequestForm";
 import SessionSchedulingModal from "@/components/SessionSchedulingModal";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import MentorProfileSkeleton from "@/components/MentorProfileSkeleton";
+import { getDefaultAvatar } from "@/lib/avatars";
 
 function MentorProfilePage() {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [mentor, setMentor] = useState<Mentor | null>(null);
   const [loading, setLoading] = useState(true);
   const [hasMentorship, setHasMentorship] = useState(false);
@@ -43,27 +46,51 @@ function MentorProfilePage() {
       return;
     }
 
-    // Get mentor data from sessionStorage (set during navigation)
-    const mentorData = sessionStorage.getItem("selectedMentor");
-    if (mentorData) {
-      try {
-        const parsedMentor = JSON.parse(mentorData);
-        console.log("Parsed mentor data:", parsedMentor); // Debug log
-        setMentor(parsedMentor);
-        // Check if mentorship exists
-        checkMentorshipStatus(parsedMentor.id);
-      } catch (error) {
-        console.error("Error parsing mentor data:", error);
+    // Try to get mentor data from URL parameter or sessionStorage
+    const mentorId = searchParams.get("id");
+
+    if (mentorId) {
+      // Fetch mentor data from API using the ID
+      fetchMentorData(mentorId);
+    } else {
+      // Fallback to sessionStorage for backwards compatibility
+      const mentorData = sessionStorage.getItem("selectedMentor");
+      if (mentorData) {
+        try {
+          const parsedMentor = JSON.parse(mentorData);
+          setMentor(parsedMentor);
+          checkMentorshipStatus(parsedMentor.id);
+          setLoading(false);
+        } catch (error) {
+          console.error("Error parsing mentor data:", error);
+          router.push("/");
+          return;
+        }
+      } else {
         router.push("/");
         return;
       }
-    } else {
-      console.log("No mentor data found in sessionStorage"); // Debug log
-      router.push("/");
-      return;
     }
-    setLoading(false);
-  }, [router, status, session]);
+  }, [router, status, session, searchParams]);
+
+  const fetchMentorData = async (mentorId: string) => {
+    try {
+      const response = await fetch(`/api/mentors/${mentorId}`);
+      if (response.ok) {
+        const data = await response.json();
+        setMentor(data);
+        checkMentorshipStatus(data.id);
+      } else {
+        console.error("Mentor not found");
+        router.push("/");
+      }
+    } catch (error) {
+      console.error("Error fetching mentor:", error);
+      router.push("/");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const checkMentorshipStatus = async (mentorId: string) => {
     try {
@@ -95,13 +122,7 @@ function MentorProfilePage() {
   }, [mentor, loading]);
 
   if (status === "loading" || loading) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="text-center">
-          <p>Loading mentor profile...</p>
-        </div>
-      </div>
-    );
+    return <MentorProfileSkeleton />;
   }
 
   if (!mentor) {
@@ -116,25 +137,20 @@ function MentorProfilePage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      {/* Back button */}
-      <Button
-        variant="ghost"
-        onClick={() => router.back()}
-        className="mb-6 flex items-center gap-2"
-      >
-        <ArrowLeft size={16} />
-        Back
-      </Button>
-
-      <div className="max-w-6xl mx-auto">
+    <div className="min-h-screen bg-gray-50 pt-20">
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-6xl mx-auto">
         <div className="bg-white rounded-lg shadow-lg overflow-hidden">
           {/* Header Section */}
           <div className="bg-brand-navy px-8 py-6">
             <div className="flex flex-col md:flex-row gap-6 items-start">
               <div className="flex-shrink-0">
                 <img
-                  src={mentor.profilePicture || "/default-avatar.png"}
+                  src={getDefaultAvatar({
+                    name: mentor.name,
+                    gender: (mentor as any).gender,
+                    profilePicture: mentor.profilePicture
+                  })}
                   alt={mentor.name}
                   className="w-32 h-32 rounded-full object-cover border-4 border-white shadow-lg"
                 />
@@ -523,6 +539,7 @@ function MentorProfilePage() {
           </div>
         </div>
       </div>
+    </div>
     </div>
   );
 }

@@ -14,6 +14,7 @@ import {
   Menu,
   X,
   Bell,
+  Search,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -44,6 +45,7 @@ export default function DashboardLayout({
   const mentorNavItems: NavItem[] = [
     { name: "Dashboard", href: "/dashboard", icon: Home },
     { name: "My Mentees", href: "/dashboard/my-mentees", icon: Users },
+    { name: "Browse Mentors", href: "/browse", icon: Search },
     { name: "Messages", href: "/messages", icon: MessageSquare },
     { name: "Calendar", href: "/calendar", icon: Calendar },
     { name: "Reports", href: "/reports", icon: FileText },
@@ -53,6 +55,7 @@ export default function DashboardLayout({
   const menteeNavItems: NavItem[] = [
     { name: "Dashboard", href: "/dashboard", icon: Home },
     { name: "My Mentors", href: "/dashboard/my-mentors", icon: Users },
+    { name: "Browse Mentors", href: "/browse", icon: Search },
     { name: "Messages", href: "/messages", icon: MessageSquare },
     { name: "Calendar", href: "/calendar", icon: Calendar },
     { name: "Edit Profile", href: "/profile", icon: Settings },

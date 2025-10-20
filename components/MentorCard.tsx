@@ -1,19 +1,15 @@
 "use client";
-import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Mentor } from "@/app/types/mentor";
 import {
   Star,
   Clock,
-  MessageCircle,
   Bookmark,
   UserRound,
-  User,
 } from "lucide-react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { getDefaultAvatar } from "@/lib/avatars";
 
 interface MentorCardProps {
   mentor: Mentor;
@@ -25,37 +21,10 @@ export default function MentorCard({
   recommended = false,
 }: MentorCardProps) {
   const router = useRouter();
-  const [imageError, setImageError] = useState(false);
 
   const handleViewProfile = () => {
-    console.log("Storing mentor data:", mentor); // Debug log
-    // Store mentor data in sessionStorage for the profile page
-    sessionStorage.setItem("selectedMentor", JSON.stringify(mentor));
-    console.log("Stored data:", sessionStorage.getItem("selectedMentor")); // Debug log
-    // Navigate to profile page without ID in URL
-    router.push("/mentor-profile");
-  };
-
-  // Generate initials for fallback avatar
-  const getInitials = (name: string) => {
-    return name
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase()
-      .slice(0, 2);
-  };
-
-  // Generate a consistent color based on name using brand colors
-  const getAvatarColor = (name: string) => {
-    const colors = [
-      "bg-brand-teal",
-      "bg-brand-navy",
-      "bg-brand-sky",
-      "bg-brand-orange",
-    ];
-    const index = name.charCodeAt(0) % colors.length;
-    return colors[index];
+    // Navigate to profile page with mentor ID in URL
+    router.push(`/mentor-profile?id=${mentor.id}`);
   };
 
   return (
@@ -65,31 +34,16 @@ export default function MentorCard({
       }`}
     >
       <div className="relative">
-        {/* Profile Image or Fallback */}
-        {mentor.profilePicture && !imageError ? (
-          <Image
-            src={mentor.profilePicture}
-            alt={mentor.name}
-            width={400}
-            height={400}
-            className="w-full h-48 object-cover"
-            onError={() => setImageError(true)}
-            priority={recommended}
-          />
-        ) : (
-          <div
-            className={`w-full h-48 flex items-center justify-center ${getAvatarColor(
-              mentor.name
-            )}`}
-          >
-            <div className="text-center text-white">
-              <div className="text-5xl font-bold mb-2">
-                {getInitials(mentor.name)}
-              </div>
-              <User className="w-12 h-12 mx-auto opacity-50" />
-            </div>
-          </div>
-        )}
+        {/* Profile Image with gender-based avatar */}
+        <img
+          src={getDefaultAvatar({
+            name: mentor.name,
+            gender: (mentor as any).gender,
+            profilePicture: mentor.profilePicture
+          })}
+          alt={mentor.name}
+          className="w-full h-48 object-cover"
+        />
         <button className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm p-2 rounded-full hover:bg-brand-gold hover:text-white transition-all shadow-md">
           <Bookmark size={18} className="text-brand-navy" />
         </button>

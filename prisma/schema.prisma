@@ -13,6 +13,7 @@ model User {
   email                    String              @unique
   password                 String
   role                     Role
+  gender                   Gender?
   profilePicture           String?
   languages                String[]
   location                 String?
@@ -47,6 +48,10 @@ model User {
   profileComplete          Boolean             @default(false)
   conversationsAsMentee    Conversation[]      @relation("ConversationsAsMentee")
   conversationsAsMentor    Conversation[]      @relation("ConversationsAsMentor")
+
+  @@index([email])
+  @@index([role])
+  @@index([profileComplete])
 }
 
 model Mentor {
@@ -77,6 +82,10 @@ model Message {
   conversation   Conversation @relation(fields: [conversationId], references: [id])
   receiver       User         @relation("ReceivedMessages", fields: [receiverId], references: [id])
   sender         User         @relation("SentMessages", fields: [senderId], references: [id])
+
+  @@index([conversationId])
+  @@index([senderId, receiverId])
+  @@index([timestamp])
 }
 
 model Booking {
@@ -113,6 +122,12 @@ model Session {
   ratings  Rating[] // Link to detailed ratings
   mentee   User     @relation("SessionsAsMentee", fields: [menteeId], references: [id])
   mentor   User     @relation("SessionsAsMentor", fields: [mentorId], references: [id])
+
+  @@index([mentorId])
+  @@index([menteeId])
+  @@index([date])
+  @@index([status])
+  @@index([mentorId, date])
 }
 
 model Mentorship {
@@ -137,6 +152,9 @@ model Rating {
   session     Session? @relation(fields: [sessionId], references: [id])
   ratedBy     User     @relation("RatingsGiven", fields: [ratedById], references: [id])
   user        User     @relation("RatingsReceived", fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([sessionId])
 }
 
 model Task {
@@ -152,6 +170,11 @@ model Task {
   status      TaskStatus
   mentee      User       @relation("TasksAsMentee", fields: [menteeId], references: [id])
   mentor      User       @relation("TasksAsMentor", fields: [mentorId], references: [id])
+
+  @@index([mentorId])
+  @@index([menteeId])
+  @@index([status])
+  @@index([dueDate])
 }
 
 model MentorshipRequest {
@@ -165,6 +188,10 @@ model MentorshipRequest {
   updatedAt    DateTime                @updatedAt
   mentee       User                    @relation("MentorshipRequestsMentee", fields: [menteeId], references: [id])
   mentor       User                    @relation("MentorshipRequestsMentor", fields: [mentorId], references: [id])
+
+  @@index([mentorId, status])
+  @@index([menteeId, status])
+  @@index([createdAt])
 }
 
 model Conversation {
@@ -179,6 +206,7 @@ model Conversation {
   messages      Message[]
 
   @@unique([mentorId, menteeId])
+  @@index([lastMessageAt])
 }
 
 enum MentorCategory {
@@ -267,6 +295,15 @@ enum Skill {
   NETWORKING
   LEADERSHIP
   TEAM_MANAGEMENT
+  // Mobile Development Skills
+  REACT_NATIVE
+  FLUTTER
+  IOS
+  ANDROID
+  SWIFT
+  KOTLIN
+  MOBILE_UI
+  APP_STORE
 }
 
 enum Goal {
@@ -388,4 +425,10 @@ enum SessionStatus {
   CONFIRMED
   COMPLETED
   CANCELLED
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
 }
