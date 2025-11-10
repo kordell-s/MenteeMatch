@@ -55,11 +55,11 @@ model User {
 }
 
 model Mentor {
-  userId         String         @id
+  userId         String           @id
   specialization Specialization[]
   pricing        Float?
-  category       MentorCategory @default(OTHER)
-  user           User           @relation(fields: [userId], references: [id])
+  category       MentorCategory   @default(OTHER)
+  user           User             @relation(fields: [userId], references: [id])
 }
 
 model Mentee {
@@ -106,22 +106,24 @@ model Booking {
 }
 
 model Session {
-  id       String   @id @default(uuid())
-  mentorId String
-  menteeId String
-  date     DateTime
-  time     String
-  duration Int
-  status   SessionStatus @default(PENDING)
-  description   String
-  feedback String?
-  rating   Float?
-  title    String
+  id           String        @id @default(uuid())
+  mentorId     String
+  menteeId     String
+  date         DateTime
+  time         String
+  duration     Int
+  status       SessionStatus @default(PENDING)
+  description  String
+  feedback     String?
+  rating       Float?
+  title        String
   offeringType String?
-  booking  Booking? @relation("SessionBooking")
-  ratings  Rating[] // Link to detailed ratings
-  mentee   User     @relation("SessionsAsMentee", fields: [menteeId], references: [id])
-  mentor   User     @relation("SessionsAsMentor", fields: [mentorId], references: [id])
+  checkInId    String?       @unique // Optional link to check-in
+  booking      Booking?      @relation("SessionBooking")
+  ratings      Rating[] // Link to detailed ratings
+  checkIn      CheckIn?      @relation("CheckInSession")
+  mentee       User          @relation("SessionsAsMentee", fields: [menteeId], references: [id])
+  mentor       User          @relation("SessionsAsMentor", fields: [mentorId], references: [id])
 
   @@index([mentorId])
   @@index([menteeId])
@@ -131,27 +133,28 @@ model Session {
 }
 
 model Mentorship {
-  id        String   @id @default(uuid())
+  id        String                  @id @default(uuid())
   mentorId  String
   menteeId  String
   status    MentorshipRequestStatus @default(PENDING)
-  createdAt DateTime @default(now())
-  mentee    User     @relation("MentorshipMentee", fields: [menteeId], references: [id])
-  mentor    User     @relation("MentorshipMentor", fields: [mentorId], references: [id])
+  createdAt DateTime                @default(now())
+  mentee    User                    @relation("MentorshipMentee", fields: [menteeId], references: [id])
+  mentor    User                    @relation("MentorshipMentor", fields: [mentorId], references: [id])
+  roadmaps  Roadmap[] // One mentorship can have multiple roadmaps
 }
 
 model Rating {
   id          String   @id @default(uuid())
-  sessionId   String?  // Link to specific session
-  userId      String   // Mentor being rated
-  ratedById   String   // Mentee who gave rating
-  ratingValue Float    // 1-5 stars
-  feedback    String?  // Optional written feedback
+  sessionId   String? // Link to specific session
+  userId      String // Mentor being rated
+  ratedById   String // Mentee who gave rating
+  ratingValue Float // 1-5 stars
+  feedback    String? // Optional written feedback
   date        DateTime @default(now())
 
-  session     Session? @relation(fields: [sessionId], references: [id])
-  ratedBy     User     @relation("RatingsGiven", fields: [ratedById], references: [id])
-  user        User     @relation("RatingsReceived", fields: [userId], references: [id])
+  session Session? @relation(fields: [sessionId], references: [id])
+  ratedBy User     @relation("RatingsGiven", fields: [ratedById], references: [id])
+  user    User     @relation("RatingsReceived", fields: [userId], references: [id])
 
   @@index([userId])
   @@index([sessionId])
@@ -164,10 +167,12 @@ model Task {
   dueDate     DateTime?
   completed   Boolean    @default(false)
   goalTag     String?
+  milestoneId String? // Optional link to milestone
   menteeId    String
   mentorId    String
   createdAt   DateTime   @default(now())
   status      TaskStatus
+  milestone   Milestone? @relation(fields: [milestoneId], references: [id])
   mentee      User       @relation("TasksAsMentee", fields: [menteeId], references: [id])
   mentor      User       @relation("TasksAsMentor", fields: [mentorId], references: [id])
 
@@ -175,6 +180,7 @@ model Task {
   @@index([menteeId])
   @@index([status])
   @@index([dueDate])
+  @@index([milestoneId])
 }
 
 model MentorshipRequest {
@@ -195,14 +201,14 @@ model MentorshipRequest {
 }
 
 model Conversation {
-  id            String       @id @default(uuid())
+  id            String    @id @default(uuid())
   mentorId      String
   menteeId      String
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
   lastMessageAt DateTime?
-  mentor        User         @relation("ConversationsAsMentor", fields: [mentorId], references: [id])
-  mentee        User         @relation("ConversationsAsMentee", fields: [menteeId], references: [id])
+  mentor        User      @relation("ConversationsAsMentor", fields: [mentorId], references: [id])
+  mentee        User      @relation("ConversationsAsMentee", fields: [menteeId], references: [id])
   messages      Message[]
 
   @@unique([mentorId, menteeId])
@@ -338,11 +344,11 @@ enum DayOfWeek {
 }
 
 enum TimeSlot {
-  EARLY_MORNING   // 6-9 AM
-  MORNING         // 9-12 PM
-  AFTERNOON       // 12-5 PM
-  EVENING         // 5-8 PM
-  LATE_EVENING    // 8-11 PM
+  EARLY_MORNING // 6-9 AM
+  MORNING // 9-12 PM
+  AFTERNOON // 12-5 PM
+  EVENING // 5-8 PM
+  LATE_EVENING // 8-11 PM
 }
 
 enum Specialization {
@@ -355,14 +361,14 @@ enum Specialization {
   SOFTWARE_ENGINEERING
   SYSTEM_ARCHITECTURE
   DATABASE_DESIGN
-  
+
   // DevOps & Infrastructure
   DEVOPS_ENGINEERING
   CLOUD_COMPUTING
   INFRASTRUCTURE_MANAGEMENT
   DEPLOYMENT_AUTOMATION
   SYSTEM_ADMINISTRATION
-  
+
   // Data & AI
   DATA_ENGINEERING
   DATA_ANALYSIS
@@ -370,7 +376,7 @@ enum Specialization {
   AI_DEVELOPMENT
   BIG_DATA_PROCESSING
   BUSINESS_INTELLIGENCE
-  
+
   // Design & UX
   UI_UX_DESIGN
   PRODUCT_DESIGN
@@ -378,7 +384,7 @@ enum Specialization {
   USER_RESEARCH
   DESIGN_SYSTEMS
   ACCESSIBILITY_DESIGN
-  
+
   // Business & Strategy
   PRODUCT_MANAGEMENT
   PROJECT_MANAGEMENT
@@ -386,7 +392,7 @@ enum Specialization {
   STRATEGIC_PLANNING
   STARTUP_CONSULTING
   DIGITAL_TRANSFORMATION
-  
+
   // Marketing & Growth
   DIGITAL_MARKETING
   CONTENT_MARKETING
@@ -394,7 +400,7 @@ enum Specialization {
   SOCIAL_MEDIA_STRATEGY
   BRAND_MANAGEMENT
   SEO_OPTIMIZATION
-  
+
   // Career & Personal Development
   CAREER_COACHING
   TECHNICAL_INTERVIEWING
@@ -403,7 +409,7 @@ enum Specialization {
   TEAM_BUILDING
   PUBLIC_SPEAKING
   NETWORKING_STRATEGY
-  
+
   // Industry Specific
   FINTECH_DEVELOPMENT
   HEALTHCARE_TECH
@@ -411,7 +417,7 @@ enum Specialization {
   GAMING_DEVELOPMENT
   BLOCKCHAIN_DEVELOPMENT
   CYBERSECURITY
-  
+
   // Other
   FREELANCING_GUIDANCE
   REMOTE_WORK_CONSULTING
@@ -430,5 +436,114 @@ enum SessionStatus {
 enum Gender {
   MALE
   FEMALE
+  OTHER
+}
+
+// ============================================
+// ROADMAP FEATURE MODELS
+// ============================================
+
+model Roadmap {
+  id           String        @id @default(uuid())
+  mentorshipId String
+  title        String
+  description  String?
+  duration     Int // Duration in weeks (4, 8, or 12)
+  focusArea    String // Main focus area/goal
+  status       RoadmapStatus @default(ACTIVE)
+  startDate    DateTime      @default(now())
+  endDate      DateTime // Calculated based on duration
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  isTemplate   Boolean       @default(false) // True if this is a template
+  templateName String? // Name if saved as template
+  mentorship   Mentorship    @relation(fields: [mentorshipId], references: [id])
+  milestones   Milestone[]
+
+  @@index([mentorshipId])
+  @@index([status])
+  @@index([isTemplate])
+  @@index([startDate])
+}
+
+model Milestone {
+  id          String            @id @default(uuid())
+  roadmapId   String
+  title       String
+  description String?
+  order       Int // Sequence order in roadmap
+  dueDate     DateTime
+  status      MilestoneStatus   @default(NOT_STARTED)
+  completedAt DateTime?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  roadmap     Roadmap           @relation(fields: [roadmapId], references: [id], onDelete: Cascade)
+  tasks       Task[]
+  checkIns    CheckIn[]
+  resources   RoadmapResource[]
+
+  @@index([roadmapId])
+  @@index([status])
+  @@index([dueDate])
+  @@index([roadmapId, order])
+}
+
+model CheckIn {
+  id            String        @id @default(uuid())
+  milestoneId   String
+  sessionId     String?       @unique // Optional link to Session
+  mentorNotes   String?
+  menteeNotes   String?
+  scheduledDate DateTime
+  completedDate DateTime?
+  status        CheckInStatus @default(SCHEDULED)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  milestone     Milestone     @relation(fields: [milestoneId], references: [id], onDelete: Cascade)
+  session       Session?      @relation("CheckInSession", fields: [sessionId], references: [id])
+
+  @@index([milestoneId])
+  @@index([status])
+  @@index([scheduledDate])
+}
+
+model RoadmapResource {
+  id           String       @id @default(uuid())
+  milestoneId  String
+  title        String
+  url          String
+  description  String?
+  resourceType ResourceType @default(LINK)
+  createdAt    DateTime     @default(now())
+  milestone    Milestone    @relation(fields: [milestoneId], references: [id], onDelete: Cascade)
+
+  @@index([milestoneId])
+}
+
+enum RoadmapStatus {
+  ACTIVE
+  COMPLETED
+  PAUSED
+  ARCHIVED
+}
+
+enum MilestoneStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETED
+}
+
+enum CheckInStatus {
+  SCHEDULED
+  COMPLETED
+  MISSED
+  CANCELLED
+}
+
+enum ResourceType {
+  LINK
+  VIDEO
+  ARTICLE
+  DOCUMENT
   OTHER
 }

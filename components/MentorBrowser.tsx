@@ -7,9 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
   Search,
-  Filter,
   Star,
-  ChevronDown,
   Code,
   Briefcase,
   PenTool,
@@ -321,14 +319,14 @@ export default function MentorBrowser() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-2">Find Your Mentor</h1>
-      <p className="text-gray-600 mb-8">
+    <div className="container mx-auto px-4 py-4 md:py-8">
+      <h1 className="text-2xl md:text-3xl font-bold mb-2">Find Your Mentor</h1>
+      <p className="text-sm md:text-base text-gray-600 mb-6 md:mb-8">
         Browse mentors that match your goals and schedule a session
       </p>
 
       {/* Search and filter bar */}
-      <div className="flex flex-col md:flex-row gap-4 mb-8">
+      <div className="flex flex-col sm:flex-row gap-3 md:gap-4 mb-6 md:mb-8">
         <div className="relative flex-grow">
           <Search
             className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
@@ -337,31 +335,21 @@ export default function MentorBrowser() {
           <Input
             type="text"
             placeholder="Search by name, title, skills..."
-            className="pl-10"
+            className="pl-10 h-10 md:h-11 text-sm md:text-base"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
 
-        <div className="flex gap-4">
-          <div className="relative">
-            <Button variant="outline" className="flex items-center gap-2">
-              <Filter size={16} />
-              <span>Filters</span>
-              <ChevronDown size={16} />
-            </Button>
-          </div>
-
-          <div className="relative">
-            <select
-              className="h-10 px-4 py-2 rounded-md border border-input bg-background text-sm"
-              value={sortOption}
-              onChange={(e) => setSortOption(e.target.value)}
-            >
-              <option value="recommended">Recommended</option>
-              <option value="rating">Highest Rated</option>
-            </select>
-          </div>
+        <div className="relative w-full sm:w-auto">
+          <select
+            className="w-full sm:w-auto h-10 md:h-11 px-3 md:px-4 py-2 rounded-md border border-input bg-background text-sm md:text-base"
+            value={sortOption}
+            onChange={(e) => setSortOption(e.target.value)}
+          >
+            <option value="recommended">Recommended</option>
+            <option value="rating">Highest Rated</option>
+          </select>
         </div>
       </div>
 
@@ -370,23 +358,37 @@ export default function MentorBrowser() {
         defaultValue="recommended"
         value={activeCategory}
         onValueChange={setActiveCategory}
-        className="mb-8"
+        className="mb-6 md:mb-8"
       >
-        <TabsList className="flex overflow-x-auto pb-2 mb-2 space-x-2">
-          {categories.map((category) => {
-            const Icon = category.icon;
-            return (
-              <TabsTrigger
-                key={category.id}
-                value={category.id}
-                className="flex items-center gap-2 px-4 py-2"
-              >
-                <Icon size={16} />
-                <span>{category.name}</span>
-              </TabsTrigger>
-            );
-          })}
-        </TabsList>
+        <div className="relative -mx-4 px-4 md:mx-0 md:px-0">
+          <TabsList className="flex overflow-x-auto overflow-y-hidden pb-2 mb-2 gap-2 w-full justify-start hide-scrollbar touch-pan-x snap-x snap-mandatory">
+            {categories.map((category) => {
+              const Icon = category.icon;
+              return (
+                <TabsTrigger
+                  key={category.id}
+                  value={category.id}
+                  className="flex items-center gap-1 md:gap-2 px-3 md:px-4 py-2.5 md:py-2 text-xs md:text-sm whitespace-nowrap flex-shrink-0 snap-start min-w-fit"
+                >
+                  <Icon size={14} className="md:w-4 md:h-4 flex-shrink-0" />
+                  <span>{category.name}</span>
+                </TabsTrigger>
+              );
+            })}
+          </TabsList>
+          {/* Scroll indicator for mobile */}
+          <div className="md:hidden absolute right-0 top-0 bottom-2 w-8 bg-gradient-to-l from-white to-transparent pointer-events-none"></div>
+        </div>
+
+        <style jsx global>{`
+          .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+          }
+          .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+          }
+        `}</style>
 
         {/* Recommended tab content */}
         <TabsContent value="recommended" className="mt-6">

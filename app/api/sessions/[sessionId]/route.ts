@@ -67,10 +67,6 @@ export async function PATCH(
       },
       data: {
         status,
-        // If marking as completed, update the completion date
-        ...(status === "COMPLETED" && { 
-          completedAt: new Date() 
-        }),
       },
       include: {
         mentor: {

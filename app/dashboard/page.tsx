@@ -36,6 +36,7 @@ import {
   CheckCircle,
   TrendingUp,
   Search,
+  Map,
 } from "lucide-react";
 import Image from "next/image";
 
@@ -76,6 +77,11 @@ export default function Dashboard() {
     description: "",
   });
   const [bookingLoading, setBookingLoading] = useState(false);
+  const [roadmapStats, setRoadmapStats] = useState<{
+    total: number;
+    active: number;
+  } | null>(null);
+  const [menteeRoadmap, setMenteeRoadmap] = useState<any>(null);
 
   // Get user ID from session instead of hardcoded value
   const userId = session?.user?.id;
@@ -166,6 +172,51 @@ export default function Dashboard() {
 
     fetchDashboardData();
   }, [userId, session, status, router]);
+
+  // Fetch roadmap stats for mentors or mentee roadmap
+  useEffect(() => {
+    if (session?.user?.role === "MENTOR" && userId) {
+      fetchRoadmapStats();
+    } else if (session?.user?.role === "MENTEE" && userId) {
+      fetchMenteeRoadmap();
+    }
+  }, [session, userId]);
+
+  const fetchRoadmapStats = async () => {
+    try {
+      const response = await fetch("/api/roadmaps");
+      if (response.ok) {
+        const data = await response.json();
+        const roadmaps = data.roadmaps || [];
+        setRoadmapStats({
+          total: roadmaps.length,
+          active: roadmaps.filter((r: any) => r.status === "ACTIVE").length,
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching roadmap stats:", error);
+    }
+  };
+
+  const fetchMenteeRoadmap = async () => {
+    try {
+      const response = await fetch("/api/roadmaps?status=ACTIVE");
+      if (response.ok) {
+        const data = await response.json();
+        const roadmaps = data.roadmaps || [];
+        if (roadmaps.length > 0) {
+          // Get the first active roadmap with progress
+          const roadmapResponse = await fetch(`/api/roadmaps/${roadmaps[0].id}`);
+          if (roadmapResponse.ok) {
+            const roadmapData = await roadmapResponse.json();
+            setMenteeRoadmap(roadmapData);
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching mentee roadmap:", error);
+    }
+  };
 
   // Show loading while checking authentication
   if (status === "loading") {
@@ -438,7 +489,31 @@ export default function Dashboard() {
       {/* Mentor Dashboard */}
       {userRole === "mentor" && mentorData && (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          {/* Roadmap Quick Access */}
+          {roadmapStats && roadmapStats.total > 0 && (
+            <Card className="mb-6 border-2 border-brand-teal/30 shadow-lg bg-gradient-to-r from-brand-teal/10 to-brand-sky/10">
+              <CardHeader className="border-b border-brand-teal/20">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="text-brand-navy flex items-center gap-2">
+                      <Map className="h-5 w-5 text-brand-teal" />
+                      Active Roadmaps
+                    </CardTitle>
+                    <CardDescription>
+                      {roadmapStats.active} of {roadmapStats.total} roadmaps in progress
+                    </CardDescription>
+                  </div>
+                  <Link href="/dashboard/roadmaps">
+                    <Button className="bg-brand-teal hover:bg-brand-navy text-white">
+                      View All Roadmaps
+                    </Button>
+                  </Link>
+                </div>
+              </CardHeader>
+            </Card>
+          )}
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6 md:mb-8">
             <Card className="border-2 border-brand-teal/30 shadow-lg hover:shadow-xl transition-shadow">
               <CardHeader className="pb-2 bg-brand-teal/5">
                 <CardTitle className="text-sm font-medium text-gray-600">
@@ -533,43 +608,43 @@ export default function Dashboard() {
           </div>
 
           {/* Recent Mentorship Requests */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
             <Card className="lg:col-span-2 border-2 border-brand-sky/30 shadow-lg">
-              <CardHeader className="border-b border-brand-sky/20 bg-brand-sky/5">
-                <CardTitle className="text-brand-navy">Recent Mentorship Requests</CardTitle>
-                <CardDescription>
+              <CardHeader className="border-b border-brand-sky/20 bg-brand-sky/5 p-4 md:p-6">
+                <CardTitle className="text-brand-navy text-base md:text-lg">Recent Mentorship Requests</CardTitle>
+                <CardDescription className="text-xs md:text-sm">
                   Manage your incoming mentorship requests
                 </CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
+              <CardContent className="p-4 md:p-6">
+                <div className="space-y-3 md:space-y-4">
                   {mentorData.recentRequests?.length > 0 ? (
                     mentorData.recentRequests
                       .slice(0, 5)
                       .map((request: any) => (
                         <div
                           key={request.id}
-                          className="flex items-start p-4 border rounded-lg hover:bg-gray-50 transition-colors"
+                          className="flex flex-col sm:flex-row items-start gap-3 p-3 md:p-4 border rounded-lg hover:bg-gray-50 transition-colors"
                         >
                           <ProfileImage
                             src={request.mentee?.profilePicture}
                             alt={request.mentee?.name || "Mentee"}
                             width={40}
                             height={40}
-                            className="rounded-full"
+                            className="rounded-full flex-shrink-0"
                           />
-                          <div className="ml-4 flex-1">
-                            <div className="flex items-center justify-between">
-                              <h4 className="font-medium">
+                          <div className="flex-1 min-w-0 w-full">
+                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 mb-2">
+                              <h4 className="font-medium text-sm md:text-base truncate">
                                 {request.mentee?.name}
                               </h4>
-                              <span className="text-xs text-gray-500">
+                              <span className="text-xs text-gray-500 flex-shrink-0">
                                 {new Date(
                                   request.createdAt
                                 ).toLocaleDateString()}
                               </span>
                             </div>
-                            <p className="text-sm text-gray-600 mt-1">
+                            <p className="text-xs md:text-sm text-gray-600 mt-1 break-words">
                               {request.message || "No message provided"}
                             </p>
                             <div className="flex flex-wrap gap-2 mt-2">
@@ -592,21 +667,21 @@ export default function Dashboard() {
                                       request.mentee?.id
                                     )
                                   }
-                                  className="border-brand-teal text-brand-teal hover:bg-brand-teal hover:text-white"
+                                  className="border-brand-teal text-brand-teal hover:bg-brand-teal hover:text-white text-xs md:text-sm w-full sm:w-auto"
                                 >
-                                  <MessageSquare className="h-4 w-4 mr-1" />
+                                  <MessageSquare className="h-3 w-3 md:h-4 md:w-4 mr-1" />
                                   Message Mentee
                                 </Button>
                               </div>
                             )}
                           </div>
-                          <div className="ml-4 flex items-center">
+                          <div className="w-full sm:w-auto sm:ml-4 flex items-center justify-end sm:justify-start">
                             {request.status === "PENDING" ? (
-                              <div className="flex space-x-2">
+                              <div className="flex gap-2 w-full sm:w-auto">
                                 <Button
                                   size="sm"
                                   variant="outline"
-                                  className="text-red-500 border-red-300 hover:bg-red-50"
+                                  className="text-red-500 border-red-300 hover:bg-red-50 text-xs md:text-sm flex-1 sm:flex-initial"
                                   onClick={() =>
                                     handleMentorshipRequest(
                                       request.id,
@@ -628,7 +703,7 @@ export default function Dashboard() {
                                     )
                                   }
                                   disabled={processingRequests.has(request.id)}
-                                  className="bg-brand-teal hover:bg-brand-navy text-white"
+                                  className="bg-brand-teal hover:bg-brand-navy text-white text-xs md:text-sm flex-1 sm:flex-initial"
                                 >
                                   {processingRequests.has(request.id)
                                     ? "Processing..."
@@ -733,7 +808,65 @@ export default function Dashboard() {
       {/* Mentee Dashboard */}
       {userRole === "mentee" && menteeData && (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          {/* Roadmap Progress Section */}
+          {menteeRoadmap && (
+            <Card className="mb-6 border-2 border-brand-teal/30 shadow-lg bg-gradient-to-r from-brand-teal/10 to-brand-sky/10">
+              <CardHeader className="border-b border-brand-teal/20">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <CardTitle className="text-brand-navy flex items-center gap-2 mb-2">
+                      <Map className="h-5 w-5 text-brand-teal" />
+                      {menteeRoadmap.title}
+                    </CardTitle>
+                    <CardDescription>
+                      {menteeRoadmap.description || `${menteeRoadmap.duration} week learning journey`}
+                    </CardDescription>
+                  </div>
+                  <Link href={`/dashboard/roadmap/${menteeRoadmap.id}`}>
+                    <Button className="bg-brand-teal hover:bg-brand-navy text-white">
+                      View Roadmap
+                    </Button>
+                  </Link>
+                </div>
+              </CardHeader>
+              <CardContent className="pt-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm text-gray-600 mb-2">Milestone Progress</p>
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-brand-teal rounded-full transition-all"
+                          style={{ width: `${menteeRoadmap.progress?.milestones?.percentage || 0}%` }}
+                        />
+                      </div>
+                      <span className="text-sm font-semibold text-brand-navy">
+                        {menteeRoadmap.progress?.milestones?.completed || 0}/
+                        {menteeRoadmap.progress?.milestones?.total || 0}
+                      </span>
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600 mb-2">Task Progress</p>
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-brand-gold rounded-full transition-all"
+                          style={{ width: `${menteeRoadmap.progress?.tasks?.percentage || 0}%` }}
+                        />
+                      </div>
+                      <span className="text-sm font-semibold text-brand-navy">
+                        {menteeRoadmap.progress?.tasks?.completed || 0}/
+                        {menteeRoadmap.progress?.tasks?.total || 0}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6 md:mb-8">
             <Card className="border-2 border-brand-teal/30 shadow-lg hover:shadow-xl transition-shadow">
               <CardHeader className="pb-2 bg-brand-teal/5">
                 <CardTitle className="text-sm font-medium text-gray-600">
@@ -855,56 +988,56 @@ export default function Dashboard() {
             </Card>
           )}
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
             {/* My Mentor Section */}
             <Card className="lg:col-span-2 border-2 border-brand-sky/30 shadow-lg">
-              <CardHeader className="border-b border-brand-sky/20 bg-brand-sky/5">
-                <CardTitle className="text-brand-navy">My Mentor</CardTitle>
-                <CardDescription>Your current mentorship</CardDescription>
+              <CardHeader className="border-b border-brand-sky/20 bg-brand-sky/5 p-4 md:p-6">
+                <CardTitle className="text-brand-navy text-base md:text-lg">My Mentor</CardTitle>
+                <CardDescription className="text-xs md:text-sm">Your current mentorship</CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-4 md:p-6">
                 {menteeData.mentorInfo ? (
-                  <div className="flex items-start p-4 border rounded-lg hover:bg-gray-50 transition-colors">
+                  <div className="flex flex-col sm:flex-row items-start gap-3 md:gap-4 p-3 md:p-4 border rounded-lg hover:bg-gray-50 transition-colors">
                     <ProfileImage
                       src={menteeData.mentorInfo.profilePicture}
                       alt={menteeData.mentorInfo.name}
                       width={60}
                       height={60}
-                      className="rounded-full"
+                      className="rounded-full flex-shrink-0 self-center sm:self-start"
                     />
-                    <div className="ml-4 flex-1">
-                      <div className="flex items-center justify-between">
-                        <h4 className="font-medium text-lg">
+                    <div className="flex-1 min-w-0 w-full">
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
+                        <h4 className="font-medium text-base md:text-lg truncate">
                           {menteeData.mentorInfo.name}
                         </h4>
-                        <div className="flex items-center">
-                          <Star className="h-4 w-4 text-yellow-400 fill-yellow-400" />
-                          <span className="text-sm ml-1">
+                        <div className="flex items-center flex-shrink-0">
+                          <Star className="h-3 w-3 md:h-4 md:w-4 text-yellow-400 fill-yellow-400" />
+                          <span className="text-xs md:text-sm ml-1">
                             {menteeData.mentorInfo.rating || "N/A"}
                           </span>
                         </div>
                       </div>
-                      <p className="text-sm text-gray-600">
+                      <p className="text-xs md:text-sm text-gray-600 break-words">
                         {menteeData.mentorInfo.title} at{" "}
                         {menteeData.mentorInfo.company}
                       </p>
-                      <p className="text-sm text-gray-600 mt-2">
+                      <p className="text-xs md:text-sm text-gray-600 mt-2 break-words">
                         {menteeData.mentorInfo.bio}
                       </p>
-                      <div className="flex items-center space-x-2 mt-4">
+                      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 mt-4">
                         <Button
                           size="sm"
                           variant="outline"
                           onClick={() =>
                             handleSendMessage(menteeData.mentorInfo.id)
                           }
-                          className="border-brand-teal text-brand-teal hover:bg-brand-teal hover:text-white"
+                          className="border-brand-teal text-brand-teal hover:bg-brand-teal hover:text-white text-xs md:text-sm w-full sm:w-auto"
                         >
-                          <MessageSquare className="h-4 w-4 mr-1" />
+                          <MessageSquare className="h-3 w-3 md:h-4 md:w-4 mr-1" />
                           Message
                         </Button>
-                        <Button size="sm" onClick={handleBookSession} className="bg-brand-orange hover:bg-brand-gold text-white">
-                          <Calendar className="h-4 w-4 mr-1" />
+                        <Button size="sm" onClick={handleBookSession} className="bg-brand-orange hover:bg-brand-gold text-white text-xs md:text-sm w-full sm:w-auto">
+                          <Calendar className="h-3 w-3 md:h-4 md:w-4 mr-1" />
                           Book Session
                         </Button>
                       </div>

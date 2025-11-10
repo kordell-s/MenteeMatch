@@ -31,7 +31,10 @@ yarn-error.log*
 .pnpm-debug.log*
 
 # env files (can opt-in for committing if needed)
-.env*
+.env
+.env.*
+.env.local
+!.env.example
 
 # vercel
 .vercel
@@ -39,20 +42,49 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+tsconfig.tsbuildinfo
+
+# SWC
+.swc/
 
 # test files
 test-*.ts
 test-*.js
+**/test-*.ts
+**/test-*.js
 
-# zip archives
+# archives
 *.zip
+*.tar
+*.gz
+*.rar
+
+# backup files
+*.backup
+*.bak
+*.tmp
+*.swp
+*.swo
+*~
 
 # IDE
 .vscode/
 .idea/
+
+# Claude AI
+.claude/
 
 # model directory and files
 /model/
 wiki_gig_50d.txt
 wiki_giga_50d.txt
 model/wiki_giga_50d.txt
+
+# large files
+menteeMatchReduced.zip
+
+# project documentation (keep README.md and QUICK_START.md)
+DETAILED_GOALS_UPDATE.md
+IMPLEMENTATION_SUMMARY.md
+RECOMMENDATION_ALGORITHM_ANALYSIS.md
+TESTING.md

@@ -40,8 +40,10 @@ import {
   CheckCircle,
   XCircle,
   Edit,
+  Star,
 } from "lucide-react";
 import Image from "next/image";
+import RatingModal from "@/components/RatingModal";
 
 interface Session {
   id: string;
@@ -52,6 +54,7 @@ interface Session {
   status: string;
   description?: string;
   offeringType?: string;
+  rating?: number;
   mentor?: {
     id: string;
     name: string;
@@ -79,6 +82,8 @@ export default function SessionsPage() {
   const [showEditStatusModal, setShowEditStatusModal] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState<string>("");
   const [isUpdating, setIsUpdating] = useState(false);
+  const [showRatingModal, setShowRatingModal] = useState(false);
+  const [sessionToRate, setSessionToRate] = useState<Session | null>(null);
 
   useEffect(() => {
     if (status === "loading") return;
@@ -201,6 +206,46 @@ export default function SessionsPage() {
     router.push(`/dashboard/sessions/${sessionId}/join`);
   };
 
+  const handleMarkAsCompleted = async (session: Session) => {
+    if (!confirm("Are you sure you want to mark this session as completed?")) return;
+
+    try {
+      const response = await fetch(`/api/sessions/${session.id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          status: "COMPLETED",
+        }),
+      });
+
+      if (response.ok) {
+        // Refresh sessions
+        await fetchUserRoleAndSessions();
+        alert("Session marked as completed! The mentee can now rate this session.");
+      } else {
+        const error = await response.json();
+        alert(`Failed to update session: ${error.error || "Unknown error"}`);
+      }
+    } catch (error) {
+      console.error("Error marking session as completed:", error);
+      alert("Failed to mark session as completed. Please try again.");
+    }
+  };
+
+  const handleRateSession = (session: Session) => {
+    setSessionToRate(session);
+    setShowRatingModal(true);
+  };
+
+  const handleRatingSuccess = async () => {
+    // Refresh sessions to update any rating displays
+    await fetchUserRoleAndSessions();
+    setShowRatingModal(false);
+    setSessionToRate(null);
+  };
+
   const getStatusIcon = (status: string) => {
     switch (status) {
       case "CONFIRMED":
@@ -287,8 +332,23 @@ export default function SessionsPage() {
       </Button>
     );
 
-    // Status editing (only for mentors)
-    if (userRole === "mentor" && session.status !== "CANCELLED") {
+    // Mark as Completed (only for mentors, only for confirmed sessions)
+    if (userRole === "mentor" && session.status === "CONFIRMED") {
+      actions.push(
+        <Button
+          key="mark-completed"
+          size="sm"
+          className="bg-green-600 hover:bg-green-700 text-white"
+          onClick={() => handleMarkAsCompleted(session)}
+        >
+          <CheckCircle className="h-4 w-4 mr-1" />
+          Mark as Completed
+        </Button>
+      );
+    }
+
+    // Status editing (only for mentors, for other status changes)
+    if (userRole === "mentor" && session.status !== "CANCELLED" && session.status !== "COMPLETED") {
       actions.push(
         <Button
           key="edit-status"
@@ -492,6 +552,12 @@ export default function SessionsPage() {
                             <CheckCircle className="h-4 w-4 mr-1" />
                             Completed
                           </Badge>
+                          {session.rating && (
+                            <Badge variant="outline" className="flex items-center gap-1">
+                              <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                              {session.rating.toFixed(1)}
+                            </Badge>
+                          )}
                         </div>
 
                         <div className="space-y-2 text-sm text-gray-600">
@@ -509,13 +575,25 @@ export default function SessionsPage() {
                       </div>
                     </div>
 
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleViewDetails(session)}
-                    >
-                      View Details
-                    </Button>
+                    <div className="flex flex-col gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleViewDetails(session)}
+                      >
+                        View Details
+                      </Button>
+                      {userRole === "mentee" && !session.rating && session.mentor && (
+                        <Button
+                          size="sm"
+                          className="bg-brand-teal hover:bg-brand-navy text-white"
+                          onClick={() => handleRateSession(session)}
+                        >
+                          <Star className="h-4 w-4 mr-1" />
+                          Rate Session
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -756,6 +834,21 @@ export default function SessionsPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Rating Modal */}
+      {sessionToRate && sessionToRate.mentor && (
+        <RatingModal
+          isOpen={showRatingModal}
+          onClose={() => {
+            setShowRatingModal(false);
+            setSessionToRate(null);
+          }}
+          sessionId={sessionToRate.id}
+          mentorId={sessionToRate.mentor.id}
+          mentorName={sessionToRate.mentor.name}
+          onSuccess={handleRatingSuccess}
+        />
+      )}
     </div>
   );
 }

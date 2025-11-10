@@ -183,27 +183,27 @@ export default function RecommendedMentors({
   }
 
   return (
-    <div className="space-y-12">
+    <div className="space-y-8 md:space-y-12">
       {/* Smart Algorithm Indicator */}
-      <div className="bg-gradient-to-r from-brand-sky/20 via-brand-teal/10 to-brand-sky/20 border-2 border-brand-teal/30 rounded-xl p-6 shadow-lg">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="p-3 bg-gradient-to-r from-brand-teal to-brand-navy rounded-xl shadow-lg">
-            <Brain className="w-7 h-7 text-white" />
+      <div className="bg-gradient-to-r from-brand-sky/20 via-brand-teal/10 to-brand-sky/20 border-2 border-brand-teal/30 rounded-xl p-4 md:p-6 shadow-lg">
+        <div className="flex items-start md:items-center gap-3 mb-3 md:mb-4">
+          <div className="p-2 md:p-3 bg-gradient-to-r from-brand-teal to-brand-navy rounded-xl shadow-lg flex-shrink-0">
+            <Brain className="w-5 h-5 md:w-7 md:h-7 text-white" />
           </div>
-          <div>
-            <h3 className="font-bold text-brand-navy text-xl">
+          <div className="flex-1 min-w-0">
+            <h3 className="font-bold text-brand-navy text-base md:text-xl leading-tight">
               AI-Powered Smart Recommendations
             </h3>
-            <div className="flex items-center gap-2 mt-1">
-              <Zap className="w-4 h-4 text-brand-orange" />
-              <span className="text-sm bg-brand-gold/20 text-brand-navy px-3 py-1 rounded-full font-medium border border-brand-gold">
+            <div className="flex items-center gap-2 mt-1 flex-wrap">
+              <Zap className="w-3 h-3 md:w-4 md:h-4 text-brand-orange flex-shrink-0" />
+              <span className="text-xs md:text-sm bg-brand-gold/20 text-brand-navy px-2 md:px-3 py-0.5 md:py-1 rounded-full font-medium border border-brand-gold">
                 {algorithmInfo}
               </span>
             </div>
           </div>
         </div>
 
-        <p className="text-gray-700 mb-4 leading-relaxed">
+        <p className="text-sm md:text-base text-gray-700 mb-3 md:mb-4 leading-relaxed">
           These mentors are intelligently ranked using advanced semantic
           matching that understands the{" "}
           <strong className="text-brand-teal">meaning</strong> behind your
@@ -212,15 +212,15 @@ export default function RecommendedMentors({
 
         {/* Show mentee profile summary */}
         {menteeProfile && (
-          <div className="bg-white/90 backdrop-blur-sm rounded-lg p-4 border-2 border-brand-sky/50 shadow-sm">
-            <h4 className="font-semibold text-brand-navy mb-3 flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-brand-gold" />
+          <div className="bg-white/90 backdrop-blur-sm rounded-lg p-3 md:p-4 border-2 border-brand-sky/50 shadow-sm">
+            <h4 className="font-semibold text-brand-navy text-sm md:text-base mb-2 md:mb-3 flex items-center gap-2">
+              <Sparkles className="w-3 h-3 md:w-4 md:h-4 text-brand-gold flex-shrink-0" />
               Your Profile Analysis
             </h4>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4 text-xs md:text-sm">
               <div>
                 <span className="font-medium text-brand-teal">Skills:</span>
-                <p className="text-gray-700 mt-1">
+                <p className="text-gray-700 mt-1 break-words">
                   {menteeProfile.skills?.length > 0
                     ? menteeProfile.skills.join(", ")
                     : "None set - add skills to improve matches!"}
@@ -228,7 +228,7 @@ export default function RecommendedMentors({
               </div>
               <div>
                 <span className="font-medium text-brand-teal">Goals:</span>
-                <p className="text-gray-700 mt-1">
+                <p className="text-gray-700 mt-1 break-words">
                   {menteeProfile.goals?.length > 0
                     ? menteeProfile.goals.map(getGoalLabel).join(", ")
                     : "None set - set goals for better recommendations!"}
@@ -250,16 +250,16 @@ export default function RecommendedMentors({
 
       {/* Top Matches Section */}
       <div>
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-gradient-to-r from-brand-teal to-brand-navy rounded-lg shadow-lg">
-              <TrendingUp className="w-7 h-7 text-white" />
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+          <div className="flex items-start md:items-center gap-2 md:gap-3">
+            <div className="p-1.5 md:p-2 bg-gradient-to-r from-brand-teal to-brand-navy rounded-lg shadow-lg flex-shrink-0">
+              <TrendingUp className="w-5 h-5 md:w-7 md:h-7 text-white" />
             </div>
-            <div>
-              <h2 className="text-3xl font-bold text-brand-navy">
+            <div className="flex-1 min-w-0">
+              <h2 className="text-xl md:text-3xl font-bold text-brand-navy leading-tight">
                 Perfect Matches for You
               </h2>
-              <p className="text-gray-600 mt-1">
+              <p className="text-xs md:text-base text-gray-600 mt-1">
                 Top mentors based on semantic similarity • {smartMatches.length}{" "}
                 total matches found
               </p>
@@ -269,10 +269,10 @@ export default function RecommendedMentors({
             <DialogTrigger asChild>
               <Button
                 variant="outline"
-                size="lg"
-                className="text-brand-teal border-brand-teal hover:bg-brand-teal hover:text-white font-medium transition-all"
+                size="default"
+                className="text-brand-teal border-brand-teal hover:bg-brand-teal hover:text-white font-medium transition-all text-sm md:text-base w-full md:w-auto"
               >
-                <Edit className="w-4 h-4 mr-2" />
+                <Edit className="w-3 h-3 md:w-4 md:h-4 mr-2" />
                 Update Goals
               </Button>
             </DialogTrigger>
@@ -346,27 +346,27 @@ export default function RecommendedMentors({
                       specialization: [],
                     },
                   }}
-                  recommended={true}
+                  recommended={false}
                 />
 
                 {/* Match Score Badge */}
-                <div className="absolute top-2 right-2 bg-brand-teal/90 backdrop-blur-sm text-white text-[10px] px-2 py-0.5 rounded-full font-semibold shadow-md">
+                <div className="absolute top-2 right-2 bg-brand-teal/90 backdrop-blur-sm text-white text-xs px-2.5 py-1 rounded-full font-semibold shadow-md z-10">
                   {Math.round(match.score * 100)}%
                 </div>
 
                 {/* Rank Badge */}
                 {index === 0 && (
-                  <div className="absolute top-2 left-2 bg-brand-gold/90 backdrop-blur-sm text-white text-[10px] px-2 py-0.5 rounded-full font-semibold shadow-md">
+                  <div className="absolute top-2 left-2 bg-brand-gold/90 backdrop-blur-sm text-white text-xs px-2.5 py-1 rounded-full font-semibold shadow-md z-10">
                     #1
                   </div>
                 )}
                 {index === 1 && (
-                  <div className="absolute top-2 left-2 bg-gray-400/90 backdrop-blur-sm text-white text-[10px] px-2 py-0.5 rounded-full font-semibold shadow-md">
+                  <div className="absolute top-2 left-2 bg-gray-400/90 backdrop-blur-sm text-white text-xs px-2.5 py-1 rounded-full font-semibold shadow-md z-10">
                     #2
                   </div>
                 )}
                 {index === 2 && (
-                  <div className="absolute top-2 left-2 bg-brand-orange/90 backdrop-blur-sm text-white text-[10px] px-2 py-0.5 rounded-full font-semibold shadow-md">
+                  <div className="absolute top-2 left-2 bg-brand-orange/90 backdrop-blur-sm text-white text-xs px-2.5 py-1 rounded-full font-semibold shadow-md z-10">
                     #3
                   </div>
                 )}
@@ -397,14 +397,14 @@ export default function RecommendedMentors({
       {/* Other Great Matches */}
       {otherMatches.length > 0 && (
         <div>
-          <h2 className="text-2xl font-semibold mb-6 flex items-center gap-2">
-            <Sparkles className="w-6 h-6 text-brand-gold" />
+          <h2 className="text-lg md:text-2xl font-semibold mb-4 md:mb-6 flex flex-wrap items-center gap-2">
+            <Sparkles className="w-5 h-5 md:w-6 md:h-6 text-brand-gold flex-shrink-0" />
             <span className="text-brand-navy">Other Great Matches</span>
-            <span className="text-sm font-normal text-gray-500 ml-2">
+            <span className="text-xs md:text-sm font-normal text-gray-500">
               ({otherMatches.length} more mentors)
             </span>
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
             {otherMatches.map((match) => (
               <div
                 key={match.mentorId}
@@ -441,38 +441,6 @@ export default function RecommendedMentors({
         </div>
       )}
 
-      {/* Debug Info (Development Only) */}
-      {process.env.NODE_ENV === "development" && smartMatches.length > 0 && (
-        <div className="bg-brand-sky/10 border-2 border-brand-sky rounded-lg p-4 text-sm">
-          <h4 className="font-semibold mb-3 flex items-center gap-2">
-            🔧 Debug Information
-          </h4>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-1">
-              <p>
-                <span className="font-medium">Algorithm:</span> {algorithmInfo}
-              </p>
-              <p>
-                <span className="font-medium">Total matches:</span>{" "}
-                {smartMatches.length}
-              </p>
-              <p>
-                <span className="font-medium">User ID:</span> {session.user.id}
-              </p>
-            </div>
-            <div className="space-y-1">
-              <p>
-                <span className="font-medium">Top scores:</span>{" "}
-                {topMatches.map((m) => Math.round(m.score * 100)).join("%, ")}%
-              </p>
-              <p>
-                <span className="font-medium">Cache status:</span> Embeddings
-                cached ✅
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

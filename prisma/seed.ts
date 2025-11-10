@@ -9,9 +9,11 @@ async function main() {
   // Clear existing data
   console.log("🧹 Cleaning existing data...");
   await prisma.message.deleteMany();
-  await prisma.conversation.deleteMany();
+  await prisma.roadmapResource.deleteMany();
+  await prisma.checkIn.deleteMany();
   await prisma.task.deleteMany();
-  await prisma.mentorshipRequest.deleteMany();
+  await prisma.milestone.deleteMany();
+  await prisma.roadmap.deleteMany();
   await prisma.mentorship.deleteMany();
   await prisma.booking.deleteMany();
   await prisma.session.deleteMany();
@@ -1011,17 +1013,6 @@ async function main() {
     },
   });
 
-  // Create a pending mentorship request
-  await prisma.mentorshipRequest.create({
-    data: {
-      mentorId: mentor3.id,
-      menteeId: mentee3.id,
-      offeringType: "Portfolio Review",
-      message: "Hi Emily! I'd love to get feedback on my design portfolio.",
-      status: "PENDING",
-    },
-  });
-
   console.log("📅 Creating sessions...");
 
   // Create some sessions
@@ -1095,75 +1086,6 @@ async function main() {
     },
   });
 
-  console.log("💬 Creating conversations and messages...");
-
-  // Create conversations with messages
-  const conversation1 = await prisma.conversation.create({
-    data: {
-      mentorId: mentor1.id,
-      menteeId: mentee1.id,
-      lastMessageAt: new Date(),
-    },
-  });
-
-  await prisma.message.create({
-    data: {
-      conversationId: conversation1.id,
-      senderId: mentee1.id,
-      receiverId: mentor1.id,
-      content: "Hi Sarah! Thanks for accepting my mentorship request!",
-      timestamp: new Date("2025-10-13T10:00:00"),
-    },
-  });
-
-  await prisma.message.create({
-    data: {
-      conversationId: conversation1.id,
-      senderId: mentor1.id,
-      receiverId: mentee1.id,
-      content: "Hi Alex! I'm excited to work with you. When would you like to have our first session?",
-      timestamp: new Date("2025-10-13T10:15:00"),
-    },
-  });
-
-  await prisma.message.create({
-    data: {
-      conversationId: conversation1.id,
-      senderId: mentee1.id,
-      receiverId: mentor1.id,
-      content: "How about next Monday at 6 PM?",
-      timestamp: new Date("2025-10-13T10:30:00"),
-    },
-  });
-
-  const conversation2 = await prisma.conversation.create({
-    data: {
-      mentorId: mentor2.id,
-      menteeId: mentee2.id,
-      lastMessageAt: new Date(),
-    },
-  });
-
-  await prisma.message.create({
-    data: {
-      conversationId: conversation2.id,
-      senderId: mentor2.id,
-      receiverId: mentee2.id,
-      content: "Great session today Maria! Don't forget to complete that linear regression assignment.",
-      timestamp: new Date("2025-10-13T15:00:00"),
-    },
-  });
-
-  await prisma.message.create({
-    data: {
-      conversationId: conversation2.id,
-      senderId: mentee2.id,
-      receiverId: mentor2.id,
-      content: "Thank you David! I'll have it done by Friday.",
-      timestamp: new Date("2025-10-13T15:10:00"),
-    },
-  });
-
   console.log("⭐ Creating ratings...");
 
   // Create ratings
@@ -1181,6 +1103,271 @@ async function main() {
       ratedById: mentee2.id,
       ratingValue: 5.0,
     },
+  });
+
+  console.log("🗺️  Creating roadmaps with milestones...");
+
+  // Create roadmap for mentee1 (Alex) - Full-Stack Development Journey
+  const roadmap1 = await prisma.roadmap.create({
+    data: {
+      mentorshipId: mentorship1.id,
+      title: "Full-Stack Development Journey",
+      description: "A comprehensive 12-week program to master modern full-stack development with React and Node.js",
+      duration: 12,
+      focusArea: "Full-Stack Web Development",
+      startDate: new Date("2025-01-15"),
+      endDate: new Date("2025-04-15"),
+      status: "ACTIVE",
+    },
+  });
+
+  // Milestone 1 for roadmap1
+  const milestone1_1 = await prisma.milestone.create({
+    data: {
+      roadmapId: roadmap1.id,
+      title: "JavaScript Fundamentals Mastery",
+      description: "Deep dive into ES6+, async/await, closures, and functional programming",
+      order: 1,
+      dueDate: new Date("2025-02-05"),
+      status: "COMPLETED",
+      completedAt: new Date("2025-02-03"),
+    },
+  });
+
+  await prisma.roadmapResource.create({
+    data: {
+      milestoneId: milestone1_1.id,
+      title: "JavaScript.info Tutorial",
+      url: "https://javascript.info",
+      description: "Comprehensive modern JavaScript tutorial",
+      resourceType: "LINK",
+    },
+  });
+
+  await prisma.roadmapResource.create({
+    data: {
+      milestoneId: milestone1_1.id,
+      title: "You Don't Know JS Book Series",
+      url: "https://github.com/getify/You-Dont-Know-JS",
+      description: "Deep dive into JavaScript mechanisms",
+      resourceType: "DOCUMENT",
+    },
+  });
+
+  // Milestone 2 for roadmap1
+  const milestone1_2 = await prisma.milestone.create({
+    data: {
+      roadmapId: roadmap1.id,
+      title: "React Fundamentals & Hooks",
+      description: "Learn React components, hooks, state management, and component lifecycle",
+      order: 2,
+      dueDate: new Date("2025-02-26"),
+      status: "IN_PROGRESS",
+    },
+  });
+
+  await prisma.roadmapResource.create({
+    data: {
+      milestoneId: milestone1_2.id,
+      title: "React Official Documentation",
+      url: "https://react.dev",
+      description: "Official React docs with interactive examples",
+      resourceType: "LINK",
+    },
+  });
+
+  await prisma.roadmapResource.create({
+    data: {
+      milestoneId: milestone1_2.id,
+      title: "React Hooks Explained",
+      url: "https://www.youtube.com/watch?v=dpw9EHDh2bM",
+      description: "Comprehensive video tutorial on React hooks",
+      resourceType: "VIDEO",
+    },
+  });
+
+  await prisma.checkIn.create({
+    data: {
+      milestoneId: milestone1_2.id,
+      mentorNotes: "Review progress on React hooks project. Discuss useEffect and custom hooks.",
+      scheduledDate: new Date("2025-02-20T18:00:00"),
+      status: "SCHEDULED",
+    },
+  });
+
+  // Milestone 3 for roadmap1
+  const milestone1_3 = await prisma.milestone.create({
+    data: {
+      roadmapId: roadmap1.id,
+      title: "Backend with Node.js & Express",
+      description: "Build RESTful APIs with Node.js, Express, and MongoDB",
+      order: 3,
+      dueDate: new Date("2025-03-19"),
+      status: "NOT_STARTED",
+    },
+  });
+
+  await prisma.roadmapResource.create({
+    data: {
+      milestoneId: milestone1_3.id,
+      title: "Node.js Best Practices",
+      url: "https://github.com/goldbergyoni/nodebestpractices",
+      description: "Comprehensive Node.js best practices guide",
+      resourceType: "DOCUMENT",
+    },
+  });
+
+  // Milestone 4 for roadmap1
+  const milestone1_4 = await prisma.milestone.create({
+    data: {
+      roadmapId: roadmap1.id,
+      title: "Full-Stack Project: Build a Social Media App",
+      description: "Combine all skills to build a complete full-stack application with authentication",
+      order: 4,
+      dueDate: new Date("2025-04-15"),
+      status: "NOT_STARTED",
+    },
+  });
+
+  await prisma.checkIn.create({
+    data: {
+      milestoneId: milestone1_4.id,
+      mentorNotes: "Final project review and deployment guidance",
+      scheduledDate: new Date("2025-04-10T18:00:00"),
+      status: "SCHEDULED",
+    },
+  });
+
+  // Create roadmap for mentee2 (Maria) - Data Science Transition
+  const roadmap2 = await prisma.roadmap.create({
+    data: {
+      mentorshipId: mentorship2.id,
+      title: "Data Science Career Transition Roadmap",
+      description: "Structured 8-week path from data analyst to machine learning engineer",
+      duration: 8,
+      focusArea: "Machine Learning & Data Science",
+      startDate: new Date("2025-01-20"),
+      endDate: new Date("2025-03-20"),
+      status: "ACTIVE",
+    },
+  });
+
+  // Milestone 1 for roadmap2
+  const milestone2_1 = await prisma.milestone.create({
+    data: {
+      roadmapId: roadmap2.id,
+      title: "Python for Data Science",
+      description: "Master NumPy, Pandas, and data manipulation techniques",
+      order: 1,
+      dueDate: new Date("2025-02-03"),
+      status: "COMPLETED",
+      completedAt: new Date("2025-02-01"),
+    },
+  });
+
+  await prisma.roadmapResource.create({
+    data: {
+      milestoneId: milestone2_1.id,
+      title: "Python Data Science Handbook",
+      url: "https://jakevdp.github.io/PythonDataScienceHandbook/",
+      description: "Free online book covering NumPy, Pandas, Matplotlib, and Scikit-Learn",
+      resourceType: "DOCUMENT",
+    },
+  });
+
+  // Milestone 2 for roadmap2
+  const milestone2_2 = await prisma.milestone.create({
+    data: {
+      roadmapId: roadmap2.id,
+      title: "Statistics & Probability Foundations",
+      description: "Learn statistical concepts essential for machine learning",
+      order: 2,
+      dueDate: new Date("2025-02-17"),
+      status: "IN_PROGRESS",
+    },
+  });
+
+  await prisma.roadmapResource.create({
+    data: {
+      milestoneId: milestone2_2.id,
+      title: "StatQuest with Josh Starmer",
+      url: "https://www.youtube.com/c/joshstarmer",
+      description: "Excellent video series explaining statistics concepts",
+      resourceType: "VIDEO",
+    },
+  });
+
+  await prisma.checkIn.create({
+    data: {
+      milestoneId: milestone2_2.id,
+      mentorNotes: "Review hypothesis testing and confidence intervals. Work through practice problems.",
+      scheduledDate: new Date("2025-02-14T14:00:00"),
+      status: "SCHEDULED",
+    },
+  });
+
+  // Milestone 3 for roadmap2
+  const milestone2_3 = await prisma.milestone.create({
+    data: {
+      roadmapId: roadmap2.id,
+      title: "Machine Learning Algorithms",
+      description: "Understand and implement supervised and unsupervised learning algorithms",
+      order: 3,
+      dueDate: new Date("2025-03-03"),
+      status: "NOT_STARTED",
+    },
+  });
+
+  await prisma.roadmapResource.create({
+    data: {
+      milestoneId: milestone2_3.id,
+      title: "Scikit-Learn Documentation",
+      url: "https://scikit-learn.org/stable/",
+      description: "Official documentation with examples for all ML algorithms",
+      resourceType: "LINK",
+    },
+  });
+
+  await prisma.roadmapResource.create({
+    data: {
+      milestoneId: milestone2_3.id,
+      title: "Machine Learning Crash Course",
+      url: "https://developers.google.com/machine-learning/crash-course",
+      description: "Google's fast-paced introduction to machine learning",
+      resourceType: "LINK",
+    },
+  });
+
+  // Milestone 4 for roadmap2
+  const milestone2_4 = await prisma.milestone.create({
+    data: {
+      roadmapId: roadmap2.id,
+      title: "Capstone ML Project",
+      description: "Build an end-to-end ML project with data collection, model training, and deployment",
+      order: 4,
+      dueDate: new Date("2025-03-20"),
+      status: "NOT_STARTED",
+    },
+  });
+
+  await prisma.checkIn.create({
+    data: {
+      milestoneId: milestone2_4.id,
+      mentorNotes: "Project review and career transition discussion",
+      scheduledDate: new Date("2025-03-18T14:00:00"),
+      status: "SCHEDULED",
+    },
+  });
+
+  // Link some tasks to milestones
+  await prisma.task.update({
+    where: { id: (await prisma.task.findFirst({ where: { menteeId: mentee1.id } }))!.id },
+    data: { milestoneId: milestone1_2.id },
+  });
+
+  await prisma.task.update({
+    where: { id: (await prisma.task.findFirst({ where: { menteeId: mentee2.id } }))!.id },
+    data: { milestoneId: milestone2_1.id },
   });
 
   console.log("\n✅ Database seeded successfully!");

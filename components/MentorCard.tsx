@@ -16,6 +16,22 @@ interface MentorCardProps {
   recommended?: boolean;
 }
 
+// Helper function to abbreviate day names
+const abbreviateDay = (day: string): string => {
+  const dayMap: { [key: string]: string } = {
+    'MONDAY': 'Mon',
+    'TUESDAY': 'Tue',
+    'WEDNESDAY': 'Wed',
+    'THURSDAY': 'Thu',
+    'FRIDAY': 'Fri',
+    'SATURDAY': 'Sat',
+    'SUNDAY': 'Sun',
+  };
+
+  const upperDay = day.toUpperCase();
+  return dayMap[upperDay] || day.charAt(0) + day.slice(1, 3).toLowerCase();
+};
+
 export default function MentorCard({
   mentor,
   recommended = false,
@@ -44,9 +60,6 @@ export default function MentorCard({
           alt={mentor.name}
           className="w-full h-48 object-cover"
         />
-        <button className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm p-2 rounded-full hover:bg-brand-gold hover:text-white transition-all shadow-md">
-          <Bookmark size={18} className="text-brand-navy" />
-        </button>
         {recommended && (
           <div className="absolute top-3 right-3 bg-brand-gold text-white px-3 py-1 rounded-full text-xs font-bold shadow-md">
             ⭐ Top Match
@@ -57,7 +70,12 @@ export default function MentorCard({
       <div className="p-5">
         <div className="flex justify-between items-start mb-2">
           <div className="flex-1">
-            <h3 className="font-bold text-lg text-brand-navy">{mentor.name}</h3>
+            <div className="flex items-center gap-2">
+              <h3 className="font-bold text-lg text-brand-navy">{mentor.name}</h3>
+              <button className="bg-white border-2 border-brand-navy/20 p-1.5 rounded-full hover:bg-brand-gold hover:border-brand-gold hover:text-white transition-all shadow-sm">
+                <Bookmark size={16} className="text-brand-navy hover:text-white" />
+              </button>
+            </div>
             {mentor.title && (
               <p className="text-brand-teal text-base font-semibold mb-1">
                 {mentor.title}
@@ -114,9 +132,7 @@ export default function MentorCard({
             mentor.availability.length > 0
               ? (mentor.availability as string[])
                   .slice(0, 3)
-                  .map(
-                    (day: string) => day.charAt(0) + day.slice(1).toLowerCase()
-                  )
+                  .map((day: string) => abbreviateDay(day))
                   .join(" • ")
               : "Schedule flexible"}
           </span>

@@ -83,6 +83,7 @@ export async function GET(request: NextRequest) {
       duration: session.duration || 60,
       status: session.status,
       description: session.description,
+      rating: session.rating,
       mentor: session.mentor,
       mentee: session.mentee,
     }));

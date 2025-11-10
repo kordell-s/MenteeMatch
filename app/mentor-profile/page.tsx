@@ -25,6 +25,22 @@ import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import MentorProfileSkeleton from "@/components/MentorProfileSkeleton";
 import { getDefaultAvatar } from "@/lib/avatars";
 
+// Helper function to abbreviate day names
+const abbreviateDay = (day: string): string => {
+  const dayMap: { [key: string]: string } = {
+    'MONDAY': 'Mon',
+    'TUESDAY': 'Tue',
+    'WEDNESDAY': 'Wed',
+    'THURSDAY': 'Thu',
+    'FRIDAY': 'Fri',
+    'SATURDAY': 'Sat',
+    'SUNDAY': 'Sun',
+  };
+
+  const upperDay = day.toUpperCase().trim();
+  return dayMap[upperDay] || day.charAt(0).toUpperCase() + day.slice(1, 3).toLowerCase();
+};
+
 function MentorProfilePage() {
   const { data: session, status } = useSession();
   const router = useRouter();
@@ -429,11 +445,11 @@ function MentorProfilePage() {
                         <Clock size={16} className="text-gray-600" />
                         <p className="text-gray-700 font-medium">
                           {Array.isArray(mentor.availability)
-                            ? mentor.availability.join(" • ")
+                            ? mentor.availability.map((day) => abbreviateDay(day)).join(" • ")
                             : typeof mentor.availability === "string"
                             ? mentor.availability
                                 .split(",")
-                                .map((day) => day.trim())
+                                .map((day) => abbreviateDay(day.trim()))
                                 .join(" • ")
                             : "Availability not specified"}
                         </p>
