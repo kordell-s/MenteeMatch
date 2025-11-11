@@ -186,11 +186,11 @@ export default function Dashboard() {
     try {
       const response = await fetch("/api/roadmaps");
       if (response.ok) {
-        const data = await response.json();
-        const roadmaps = data.roadmaps || [];
+        const roadmaps = await response.json();
+        const roadmapsArray = Array.isArray(roadmaps) ? roadmaps : [];
         setRoadmapStats({
-          total: roadmaps.length,
-          active: roadmaps.filter((r: any) => r.status === "ACTIVE").length,
+          total: roadmapsArray.length,
+          active: roadmapsArray.filter((r: any) => r.status === "ACTIVE").length,
         });
       }
     } catch (error) {
@@ -202,15 +202,29 @@ export default function Dashboard() {
     try {
       const response = await fetch("/api/roadmaps?status=ACTIVE");
       if (response.ok) {
-        const data = await response.json();
-        const roadmaps = data.roadmaps || [];
-        if (roadmaps.length > 0) {
-          // Get the first active roadmap with progress
-          const roadmapResponse = await fetch(`/api/roadmaps/${roadmaps[0].id}`);
-          if (roadmapResponse.ok) {
-            const roadmapData = await roadmapResponse.json();
-            setMenteeRoadmap(roadmapData);
-          }
+        const roadmaps = await response.json();
+        const roadmapsArray = Array.isArray(roadmaps) ? roadmaps : [];
+        if (roadmapsArray.length > 0) {
+          // Calculate progress for the first active roadmap
+          const roadmap = roadmapsArray[0];
+          const milestoneStats = {
+            total: roadmap.milestones?.length || 0,
+            completed: roadmap.milestones?.filter((m: any) => m.status === "COMPLETED").length || 0,
+            percentage: roadmap.milestones?.length ? Math.round((roadmap.milestones.filter((m: any) => m.status === "COMPLETED").length / roadmap.milestones.length) * 100) : 0,
+          };
+          const allTasks = roadmap.milestones?.flatMap((m: any) => m.tasks || []) || [];
+          const taskStats = {
+            total: allTasks.length,
+            completed: allTasks.filter((t: any) => t.completed).length,
+            percentage: allTasks.length ? Math.round((allTasks.filter((t: any) => t.completed).length / allTasks.length) * 100) : 0,
+          };
+          setMenteeRoadmap({
+            ...roadmap,
+            progress: {
+              milestones: milestoneStats,
+              tasks: taskStats,
+            },
+          });
         }
       }
     } catch (error) {

@@ -91,9 +91,11 @@ export default function RoadmapsPage() {
       if (!response.ok) throw new Error("Failed to fetch roadmaps");
 
       const data = await response.json();
-      setRoadmaps(data.roadmaps);
+      // API returns array directly, not wrapped in { roadmaps: [] }
+      setRoadmaps(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error("Error fetching roadmaps:", error);
+      setRoadmaps([]);
     } finally {
       setLoading(false);
     }
