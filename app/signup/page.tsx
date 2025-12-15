@@ -15,7 +15,7 @@ export default function SignupPage() {
             </div>
             <h1 className="text-3xl font-bold text-brand-navy">Create your account</h1>
             <p className="mt-2 text-gray-600">
-              Join thousands of professionals growing with MenteeMatch
+              Join thousands of professionals growing with MentorMatch
             </p>
           </div>
 

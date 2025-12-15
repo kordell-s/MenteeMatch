@@ -140,6 +140,34 @@ export async function PATCH(
       },
     });
 
+    // Check if all milestones in the roadmap are completed
+    // If so, automatically mark roadmap as completed
+    if (updateData.status === "COMPLETED") {
+      const roadmapWithMilestones = await prisma.roadmap.findUnique({
+        where: { id: existingMilestone.roadmapId },
+        include: {
+          milestones: true,
+        },
+      });
+
+      if (roadmapWithMilestones) {
+        const allMilestonesCompleted = roadmapWithMilestones.milestones.every(
+          (m) => m.status === "COMPLETED"
+        );
+
+        // Only auto-complete if roadmap is currently active
+        if (
+          allMilestonesCompleted &&
+          roadmapWithMilestones.status === "ACTIVE"
+        ) {
+          await prisma.roadmap.update({
+            where: { id: existingMilestone.roadmapId },
+            data: { status: "COMPLETED" },
+          });
+        }
+      }
+    }
+
     return NextResponse.json({
       message: "Milestone updated successfully",
       milestone: updatedMilestone,

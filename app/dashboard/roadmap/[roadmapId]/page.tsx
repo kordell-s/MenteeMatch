@@ -293,6 +293,13 @@ export default function RoadmapDetailPage() {
           {isMentor && roadmap.status === "ACTIVE" && (
             <div className="flex gap-2">
               <Button
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+                onClick={() => handleRoadmapStatusChange("COMPLETED")}
+              >
+                <CheckCircle2 className="h-4 w-4 mr-2" />
+                Mark as Complete
+              </Button>
+              <Button
                 variant="outline"
                 onClick={() => handleRoadmapStatusChange("PAUSED")}
               >

@@ -1,25 +1,29 @@
-import React from 'react';
+import React from "react";
 
 interface LogoProps {
-  size?: 'sm' | 'md' | 'lg';
+  size?: "sm" | "md" | "lg";
   showIcon?: boolean;
   className?: string;
 }
 
-export default function Logo({ size = 'md', showIcon = true, className = '' }: LogoProps) {
+export default function Logo({
+  size = "md",
+  showIcon = true,
+  className = "",
+}: LogoProps) {
   const sizes = {
     sm: {
-      text: 'text-lg',
+      text: "text-lg",
       icon: 20,
       iconStroke: 2,
     },
     md: {
-      text: 'text-2xl',
+      text: "text-2xl",
       icon: 24,
       iconStroke: 2.5,
     },
     lg: {
-      text: 'text-4xl',
+      text: "text-4xl",
       icon: 32,
       iconStroke: 3,
     },
@@ -67,7 +71,7 @@ export default function Logo({ size = 'md', showIcon = true, className = '' }: L
         </svg>
       )}
       <span className={`font-bold ${sizeConfig.text}`}>
-        <span className="text-brand-teal">Mentee</span>
+        <span className="text-brand-teal">Mentor</span>
         <span className="text-brand-orange">Match</span>
       </span>
     </div>

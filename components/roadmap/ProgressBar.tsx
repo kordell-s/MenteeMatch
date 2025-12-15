@@ -3,7 +3,7 @@ interface ProgressBarProps {
   label?: string;
   showLabel?: boolean;
   size?: "sm" | "md" | "lg";
-  colorScheme?: "teal" | "gold" | "orange" | "green";
+  colorScheme?: "teal" | "gold" | "orange" | "green" | "blue" | "gray";
 }
 
 export default function ProgressBar({
@@ -24,6 +24,8 @@ export default function ProgressBar({
     gold: "bg-brand-gold",
     orange: "bg-brand-orange",
     green: "bg-green-500",
+    blue: "bg-blue-600",
+    gray: "bg-gray-400",
   };
 
   const clampedPercentage = Math.min(Math.max(percentage, 0), 100);

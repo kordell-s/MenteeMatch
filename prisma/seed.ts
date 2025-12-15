@@ -858,6 +858,28 @@ async function main() {
     },
   });
 
+  const mentee4 = await prisma.user.create({
+    data: {
+      name: "Jordan Chen",
+      email: "jordan.mentee@test.com",
+      password: hashedPassword,
+      role: "MENTEE",
+      bio: "Junior developer looking to level up from frontend to full-stack with cloud architecture expertise. Passionate about building scalable applications.",
+      title: "Junior Full-Stack Developer",
+      company: "CloudTech Solutions",
+      school: "UC Berkeley",
+      location: "San Francisco, CA",
+      experienceLevel: "ENTRY",
+      skills: ["REACT", "TYPESCRIPT", "NODE_JS", "AWS"],
+      languages: ["English", "Mandarin"],
+      availability: ["MONDAY", "TUESDAY", "THURSDAY", "SATURDAY"],
+      timeAvailability: ["EVENING", "LATE_EVENING"],
+      verified: true,
+      profileComplete: true,
+      gender: "MALE",
+    },
+  });
+
   // Create Mentor profiles
   await prisma.mentor.create({
     data: {
@@ -994,6 +1016,14 @@ async function main() {
     },
   });
 
+  await prisma.mentee.create({
+    data: {
+      userId: mentee4.id,
+      goals: ["LEARN_CODING", "BUILD_PROJECTS", "CAREER_GUIDANCE"],
+      detailedGoals: "I'm a junior full-stack developer looking to advance my career by mastering cloud architecture and system design. I have solid React and TypeScript skills but want to learn how to build scalable backend systems with Node.js and deploy them on AWS. I'm particularly interested in microservices architecture, serverless computing, database design, and infrastructure as code. My goal is to become a senior full-stack engineer who can architect and build production-grade cloud applications.",
+    },
+  });
+
   console.log("🤝 Creating mentorship relationships...");
 
   // Create some mentorships
@@ -1013,14 +1043,22 @@ async function main() {
     },
   });
 
+  const mentorship3 = await prisma.mentorship.create({
+    data: {
+      mentorId: mentor1.id,
+      menteeId: mentee4.id,
+      status: "ACCEPTED",
+    },
+  });
+
   console.log("📅 Creating sessions...");
 
-  // Create some sessions
+  // Create sessions with future dates for demo
   await prisma.session.create({
     data: {
       mentorId: mentor1.id,
       menteeId: mentee1.id,
-      date: new Date("2025-10-20T18:00:00"),
+      date: new Date("2025-12-20T18:00:00"),
       time: "18:00",
       duration: 60,
       status: "CONFIRMED",
@@ -1034,7 +1072,7 @@ async function main() {
     data: {
       mentorId: mentor2.id,
       menteeId: mentee2.id,
-      date: new Date("2025-10-18T14:00:00"),
+      date: new Date("2025-12-10T14:00:00"),
       time: "14:00",
       duration: 90,
       status: "COMPLETED",
@@ -1046,16 +1084,46 @@ async function main() {
     },
   });
 
+  await prisma.session.create({
+    data: {
+      mentorId: mentor1.id,
+      menteeId: mentee4.id,
+      date: new Date("2025-12-12T19:00:00"),
+      time: "19:00",
+      duration: 60,
+      status: "COMPLETED",
+      title: "AWS Fundamentals & Cloud Architecture Overview",
+      description: "Introduction to AWS services and cloud architecture patterns",
+      offeringType: "Technical Session",
+      feedback: "Jordan showed great enthusiasm for cloud architecture. Covered EC2, S3, and Lambda basics.",
+      rating: 5.0,
+    },
+  });
+
+  await prisma.session.create({
+    data: {
+      mentorId: mentor1.id,
+      menteeId: mentee4.id,
+      date: new Date("2025-12-22T19:00:00"),
+      time: "19:00",
+      duration: 60,
+      status: "CONFIRMED",
+      title: "System Design Deep Dive",
+      description: "Review microservices architecture and database scaling strategies",
+      offeringType: "Technical Session",
+    },
+  });
+
   console.log("✅ Creating tasks...");
 
-  // Create some tasks
+  // Create tasks with future due dates for demo
   await prisma.task.create({
     data: {
       mentorId: mentor1.id,
       menteeId: mentee1.id,
       title: "Build a Todo App with React",
       description: "Create a full-featured todo application using React hooks and local storage",
-      dueDate: new Date("2025-10-25"),
+      dueDate: new Date("2025-12-25"),
       status: "IN_PROGRESS",
       goalTag: "BUILD_PROJECTS",
     },
@@ -1067,7 +1135,7 @@ async function main() {
       menteeId: mentee1.id,
       title: "Complete FreeCodeCamp JavaScript Course",
       description: "Finish the basic JavaScript certification",
-      dueDate: new Date("2025-10-30"),
+      dueDate: new Date("2025-12-30"),
       status: "PENDING",
       goalTag: "LEARN_CODING",
     },
@@ -1079,10 +1147,84 @@ async function main() {
       menteeId: mentee2.id,
       title: "Study Linear Regression",
       description: "Complete the linear regression module on Coursera",
-      dueDate: new Date("2025-10-22"),
+      dueDate: new Date("2025-12-18"),
       status: "COMPLETED",
       completed: true,
       goalTag: "LEARN_CODING",
+    },
+  });
+
+  // Tasks from Sarah (mentor1) to Jordan (mentee4)
+  await prisma.task.create({
+    data: {
+      mentorId: mentor1.id,
+      menteeId: mentee4.id,
+      title: "Complete AWS Cloud Practitioner Course",
+      description: "Finish the AWS Cloud Practitioner Essentials course to understand core AWS services",
+      dueDate: new Date("2026-01-10"),
+      status: "COMPLETED",
+      completed: true,
+      goalTag: "LEARN_CODING",
+    },
+  });
+
+  await prisma.task.create({
+    data: {
+      mentorId: mentor1.id,
+      menteeId: mentee4.id,
+      title: "Build REST API with Express & PostgreSQL",
+      description: "Create a production-ready REST API with proper error handling, validation, and database relationships",
+      dueDate: new Date("2026-01-25"),
+      status: "IN_PROGRESS",
+      goalTag: "BUILD_PROJECTS",
+    },
+  });
+
+  await prisma.task.create({
+    data: {
+      mentorId: mentor1.id,
+      menteeId: mentee4.id,
+      title: "Study Microservices Architecture Patterns",
+      description: "Read 'Building Microservices' by Sam Newman - chapters 1-4. Take notes on key patterns",
+      dueDate: new Date("2026-02-01"),
+      status: "IN_PROGRESS",
+      goalTag: "LEARN_CODING",
+    },
+  });
+
+  await prisma.task.create({
+    data: {
+      mentorId: mentor1.id,
+      menteeId: mentee4.id,
+      title: "Deploy Application to AWS EC2",
+      description: "Deploy your REST API to an EC2 instance with proper security groups and load balancing",
+      dueDate: new Date("2026-02-10"),
+      status: "PENDING",
+      goalTag: "BUILD_PROJECTS",
+    },
+  });
+
+  await prisma.task.create({
+    data: {
+      mentorId: mentor1.id,
+      menteeId: mentee4.id,
+      title: "System Design Practice Problems",
+      description: "Complete 3 system design problems from 'Designing Data-Intensive Applications'. Focus on scalability and reliability.",
+      dueDate: new Date("2026-02-15"),
+      status: "PENDING",
+      goalTag: "CAREER_GUIDANCE",
+    },
+  });
+
+  await prisma.task.create({
+    data: {
+      mentorId: mentor1.id,
+      menteeId: mentee4.id,
+      title: "Implement CI/CD Pipeline",
+      description: "Set up GitHub Actions for automated testing and deployment to AWS",
+      dueDate: new Date("2026-02-20"),
+      status: "PENDING",
+      goalTag: "BUILD_PROJECTS",
     },
   });
 
@@ -1105,6 +1247,14 @@ async function main() {
     },
   });
 
+  await prisma.rating.create({
+    data: {
+      userId: mentor1.id,
+      ratedById: mentee4.id,
+      ratingValue: 5.0,
+    },
+  });
+
   console.log("🗺️  Creating roadmaps with milestones...");
 
   // Create roadmap for mentee1 (Alex) - Full-Stack Development Journey
@@ -1115,8 +1265,8 @@ async function main() {
       description: "A comprehensive 12-week program to master modern full-stack development with React and Node.js",
       duration: 12,
       focusArea: "Full-Stack Web Development",
-      startDate: new Date("2025-01-15"),
-      endDate: new Date("2025-04-15"),
+      startDate: new Date("2025-12-01"),
+      endDate: new Date("2026-02-28"),
       status: "ACTIVE",
     },
   });
@@ -1128,9 +1278,9 @@ async function main() {
       title: "JavaScript Fundamentals Mastery",
       description: "Deep dive into ES6+, async/await, closures, and functional programming",
       order: 1,
-      dueDate: new Date("2025-02-05"),
+      dueDate: new Date("2025-12-20"),
       status: "COMPLETED",
-      completedAt: new Date("2025-02-03"),
+      completedAt: new Date("2025-12-18"),
     },
   });
 
@@ -1161,7 +1311,7 @@ async function main() {
       title: "React Fundamentals & Hooks",
       description: "Learn React components, hooks, state management, and component lifecycle",
       order: 2,
-      dueDate: new Date("2025-02-26"),
+      dueDate: new Date("2026-01-10"),
       status: "IN_PROGRESS",
     },
   });
@@ -1190,7 +1340,7 @@ async function main() {
     data: {
       milestoneId: milestone1_2.id,
       mentorNotes: "Review progress on React hooks project. Discuss useEffect and custom hooks.",
-      scheduledDate: new Date("2025-02-20T18:00:00"),
+      scheduledDate: new Date("2026-01-05T18:00:00"),
       status: "SCHEDULED",
     },
   });
@@ -1202,7 +1352,7 @@ async function main() {
       title: "Backend with Node.js & Express",
       description: "Build RESTful APIs with Node.js, Express, and MongoDB",
       order: 3,
-      dueDate: new Date("2025-03-19"),
+      dueDate: new Date("2026-01-30"),
       status: "NOT_STARTED",
     },
   });
@@ -1224,7 +1374,7 @@ async function main() {
       title: "Full-Stack Project: Build a Social Media App",
       description: "Combine all skills to build a complete full-stack application with authentication",
       order: 4,
-      dueDate: new Date("2025-04-15"),
+      dueDate: new Date("2026-02-28"),
       status: "NOT_STARTED",
     },
   });
@@ -1233,7 +1383,7 @@ async function main() {
     data: {
       milestoneId: milestone1_4.id,
       mentorNotes: "Final project review and deployment guidance",
-      scheduledDate: new Date("2025-04-10T18:00:00"),
+      scheduledDate: new Date("2026-02-25T18:00:00"),
       status: "SCHEDULED",
     },
   });
@@ -1246,8 +1396,8 @@ async function main() {
       description: "Structured 8-week path from data analyst to machine learning engineer",
       duration: 8,
       focusArea: "Machine Learning & Data Science",
-      startDate: new Date("2025-01-20"),
-      endDate: new Date("2025-03-20"),
+      startDate: new Date("2025-12-01"),
+      endDate: new Date("2026-02-20"),
       status: "ACTIVE",
     },
   });
@@ -1259,9 +1409,9 @@ async function main() {
       title: "Python for Data Science",
       description: "Master NumPy, Pandas, and data manipulation techniques",
       order: 1,
-      dueDate: new Date("2025-02-03"),
+      dueDate: new Date("2026-01-03"),
       status: "COMPLETED",
-      completedAt: new Date("2025-02-01"),
+      completedAt: new Date("2026-01-01"),
     },
   });
 
@@ -1282,7 +1432,7 @@ async function main() {
       title: "Statistics & Probability Foundations",
       description: "Learn statistical concepts essential for machine learning",
       order: 2,
-      dueDate: new Date("2025-02-17"),
+      dueDate: new Date("2026-01-15"),
       status: "IN_PROGRESS",
     },
   });
@@ -1301,7 +1451,7 @@ async function main() {
     data: {
       milestoneId: milestone2_2.id,
       mentorNotes: "Review hypothesis testing and confidence intervals. Work through practice problems.",
-      scheduledDate: new Date("2025-02-14T14:00:00"),
+      scheduledDate: new Date("2026-01-12T14:00:00"),
       status: "SCHEDULED",
     },
   });
@@ -1313,7 +1463,7 @@ async function main() {
       title: "Machine Learning Algorithms",
       description: "Understand and implement supervised and unsupervised learning algorithms",
       order: 3,
-      dueDate: new Date("2025-03-03"),
+      dueDate: new Date("2026-01-25"),
       status: "NOT_STARTED",
     },
   });
@@ -1345,7 +1495,7 @@ async function main() {
       title: "Capstone ML Project",
       description: "Build an end-to-end ML project with data collection, model training, and deployment",
       order: 4,
-      dueDate: new Date("2025-03-20"),
+      dueDate: new Date("2026-02-20"),
       status: "NOT_STARTED",
     },
   });
@@ -1354,7 +1504,207 @@ async function main() {
     data: {
       milestoneId: milestone2_4.id,
       mentorNotes: "Project review and career transition discussion",
-      scheduledDate: new Date("2025-03-18T14:00:00"),
+      scheduledDate: new Date("2026-02-18T14:00:00"),
+      status: "SCHEDULED",
+    },
+  });
+
+  // Create roadmap for mentee4 (Jordan) - Cloud Architecture Mastery
+  const roadmap3 = await prisma.roadmap.create({
+    data: {
+      mentorshipId: mentorship3.id,
+      title: "Cloud Architecture Mastery Path",
+      description: "Transform from frontend developer to full-stack cloud architect with comprehensive AWS and system design expertise",
+      duration: 12,
+      focusArea: "Cloud Architecture & System Design",
+      startDate: new Date("2025-12-01"),
+      endDate: new Date("2026-03-01"),
+      status: "ACTIVE",
+    },
+  });
+
+  // Milestone 1 for roadmap3 (Jordan)
+  const milestone3_1 = await prisma.milestone.create({
+    data: {
+      roadmapId: roadmap3.id,
+      title: "AWS Fundamentals & Core Services",
+      description: "Master EC2, S3, RDS, Lambda, and core AWS networking concepts",
+      order: 1,
+      dueDate: new Date("2026-01-10"),
+      status: "COMPLETED",
+      completedAt: new Date("2026-01-08"),
+    },
+  });
+
+  await prisma.roadmapResource.create({
+    data: {
+      milestoneId: milestone3_1.id,
+      title: "AWS Cloud Practitioner Essentials",
+      url: "https://aws.amazon.com/training/",
+      description: "Official AWS training course covering core services",
+      resourceType: "LINK",
+    },
+  });
+
+  await prisma.roadmapResource.create({
+    data: {
+      milestoneId: milestone3_1.id,
+      title: "AWS Well-Architected Framework",
+      url: "https://aws.amazon.com/architecture/well-architected/",
+      description: "Best practices for building on AWS",
+      resourceType: "DOCUMENT",
+    },
+  });
+
+  // Milestone 2 for roadmap3 (Jordan)
+  const milestone3_2 = await prisma.milestone.create({
+    data: {
+      roadmapId: roadmap3.id,
+      title: "Backend Development with Node.js",
+      description: "Build scalable REST APIs with Express, implement authentication, and integrate with PostgreSQL",
+      order: 2,
+      dueDate: new Date("2026-01-25"),
+      status: "IN_PROGRESS",
+    },
+  });
+
+  await prisma.roadmapResource.create({
+    data: {
+      milestoneId: milestone3_2.id,
+      title: "Node.js Best Practices",
+      url: "https://github.com/goldbergyoni/nodebestpractices",
+      description: "Production-grade Node.js patterns and practices",
+      resourceType: "DOCUMENT",
+    },
+  });
+
+  await prisma.roadmapResource.create({
+    data: {
+      milestoneId: milestone3_2.id,
+      title: "PostgreSQL Tutorial",
+      url: "https://www.postgresqltutorial.com/",
+      description: "Comprehensive PostgreSQL database guide",
+      resourceType: "LINK",
+    },
+  });
+
+  await prisma.roadmapResource.create({
+    data: {
+      milestoneId: milestone3_2.id,
+      title: "RESTful API Design",
+      url: "https://www.youtube.com/watch?v=0oXYLzuucwE",
+      description: "Best practices for designing REST APIs",
+      resourceType: "VIDEO",
+    },
+  });
+
+  await prisma.checkIn.create({
+    data: {
+      milestoneId: milestone3_2.id,
+      mentorNotes: "Review API implementation, discuss authentication strategies and database schema design",
+      scheduledDate: new Date("2026-01-20T19:00:00"),
+      status: "SCHEDULED",
+    },
+  });
+
+  // Milestone 3 for roadmap3 (Jordan)
+  const milestone3_3 = await prisma.milestone.create({
+    data: {
+      roadmapId: roadmap3.id,
+      title: "System Design & Microservices Architecture",
+      description: "Learn to design scalable distributed systems, microservices patterns, and event-driven architecture",
+      order: 3,
+      dueDate: new Date("2026-02-10"),
+      status: "NOT_STARTED",
+    },
+  });
+
+  await prisma.roadmapResource.create({
+    data: {
+      milestoneId: milestone3_3.id,
+      title: "Designing Data-Intensive Applications",
+      url: "https://dataintensive.net/",
+      description: "Essential book on distributed systems and data architecture",
+      resourceType: "DOCUMENT",
+    },
+  });
+
+  await prisma.roadmapResource.create({
+    data: {
+      milestoneId: milestone3_3.id,
+      title: "Building Microservices by Sam Newman",
+      url: "https://samnewman.io/books/building_microservices/",
+      description: "Comprehensive guide to microservices architecture",
+      resourceType: "DOCUMENT",
+    },
+  });
+
+  await prisma.roadmapResource.create({
+    data: {
+      milestoneId: milestone3_3.id,
+      title: "System Design Interview Prep",
+      url: "https://github.com/donnemartin/system-design-primer",
+      description: "Collection of system design resources and interview questions",
+      resourceType: "LINK",
+    },
+  });
+
+  await prisma.checkIn.create({
+    data: {
+      milestoneId: milestone3_3.id,
+      mentorNotes: "Practice system design problems together. Discuss load balancing, caching, and database sharding.",
+      scheduledDate: new Date("2026-02-05T19:00:00"),
+      status: "SCHEDULED",
+    },
+  });
+
+  // Milestone 4 for roadmap3 (Jordan)
+  const milestone3_4 = await prisma.milestone.create({
+    data: {
+      roadmapId: roadmap3.id,
+      title: "Cloud Deployment & DevOps",
+      description: "Deploy applications to AWS with CI/CD, implement infrastructure as code with Terraform, and set up monitoring",
+      order: 4,
+      dueDate: new Date("2026-03-01"),
+      status: "NOT_STARTED",
+    },
+  });
+
+  await prisma.roadmapResource.create({
+    data: {
+      milestoneId: milestone3_4.id,
+      title: "Terraform AWS Tutorial",
+      url: "https://learn.hashicorp.com/collections/terraform/aws-get-started",
+      description: "Infrastructure as code with Terraform",
+      resourceType: "LINK",
+    },
+  });
+
+  await prisma.roadmapResource.create({
+    data: {
+      milestoneId: milestone3_4.id,
+      title: "GitHub Actions CI/CD",
+      url: "https://docs.github.com/en/actions",
+      description: "Automated deployment pipelines",
+      resourceType: "DOCUMENT",
+    },
+  });
+
+  await prisma.roadmapResource.create({
+    data: {
+      milestoneId: milestone3_4.id,
+      title: "AWS CloudWatch Monitoring",
+      url: "https://www.youtube.com/watch?v=a4dhoTQCyRA",
+      description: "Application monitoring and logging on AWS",
+      resourceType: "VIDEO",
+    },
+  });
+
+  await prisma.checkIn.create({
+    data: {
+      milestoneId: milestone3_4.id,
+      mentorNotes: "Final project review: Evaluate deployed application, discuss production best practices and next career steps",
+      scheduledDate: new Date("2026-02-25T19:00:00"),
       status: "SCHEDULED",
     },
   });
@@ -1370,6 +1720,50 @@ async function main() {
     data: { milestoneId: milestone2_1.id },
   });
 
+  // Link Jordan's tasks to milestones
+  const jordanTasks = await prisma.task.findMany({
+    where: { menteeId: mentee4.id },
+    orderBy: { createdAt: 'asc' }
+  });
+
+  if (jordanTasks.length >= 6) {
+    // Task 1: AWS Cloud Practitioner -> Milestone 1 (AWS Fundamentals)
+    await prisma.task.update({
+      where: { id: jordanTasks[0].id },
+      data: { milestoneId: milestone3_1.id },
+    });
+
+    // Task 2: REST API -> Milestone 2 (Backend Development)
+    await prisma.task.update({
+      where: { id: jordanTasks[1].id },
+      data: { milestoneId: milestone3_2.id },
+    });
+
+    // Task 3: Microservices Study -> Milestone 3 (System Design)
+    await prisma.task.update({
+      where: { id: jordanTasks[2].id },
+      data: { milestoneId: milestone3_3.id },
+    });
+
+    // Task 4: Deploy to EC2 -> Milestone 4 (Cloud Deployment)
+    await prisma.task.update({
+      where: { id: jordanTasks[3].id },
+      data: { milestoneId: milestone3_4.id },
+    });
+
+    // Task 5: System Design Practice -> Milestone 3 (System Design)
+    await prisma.task.update({
+      where: { id: jordanTasks[4].id },
+      data: { milestoneId: milestone3_3.id },
+    });
+
+    // Task 6: CI/CD Pipeline -> Milestone 4 (Cloud Deployment)
+    await prisma.task.update({
+      where: { id: jordanTasks[5].id },
+      data: { milestoneId: milestone3_4.id },
+    });
+  }
+
   console.log("\n✅ Database seeded successfully!");
   console.log("\n📝 Test Accounts (all use password: Test123!):");
   console.log("\nMentors (8 total):");
@@ -1381,11 +1775,16 @@ async function main() {
   console.log("  - carlos.mentor@test.com (DevOps/Cloud)");
   console.log("  - lisa.mentor@test.com (Product/Leadership)");
   console.log("  - raj.mentor@test.com (MERN Stack)");
-  console.log("\nMentees (3 total):");
+  console.log("\nMentees (4 total):");
   console.log("  - alex.mentee@test.com (CS Student - Web Dev)");
   console.log("  - maria.mentee@test.com (Career Changer - Data Science)");
   console.log("  - james.mentee@test.com (Bootcamp Grad - Full-Stack)");
+  console.log("  - jordan.mentee@test.com (Junior Dev - Cloud Architecture)");
   console.log("\n🎉 You can now log in with any of these accounts!");
+  console.log("\n📊 Demo Data Highlight:");
+  console.log("  Sarah Johnson (sarah.mentor@test.com) has 2 mentees:");
+  console.log("    • Alex Thompson - Full-Stack Development Journey (12 weeks, Active)");
+  console.log("    • Jordan Chen - Cloud Architecture Mastery Path (12 weeks, Active)");
 }
 
 main()

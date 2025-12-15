@@ -9,6 +9,7 @@ import {
   Clock,
   CheckCircle,
   AlertCircle,
+  CheckCircle2,
 } from "lucide-react";
 import ProgressBar from "./ProgressBar";
 
@@ -44,12 +45,14 @@ interface RoadmapCardProps {
     };
   };
   onArchive?: () => void;
+  onComplete?: () => void;
   isMentor?: boolean;
 }
 
 export default function RoadmapCard({
   roadmap,
   onArchive,
+  onComplete,
   isMentor = false,
 }: RoadmapCardProps) {
   const router = useRouter();
@@ -76,6 +79,20 @@ export default function RoadmapCard({
   const completedMilestones =
     roadmap.milestones?.filter((m) => m.status === "COMPLETED").length || 0;
   const progressPercentage = roadmap.progress?.milestones?.percentage || 0;
+
+  // Determine progress bar color based on roadmap status
+  const getProgressBarColor = (): "teal" | "blue" | "gray" => {
+    switch (roadmap.status) {
+      case "COMPLETED":
+        return "blue";
+      case "PAUSED":
+      case "ARCHIVED":
+        return "gray";
+      case "ACTIVE":
+      default:
+        return "teal";
+    }
+  };
 
   return (
     <Card className="border-2 border-brand-sky/30 hover:shadow-xl transition-all duration-300">
@@ -120,13 +137,20 @@ export default function RoadmapCard({
           <ProgressBar
             percentage={progressPercentage}
             label="Milestone Progress"
-            colorScheme="teal"
+            colorScheme={getProgressBarColor()}
           />
-          <div className="flex justify-between items-center mt-2 text-xs text-gray-500">
-            <span>
-              {completedMilestones}/{totalMilestones} milestones completed
+          <div className="flex justify-between items-center mt-2 text-xs">
+            <span className={roadmap.status === "COMPLETED" ? "text-blue-600 font-semibold" : "text-gray-500"}>
+              {roadmap.status === "COMPLETED" && progressPercentage === 100 ? (
+                <span className="flex items-center gap-1">
+                  <CheckCircle2 className="h-3 w-3" />
+                  All milestones completed
+                </span>
+              ) : (
+                `${completedMilestones}/${totalMilestones} milestones completed`
+              )}
             </span>
-            <span>
+            <span className="text-gray-500">
               {roadmap.progress?.tasks?.completed || 0}/
               {roadmap.progress?.tasks?.total || 0} tasks
             </span>
@@ -162,21 +186,35 @@ export default function RoadmapCard({
         </div>
 
         {/* Actions */}
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           <Button
             onClick={handleViewClick}
             className="flex-1 bg-brand-teal hover:bg-brand-navy text-white"
           >
             View Roadmap
           </Button>
-          {isMentor && roadmap.status === "ACTIVE" && onArchive && (
-            <Button
-              variant="outline"
-              onClick={onArchive}
-              className="border-gray-300 text-gray-700 hover:bg-gray-100"
-            >
-              Archive
-            </Button>
+          {isMentor && roadmap.status === "ACTIVE" && (
+            <>
+              {onComplete && (
+                <Button
+                  variant="default"
+                  onClick={onComplete}
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                >
+                  <CheckCircle2 className="h-4 w-4 mr-1" />
+                  Complete
+                </Button>
+              )}
+              {onArchive && (
+                <Button
+                  variant="outline"
+                  onClick={onArchive}
+                  className="border-gray-300 text-gray-700 hover:bg-gray-100"
+                >
+                  Archive
+                </Button>
+              )}
+            </>
           )}
         </div>
       </CardContent>

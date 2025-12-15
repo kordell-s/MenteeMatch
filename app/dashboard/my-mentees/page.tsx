@@ -33,6 +33,8 @@ import {
   FileText,
   CheckSquare,
   User,
+  Map,
+  TrendingUp,
 } from "lucide-react";
 import type {
   DashboardData,
@@ -50,6 +52,9 @@ interface EnhancedMenteeData extends MenteeCardData {
   totalSessions: number;
   primaryGoal: string;
   progressPercentage: number;
+  activeRoadmaps: number;
+  completedRoadmaps: number;
+  totalRoadmaps: number;
 }
 
 interface DynamicDashboardStats {
@@ -57,6 +62,8 @@ interface DynamicDashboardStats {
   totalTasksCreated: number;
   totalSessionsCompleted: number;
   totalSessionsScheduled: number;
+  totalRoadmapsCompleted: number;
+  totalActiveRoadmaps: number;
 }
 
 interface RecentSession {
@@ -80,6 +87,8 @@ export default function MyMenteesPage() {
     totalTasksCreated: 0,
     totalSessionsCompleted: 0,
     totalSessionsScheduled: 0,
+    totalRoadmapsCompleted: 0,
+    totalActiveRoadmaps: 0,
   });
   const [enhancedMentees, setEnhancedMentees] = useState<EnhancedMenteeData[]>(
     []
@@ -197,12 +206,18 @@ export default function MyMenteesPage() {
       const sessionsRes = await fetch(`/api/sessions?role=MENTOR`);
       const allMentorSessions = sessionsRes.ok ? await sessionsRes.json() : [];
 
+      // Fetch all roadmaps for this mentor
+      const roadmapsRes = await fetch(`/api/roadmaps`);
+      const allMentorRoadmaps = roadmapsRes.ok ? await roadmapsRes.json() : [];
+
       // Process enhanced data for each mentee
       const enhancedMenteesData: EnhancedMenteeData[] = [];
       let totalTasksCompleted = 0;
       let totalTasksCreated = 0;
       let totalSessionsCompleted = 0;
       let totalSessionsScheduled = 0;
+      let totalRoadmapsCompleted = 0;
+      let totalActiveRoadmaps = 0;
 
       for (const mentee of data.confirmedMentees || []) {
         // Filter tasks for this specific mentee
@@ -213,6 +228,11 @@ export default function MyMenteesPage() {
         // Filter sessions for this specific mentee from sessions API data
         const menteeSessions = allMentorSessions.filter(
           (session: any) => session.mentee?.id === mentee.id
+        );
+
+        // Filter roadmaps for this specific mentee
+        const menteeRoadmaps = allMentorRoadmaps.filter(
+          (roadmap: any) => roadmap.mentorship?.mentee?.id === mentee.id
         );
 
         const completedTasks = menteeTasks.filter(
@@ -226,6 +246,14 @@ export default function MyMenteesPage() {
         const progressPercentage =
           totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
 
+        const activeRoadmaps = menteeRoadmaps.filter(
+          (roadmap: any) => roadmap.status === "ACTIVE"
+        ).length;
+        const completedRoadmaps = menteeRoadmaps.filter(
+          (roadmap: any) => roadmap.status === "COMPLETED"
+        ).length;
+        const totalRoadmaps = menteeRoadmaps.length;
+
         const enhancedMentee: EnhancedMenteeData = {
           ...mentee,
           completedTasks,
@@ -234,6 +262,9 @@ export default function MyMenteesPage() {
           totalSessions,
           primaryGoal: mentee.goals?.[0] || "No primary goal set",
           progressPercentage,
+          activeRoadmaps,
+          completedRoadmaps,
+          totalRoadmaps,
         };
 
         enhancedMenteesData.push(enhancedMentee);
@@ -243,6 +274,8 @@ export default function MyMenteesPage() {
         totalTasksCreated += totalTasks;
         totalSessionsCompleted += completedSessions;
         totalSessionsScheduled += totalSessions;
+        totalRoadmapsCompleted += completedRoadmaps;
+        totalActiveRoadmaps += activeRoadmaps;
       }
 
       setEnhancedMentees(enhancedMenteesData);
@@ -251,6 +284,8 @@ export default function MyMenteesPage() {
         totalTasksCreated,
         totalSessionsCompleted,
         totalSessionsScheduled,
+        totalRoadmapsCompleted,
+        totalActiveRoadmaps,
       });
 
       // Fetch recent sessions using updated data
@@ -391,7 +426,7 @@ export default function MyMenteesPage() {
       </div>
 
       {/* Enhanced Dashboard Statistics */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <Card className="border-brand-sky/30">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-gray-500">
@@ -449,6 +484,27 @@ export default function MyMenteesPage() {
                   {dashboardStats.totalSessionsScheduled}
                 </div>
                 <p className="text-xs text-gray-500">Sessions Completed</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-brand-sky/30">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-gray-500">
+              Roadmap Progress
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center">
+              <Map className="h-8 w-8 text-blue-600 mr-3" />
+              <div>
+                <div className="text-2xl font-bold text-brand-navy">
+                  {dashboardStats.totalRoadmapsCompleted}
+                </div>
+                <p className="text-xs text-gray-500">
+                  Completed | {dashboardStats.totalActiveRoadmaps} active
+                </p>
               </div>
             </div>
           </CardContent>
@@ -567,6 +623,28 @@ export default function MyMenteesPage() {
                       </div>
                     </div>
 
+                    {/* Roadmap Info */}
+                    {mentee.totalRoadmaps > 0 && (
+                      <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-100">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <Map className="h-4 w-4 text-blue-600" />
+                            <span className="text-sm font-medium text-brand-navy">
+                              Roadmaps
+                            </span>
+                          </div>
+                          <div className="text-xs text-gray-600">
+                            {mentee.completedRoadmaps} completed
+                            {mentee.activeRoadmaps > 0 && (
+                              <span className="ml-1">
+                                | {mentee.activeRoadmaps} active
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
                     {/* Additional Goals */}
                     <div className="flex flex-wrap gap-2 mb-4">
                       {mentee.goals && mentee.goals.length > 1 ? (
@@ -613,6 +691,19 @@ export default function MyMenteesPage() {
                         <User className="h-4 w-4 mr-1" />
                         View Profile
                       </Button>
+                      {mentee.totalRoadmaps > 0 && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="border-blue-300 text-blue-700 hover:bg-blue-50"
+                          onClick={() => {
+                            router.push(`/dashboard/roadmaps`);
+                          }}
+                        >
+                          <Map className="h-4 w-4 mr-1" />
+                          View Roadmaps
+                        </Button>
+                      )}
                       <Button
                         size="sm"
                         variant="outline"

@@ -190,13 +190,26 @@ export default function MenteeProfilePage() {
         <CardContent className="pt-6">
           <div className="flex flex-col md:flex-row gap-6">
             <div className="flex-shrink-0">
-              <Image
-                src={profile.profilePicture || "/placeholder.svg"}
-                alt={profile.name}
-                width={120}
-                height={120}
-                className="rounded-full border-4 border-brand-sky/30"
-              />
+              {profile.profilePicture ? (
+                <Image
+                  src={profile.profilePicture}
+                  alt={profile.name}
+                  width={120}
+                  height={120}
+                  className="rounded-full border-4 border-brand-sky/30"
+                />
+              ) : (
+                <div className="w-[120px] h-[120px] rounded-full border-4 border-brand-sky/30 bg-brand-teal flex items-center justify-center">
+                  <span className="text-4xl font-bold text-white">
+                    {profile.name
+                      .split(" ")
+                      .map((n) => n[0])
+                      .join("")
+                      .toUpperCase()
+                      .slice(0, 2)}
+                  </span>
+                </div>
+              )}
             </div>
             <div className="flex-1">
               <div className="flex items-start justify-between mb-4">

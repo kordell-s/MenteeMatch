@@ -16,17 +16,17 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "MenteeMatch",
-  description: "Connect with mentors and grow your career",
+  title: "MentorMatch",
+  description: "The AI powered Mentorship Platform for theß Caribbean",
   icons: {
     icon: [
       {
-        url: '/favicon.svg',
-        type: 'image/svg+xml',
-      }
+        url: "/favicon.svg",
+        type: "image/svg+xml",
+      },
     ],
-    shortcut: '/favicon.svg',
-    apple: '/favicon.svg',
+    shortcut: "/favicon.svg",
+    apple: "/favicon.svg",
   },
 };
 

@@ -133,6 +133,31 @@ export default function RoadmapsPage() {
     }
   };
 
+  const handleComplete = async (roadmapId: string) => {
+    if (
+      !confirm(
+        "Are you sure you want to mark this roadmap as completed? This will indicate that the mentorship roadmap has been successfully finished."
+      )
+    )
+      return;
+
+    try {
+      const response = await fetch(`/api/roadmaps/${roadmapId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "COMPLETED" }),
+      });
+
+      if (!response.ok) throw new Error("Failed to complete roadmap");
+
+      // Refresh list
+      fetchRoadmaps();
+    } catch (error) {
+      console.error("Error completing roadmap:", error);
+      alert("Failed to complete roadmap. Please try again.");
+    }
+  };
+
   const handleCreateRoadmap = (mentorshipId: string, menteeName: string) => {
     setSelectedMentorship({ id: mentorshipId, name: menteeName });
     setWizardOpen(true);
@@ -313,7 +338,8 @@ export default function RoadmapsPage() {
             <RoadmapCard
               key={roadmap.id}
               roadmap={roadmap}
-              onArchive={handleArchive}
+              onArchive={() => handleArchive(roadmap.id)}
+              onComplete={() => handleComplete(roadmap.id)}
               isMentor={isMentor}
             />
           ))}

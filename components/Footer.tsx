@@ -87,7 +87,7 @@ export default function Footer() {
 
         <div className="border-t border-brand-teal/30 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
           <p className="text-sm text-gray-300">
-            © {new Date().getFullYear()} MenteeMatch. All rights reserved.
+            © {new Date().getFullYear()} MentorMatch. All rights reserved.
           </p>
 
           <div className="flex space-x-6 mt-4 md:mt-0">

@@ -216,7 +216,46 @@ export async function GET(request: NextRequest) {
       orderBy: { createdAt: "desc" },
     });
 
-    return NextResponse.json(roadmaps);
+    // Add progress calculation for each roadmap
+    const roadmapsWithProgress = roadmaps.map((roadmap) => {
+      const totalMilestones = roadmap.milestones.length;
+      const completedMilestones = roadmap.milestones.filter(
+        (m) => m.status === "COMPLETED"
+      ).length;
+      const milestonePercentage =
+        totalMilestones > 0
+          ? Math.round((completedMilestones / totalMilestones) * 100)
+          : 0;
+
+      const totalTasks = roadmap.milestones.reduce(
+        (sum, m) => sum + m.tasks.length,
+        0
+      );
+      const completedTasks = roadmap.milestones.reduce(
+        (sum, m) => sum + m.tasks.filter((t) => t.status === "COMPLETED").length,
+        0
+      );
+      const taskPercentage =
+        totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+
+      return {
+        ...roadmap,
+        progress: {
+          milestones: {
+            total: totalMilestones,
+            completed: completedMilestones,
+            percentage: milestonePercentage,
+          },
+          tasks: {
+            total: totalTasks,
+            completed: completedTasks,
+            percentage: taskPercentage,
+          },
+        },
+      };
+    });
+
+    return NextResponse.json(roadmapsWithProgress);
   } catch (error) {
     console.error("Error fetching roadmaps:", error);
     return NextResponse.json(

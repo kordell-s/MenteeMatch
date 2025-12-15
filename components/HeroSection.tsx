@@ -36,7 +36,7 @@ export default function HeroSection() {
             </div>
             <p className="text-sm text-gray-600 flex items-center gap-2">
               <span className="inline-block w-2 h-2 bg-brand-gold rounded-full animate-pulse"></span>
-              Join over 10,000 professionals already growing with MenteeMatch
+              Join over 10,000 professionals already growing with MentorMatch
             </p>
           </div>
 

@@ -11,7 +11,7 @@ export default function OnboardingPage() {
             <div className="flex justify-center mb-6">
               <Logo size="lg" showIcon={true} />
             </div>
-            <h1 className="text-3xl font-bold text-brand-navy">Welcome to MenteeMatch!</h1>
+            <h1 className="text-3xl font-bold text-brand-navy">Welcome to MentorMatch!</h1>
             <p className="mt-4 text-gray-600">
               Your account has been created successfully. Let's set up your
               profile to help you get the most out of our platform.
