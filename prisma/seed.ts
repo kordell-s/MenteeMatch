@@ -793,6 +793,194 @@ async function main() {
     },
   });
 
+  // MARKETING MENTORS
+  const mentor34 = await prisma.user.create({
+    data: {
+      name: "Laura Martinez",
+      email: "laura.marketing@test.com",
+      password: hashedPassword,
+      role: "MENTOR",
+      bio: "Digital marketing strategist with 10 years of experience in SEO, content marketing, and social media. Helped brands grow their online presence 10x.",
+      title: "Digital Marketing Director",
+      company: "Growth Marketing Co",
+      school: "Northwestern University",
+      location: "Chicago, IL",
+      experienceLevel: "SENIOR",
+      skills: ["DIGITAL_MARKETING", "BUSINESS_STRATEGY", "PUBLIC_SPEAKING", "LEADERSHIP"],
+      languages: ["English", "Spanish"],
+      availability: ["MONDAY", "WEDNESDAY", "FRIDAY"],
+      timeAvailability: ["AFTERNOON", "EVENING"],
+      verified: true,
+      profileComplete: true,
+      rating: 4.8,
+      gender: "FEMALE",
+    },
+  });
+
+  const mentor35 = await prisma.user.create({
+    data: {
+      name: "Kevin Park",
+      email: "kevin.marketing@test.com",
+      password: hashedPassword,
+      role: "MENTOR",
+      bio: "Brand strategist and marketing consultant. Specialize in helping startups define their brand identity and go-to-market strategy.",
+      title: "Brand Strategy Consultant",
+      company: "BrandWorks",
+      school: "USC Marshall",
+      location: "Los Angeles, CA",
+      experienceLevel: "SENIOR",
+      skills: ["DIGITAL_MARKETING", "BUSINESS_STRATEGY", "STARTUPS", "NETWORKING"],
+      languages: ["English", "Korean"],
+      availability: ["TUESDAY", "THURSDAY", "SATURDAY"],
+      timeAvailability: ["MORNING", "AFTERNOON"],
+      verified: true,
+      profileComplete: true,
+      rating: 4.7,
+      gender: "MALE",
+    },
+  });
+
+  // CREATIVE MENTORS
+  const mentor36 = await prisma.user.create({
+    data: {
+      name: "Maya Rodriguez",
+      email: "maya.creative@test.com",
+      password: hashedPassword,
+      role: "MENTOR",
+      bio: "Award-winning creative director with experience in advertising, branding, and content creation. Passionate about mentoring emerging creatives.",
+      title: "Creative Director",
+      company: "Ogilvy",
+      school: "Parsons School of Design",
+      location: "New York, NY",
+      experienceLevel: "LEAD",
+      skills: ["DESIGN_SYSTEMS", "BRANDING", "PUBLIC_SPEAKING", "LEADERSHIP"],
+      languages: ["English", "Spanish"],
+      availability: ["MONDAY", "WEDNESDAY", "FRIDAY"],
+      timeAvailability: ["AFTERNOON", "EVENING"],
+      verified: true,
+      profileComplete: true,
+      rating: 4.9,
+      gender: "FEMALE",
+    },
+  });
+
+  const mentor37 = await prisma.user.create({
+    data: {
+      name: "James Cooper",
+      email: "james.creative@test.com",
+      password: hashedPassword,
+      role: "MENTOR",
+      bio: "Freelance illustrator and animator with clients including Netflix and Disney. Love teaching digital art and animation techniques.",
+      title: "Freelance Illustrator & Animator",
+      company: "Self-Employed",
+      school: "Rhode Island School of Design",
+      location: "Portland, OR",
+      experienceLevel: "SENIOR",
+      skills: ["DESIGN_SYSTEMS", "MOTION_DESIGN", "UX", "FIGMA"],
+      languages: ["English"],
+      availability: ["TUESDAY", "THURSDAY", "SUNDAY"],
+      timeAvailability: ["EVENING", "LATE_EVENING"],
+      verified: true,
+      profileComplete: true,
+      rating: 4.8,
+      gender: "MALE",
+    },
+  });
+
+  // HEALTH MENTORS
+  const mentor38 = await prisma.user.create({
+    data: {
+      name: "Dr. Sarah Chen",
+      email: "sarah.health@test.com",
+      password: hashedPassword,
+      role: "MENTOR",
+      bio: "Licensed clinical psychologist specializing in career counseling and work-life balance. Help professionals navigate career transitions and burnout.",
+      title: "Clinical Psychologist",
+      company: "Mindful Health Clinic",
+      school: "Stanford University",
+      location: "San Francisco, CA",
+      experienceLevel: "LEAD",
+      skills: ["CAREER_COACHING", "LEADERSHIP", "PUBLIC_SPEAKING", "TEAM_MANAGEMENT"],
+      languages: ["English", "Mandarin"],
+      availability: ["MONDAY", "TUESDAY", "WEDNESDAY"],
+      timeAvailability: ["AFTERNOON", "EVENING"],
+      verified: true,
+      profileComplete: true,
+      rating: 4.9,
+      gender: "FEMALE",
+    },
+  });
+
+  const mentor39 = await prisma.user.create({
+    data: {
+      name: "Marcus Williams",
+      email: "marcus.health@test.com",
+      password: hashedPassword,
+      role: "MENTOR",
+      bio: "Registered dietitian and fitness coach with 8 years of experience. Help busy professionals build sustainable health and fitness habits.",
+      title: "Registered Dietitian",
+      company: "Performance Nutrition",
+      school: "University of Texas",
+      location: "Dallas, TX",
+      experienceLevel: "SENIOR",
+      skills: ["CAREER_COACHING", "TEAM_MANAGEMENT", "PUBLIC_SPEAKING", "LEADERSHIP"],
+      languages: ["English"],
+      availability: ["MONDAY", "WEDNESDAY", "FRIDAY", "SATURDAY"],
+      timeAvailability: ["MORNING", "AFTERNOON"],
+      verified: true,
+      profileComplete: true,
+      rating: 4.7,
+      gender: "MALE",
+    },
+  });
+
+  // MUSIC MENTORS
+  const mentor40 = await prisma.user.create({
+    data: {
+      name: "Alicia Thompson",
+      email: "alicia.music@test.com",
+      password: hashedPassword,
+      role: "MENTOR",
+      bio: "Professional music producer and audio engineer with credits on Grammy-nominated albums. Teach music production, mixing, and mastering.",
+      title: "Music Producer & Audio Engineer",
+      company: "Soundwave Studios",
+      school: "Berklee College of Music",
+      location: "Nashville, TN",
+      experienceLevel: "SENIOR",
+      skills: ["STORYTELLING", "COPYWRITING", "CAREER_COACHING", "NETWORKING"],
+      languages: ["English"],
+      availability: ["TUESDAY", "THURSDAY", "FRIDAY"],
+      timeAvailability: ["EVENING", "LATE_EVENING"],
+      verified: true,
+      profileComplete: true,
+      rating: 4.8,
+      gender: "FEMALE",
+    },
+  });
+
+  const mentor41 = await prisma.user.create({
+    data: {
+      name: "Daniel Foster",
+      email: "daniel.music@test.com",
+      password: hashedPassword,
+      role: "MENTOR",
+      bio: "Classical pianist and music teacher with 15 years of performance experience. Passionate about helping students develop their musical talent and career.",
+      title: "Concert Pianist & Music Educator",
+      company: "Juilliard School",
+      school: "Juilliard School",
+      location: "New York, NY",
+      experienceLevel: "LEAD",
+      skills: ["STORYTELLING", "PUBLIC_SPEAKING", "CAREER_COACHING", "NETWORKING"],
+      languages: ["English", "Italian"],
+      availability: ["MONDAY", "WEDNESDAY", "SATURDAY"],
+      timeAvailability: ["AFTERNOON", "EVENING"],
+      verified: true,
+      profileComplete: true,
+      rating: 4.9,
+      gender: "MALE",
+    },
+  });
+
   // Create Mentees
   const mentee1 = await prisma.user.create({
     data: {
@@ -805,7 +993,7 @@ async function main() {
       school: "UC Berkeley",
       location: "Berkeley, CA",
       experienceLevel: "STUDENT",
-      skills: ["JAVASCRIPT", "PYTHON", "SQL"],
+      skills: ["JAVASCRIPT", "REACT", "NODE_JS"],
       languages: ["English"],
       availability: ["MONDAY", "WEDNESDAY", "FRIDAY", "SATURDAY"],
       timeAvailability: ["EVENING", "LATE_EVENING"],
@@ -988,6 +1176,122 @@ async function main() {
       ],
       pricing: 70.0,
       category: "TECHNOLOGY",
+    },
+  });
+
+  // Marketing mentor profiles
+  await prisma.mentor.create({
+    data: {
+      userId: mentor34.id,
+      specialization: [
+        "DIGITAL_MARKETING",
+        "CONTENT_MARKETING",
+        "SOCIAL_MEDIA_STRATEGY",
+        "SEO_OPTIMIZATION",
+      ],
+      pricing: 90.0,
+      category: "MARKETING",
+    },
+  });
+
+  await prisma.mentor.create({
+    data: {
+      userId: mentor35.id,
+      specialization: [
+        "BRAND_MANAGEMENT",
+        "GROWTH_MARKETING",
+        "STRATEGIC_PLANNING",
+        "STARTUP_CONSULTING",
+      ],
+      pricing: 95.0,
+      category: "MARKETING",
+    },
+  });
+
+  // Creative mentor profiles
+  await prisma.mentor.create({
+    data: {
+      userId: mentor36.id,
+      specialization: [
+        "GRAPHIC_DESIGN",
+        "BRAND_MANAGEMENT",
+        "CONTENT_MARKETING",
+        "UI_UX_DESIGN",
+      ],
+      pricing: 100.0,
+      category: "CREATIVE",
+    },
+  });
+
+  await prisma.mentor.create({
+    data: {
+      userId: mentor37.id,
+      specialization: [
+        "GRAPHIC_DESIGN",
+        "UI_UX_DESIGN",
+        "PRODUCT_DESIGN",
+        "DESIGN_SYSTEMS",
+      ],
+      pricing: 80.0,
+      category: "CREATIVE",
+    },
+  });
+
+  // Health mentor profiles
+  await prisma.mentor.create({
+    data: {
+      userId: mentor38.id,
+      specialization: [
+        "CAREER_COACHING",
+        "LEADERSHIP_DEVELOPMENT",
+        "TEAM_BUILDING",
+        "PUBLIC_SPEAKING",
+      ],
+      pricing: 110.0,
+      category: "HEALTH",
+    },
+  });
+
+  await prisma.mentor.create({
+    data: {
+      userId: mentor39.id,
+      specialization: [
+        "CAREER_COACHING",
+        "LEADERSHIP_DEVELOPMENT",
+        "PUBLIC_SPEAKING",
+        "NETWORKING_STRATEGY",
+      ],
+      pricing: 75.0,
+      category: "HEALTH",
+    },
+  });
+
+  // Music mentor profiles
+  await prisma.mentor.create({
+    data: {
+      userId: mentor40.id,
+      specialization: [
+        "CONTENT_MARKETING",
+        "PUBLIC_SPEAKING",
+        "NETWORKING_STRATEGY",
+        "CAREER_COACHING",
+      ],
+      pricing: 85.0,
+      category: "MUSIC",
+    },
+  });
+
+  await prisma.mentor.create({
+    data: {
+      userId: mentor41.id,
+      specialization: [
+        "PUBLIC_SPEAKING",
+        "CAREER_COACHING",
+        "LEADERSHIP_DEVELOPMENT",
+        "NETWORKING_STRATEGY",
+      ],
+      pricing: 100.0,
+      category: "MUSIC",
     },
   });
 

@@ -200,6 +200,7 @@ export default function MyMenteesPage() {
       // Fetch all tasks assigned by this mentor first
       const tasksRes = await fetch(`/api/tasks/mentor/${mentorId}`);
       const allMentorTasks = tasksRes.ok ? await tasksRes.json() : [];
+      console.log("Fetched tasks for mentor:", allMentorTasks);
       setAssignedTasks(allMentorTasks);
 
       // Fetch all sessions directly from sessions API to get most up-to-date data

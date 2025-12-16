@@ -120,7 +120,7 @@ export default function TaskCard({ task, onStatusUpdate }: TaskCardProps) {
                 size="sm"
                 variant="outline"
                 onClick={() => handleStatusUpdate("IN_PROGRESS")}
-                className="flex items-center justify-center gap-1 w-full"
+                className="flex items-center justify-center gap-1 w-full border-brand-teal text-brand-teal hover:bg-brand-teal hover:text-white"
                 disabled={isUpdating}
               >
                 <CheckSquare className="h-4 w-4" />
@@ -130,7 +130,7 @@ export default function TaskCard({ task, onStatusUpdate }: TaskCardProps) {
             <Button
               size="sm"
               onClick={() => handleStatusUpdate("COMPLETED")}
-              className="flex items-center justify-center gap-1 w-full"
+              className="flex items-center justify-center gap-1 w-full bg-brand-teal hover:bg-brand-navy text-white"
               disabled={isUpdating}
             >
               <CheckSquare className="h-4 w-4" />
