@@ -27,13 +27,21 @@ export async function PUT(request: NextRequest) {
     if (!data.bio || !data.skills || data.skills.length === 0) {
       console.log("❌ Missing required fields");
       return NextResponse.json(
-        { error: "Bio and at least one skill are required" },
+        { error: "Add a short bio and at least one skill." },
         { status: 400 }
       );
     }
 
     console.log("🔄 Updating user profile...");
     
+    // Validate role-specific requirements before writing anything
+    if (session.user.role === "MENTOR" && (!data.specialization || data.specialization.length === 0)) {
+      return NextResponse.json({ error: "Pick at least one area you can help with." }, { status: 400 });
+    }
+    if (session.user.role === "MENTEE" && (!data.goals || data.goals.length === 0)) {
+      return NextResponse.json({ error: "Pick at least one goal." }, { status: 400 });
+    }
+
     // Update user profile
     const updatedUser = await prisma.user.update({
       where: { id: session.user.id },
@@ -146,7 +154,7 @@ export async function PUT(request: NextRequest) {
     }
     
     return NextResponse.json(
-      { error: `Internal server error: ${error instanceof Error ? error.message : 'Unknown error'}` },
+      { error: "Your profile didn't save. Try again." },
       { status: 500 }
     );
   }

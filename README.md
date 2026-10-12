@@ -1,6 +1,6 @@
-# MenteeMatch
+# MentorMatch
 
-A comprehensive mentorship platform that connects mentees with experienced mentors in the tech industry. Built with Next.js, TypeScript, Prisma, and PostgreSQL.
+A comprehensive mentorship platform that connects mentees with experienced mentors across careers (tech, business, aviation and more). Built with Next.js, TypeScript, Prisma, and PostgreSQL.
 
 ## 🚀 Core Features
 

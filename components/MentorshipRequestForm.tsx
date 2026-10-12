@@ -5,16 +5,7 @@ import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AlertCircle, CheckCircle, Send } from "lucide-react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface MentorshipRequestFormProps {
   mentorId: string;
@@ -45,15 +36,15 @@ export default function MentorshipRequestForm({
 
   const validateForm = () => {
     if (!offeringType) {
-      setError("Please select a mentorship offering");
+      setError("Pick what you want help with.");
       return false;
     }
     if (!message.trim()) {
-      setError("Please write a message expressing your interest");
+      setError("Add a short note so they know what you need.");
       return false;
     }
     if (message.trim().length < 20) {
-      setError("Please write a more detailed message (at least 20 characters)");
+      setError("Add a little more detail (at least 20 characters).");
       return false;
     }
     return true;
@@ -97,7 +88,7 @@ export default function MentorshipRequestForm({
         setTimeout(() => {
           setStatus("idle");
           onSuccess?.();
-        }, 2000);
+        }, 1200);
       } else {
         throw new Error(data.error || "Failed to send mentorship request");
       }
@@ -111,79 +102,56 @@ export default function MentorshipRequestForm({
   };
 
   return (
-    <Card className="w-full max-w-4xl">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Send className="h-5 w-5" />
-          Request Mentorship from {mentorName}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="p-8">
-        {status === "success" && (
-          <Alert className="mb-4 border-green-200 bg-green-50">
-            <CheckCircle className="h-4 w-4 text-green-600" />
-            <AlertDescription className="text-green-700">
-              Your mentorship request has been sent successfully!
-            </AlertDescription>
-          </Alert>
-        )}
+    <form onSubmit={handleSubmit} className="grid gap-5">
+      {status === "success" && (
+        <p role="status" className="flex items-center gap-2 rounded-[10px] bg-tape-green-soft px-3.5 py-3 text-[15px] font-medium text-green-800">
+          <CheckCircle className="size-4" aria-hidden="true" /> Request sent to {mentorName}.
+        </p>
+      )}
+      {error && (
+        <p role="alert" className="flex items-center gap-2 rounded-[10px] bg-tape-red-soft px-3.5 py-3 text-[15px] text-red-800">
+          <AlertCircle className="size-4" aria-hidden="true" /> {error}
+        </p>
+      )}
 
-        {error && (
-          <Alert variant="destructive" className="mb-4">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
+      <fieldset>
+        <legend className="mb-2 text-sm font-semibold text-ink">What do you want help with?</legend>
+        <div className="flex flex-wrap gap-2">
+          {MENTORSHIP_OFFERINGS.map((o) => {
+            const on = offeringType === o.value;
+            return (
+              <label
+                key={o.value}
+                className={`cursor-pointer rounded-full border px-3.5 py-2 text-sm font-semibold transition-colors ${
+                  on ? "border-ink bg-ink text-chalk" : "border-ink/15 text-ink hover:border-ink/40"
+                }`}
+              >
+                <input type="radio" name="offering" value={o.value} checked={on} onChange={() => setOfferingType(o.value)} className="sr-only" />
+                {o.label}
+              </label>
+            );
+          })}
+        </div>
+      </fieldset>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <Label htmlFor="offering-type" className="mb-3">
-              Mentorship Offering
-            </Label>
-            <Select value={offeringType} onValueChange={setOfferingType}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select what you're interested in..." />
-              </SelectTrigger>
-              <SelectContent>
-                {MENTORSHIP_OFFERINGS.map((offering) => (
-                  <SelectItem key={offering.value} value={offering.value}>
-                    {offering.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+      <div className="grid gap-2">
+        <Label htmlFor="message">Your note</Label>
+        <Textarea
+          id="message"
+          placeholder="What you're working toward, where you're stuck, and why you'd like their help."
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          rows={6}
+          maxLength={500}
+          aria-describedby="message-count"
+        />
+        <p id="message-count" className="tabular text-sm text-ink-soft">{message.length}/500</p>
+      </div>
 
-          <div>
-            <Label htmlFor="message" className="mb-3">
-              Message
-            </Label>
-            <Textarea
-              id="message"
-              placeholder="Tell the mentor why you're interested in their guidance and what you hope to achieve..."
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              rows={12}
-              className="mt-1"
-            />
-            <p className="text-xs text-gray-500 mt-1">
-              {message.length}/500 characters
-            </p>
-          </div>
-
-          <Button
-            type="submit"
-            className="w-full"
-            disabled={isSubmitting || status === "success"}
-          >
-            {isSubmitting
-              ? "Sending Request..."
-              : status === "success"
-              ? "Request Sent!"
-              : "Send Mentorship Request"}
-          </Button>
-        </form>
-      </CardContent>
-    </Card>
+      <Button type="submit" variant="tape" size="lg" className="w-full" disabled={isSubmitting || status === "success"}>
+        <Send aria-hidden="true" />
+        {isSubmitting ? "Sending" : status === "success" ? "Sent" : "Send request"}
+      </Button>
+    </form>
   );
 }

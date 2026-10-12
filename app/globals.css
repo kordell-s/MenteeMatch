@@ -3,167 +3,272 @@
 
 @custom-variant dark (&:is(.dark *));
 
-@theme inline {
-  /* Custom Brand Colors */
-  --color-brand-navy: var(--brand-navy);
-  --color-brand-teal: var(--brand-teal);
-  --color-brand-sky: var(--brand-sky);
-  --color-brand-gold: var(--brand-gold);
-  --color-brand-orange: var(--brand-orange);
+/*
+ * MentorMatch: Route Setter world.
+ * Ground is a climbing-wall panel (graphite on the landing, light panel in the app),
+ * content sits on laminated route cards, and the four grade-tape colors are the
+ * only accents. Legacy palette names (gray, brand-*, red/green/yellow/blue) are
+ * remapped onto the world so older screens inherit it.
+ */
+@theme {
+  /* World */
+  --color-wall: #2b2e33;
+  --color-wall-deep: #1f2125;
+  --color-wall-edge: #3a3e45;
+  --color-panel: #e3e5e4;
+  --color-panel-deep: #d5d8d7;
+  --color-card: #fbfbfa;
+  --color-chalk: #f4f5f2;
+  --color-ink: #17191c;
+  --color-ink-soft: #4b5058;
+  --color-ink-faint: #6b7079;
 
-  /* Standard Theme Colors */
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-  --color-sidebar-ring: var(--sidebar-ring);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar: var(--sidebar);
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
-  --color-chart-1: var(--chart-1);
-  --color-ring: var(--ring);
-  --color-input: var(--input);
-  --color-border: var(--border);
-  --color-destructive: var(--destructive);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-accent: var(--accent);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-muted: var(--muted);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-secondary: var(--secondary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-primary: var(--primary);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-popover: var(--popover);
-  --color-card-foreground: var(--card-foreground);
-  --color-card: var(--card);
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
-}
+  --color-tape-yellow: #ffd23f;
+  --color-tape-yellow-deep: #e6b60f;
+  --color-tape-blue: #2f64e6;
+  --color-tape-blue-soft: #dfe7fd;
+  --color-tape-pink: #ff5fa2;
+  --color-tape-pink-soft: #ffe1ee;
+  --color-tape-green: #2fb872;
+  --color-tape-green-soft: #daf4e6;
+  --color-tape-red: #d6392b;
+  --color-tape-red-soft: #fde3e0;
 
-:root {
-  --radius: 0.625rem;
+  --font-sans: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
+  --font-marker: var(--font-permanent-marker), "Marker Felt", cursive;
+  --font-mono: ui-monospace, "SF Mono", Menlo, monospace;
 
-  /* Custom Brand Colors - Refreshing Summer Fun Palette */
-  --brand-navy: #023047;      /* Dark Navy - Main text, headers */
-  --brand-teal: #219EBC;      /* Teal Blue - Primary actions */
-  --brand-sky: #8ECAE6;       /* Light Sky Blue - Backgrounds */
-  --brand-gold: #FFB703;      /* Golden Yellow - Highlights */
-  --brand-orange: #FB8500;    /* Orange - CTAs, energy */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
 
-  /* Theme Colors (OKLCH format) */
-  --background: oklch(0.99 0.002 264);  /* Very light blue-white */
-  --foreground: oklch(0.25 0.02 240);   /* Dark navy for text (#023047) */
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.25 0.02 240);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.25 0.02 240);
+  --shadow-card: 0 1px 0 rgb(23 25 28 / 0.04), 0 8px 24px -12px rgb(23 25 28 / 0.22);
+  --shadow-lift: 0 2px 0 rgb(23 25 28 / 0.05), 0 18px 40px -18px rgb(23 25 28 / 0.38);
 
-  /* Primary = Dark Navy (#023047) */
-  --primary: oklch(0.25 0.02 240);
-  --primary-foreground: oklch(1 0 0);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 
-  /* Secondary = Teal Blue (#219EBC) */
-  --secondary: oklch(0.6 0.08 220);
-  --secondary-foreground: oklch(1 0 0);
+  /* Legacy remaps: gray becomes the ink/panel ramp */
+  --color-gray-50: #f1f2f1;
+  --color-gray-100: #e9ebea;
+  --color-gray-200: #dcdfde;
+  --color-gray-300: #c4c8c9;
+  --color-gray-400: #8d9299;
+  --color-gray-500: #6b7079;
+  --color-gray-600: #4b5058;
+  --color-gray-700: #393d44;
+  --color-gray-800: #26292e;
+  --color-gray-900: #17191c;
 
-  /* Muted = Light Sky Blue (#8ECAE6) */
-  --muted: oklch(0.82 0.05 230);
-  --muted-foreground: oklch(0.45 0.02 240);
+  --color-blue-50: #eef3fe;
+  --color-blue-100: #dfe7fd;
+  --color-blue-200: #bccdfa;
+  --color-blue-500: #3d72ef;
+  --color-blue-600: #2f64e6;
+  --color-blue-700: #2550c2;
+  --color-blue-800: #1e409b;
 
-  /* Accent = Golden Yellow (#FFB703) */
-  --accent: oklch(0.78 0.15 85);
-  --accent-foreground: oklch(0.25 0.02 240);
+  --color-green-50: #ecf9f2;
+  --color-green-100: #daf4e6;
+  --color-green-200: #b3e8cc;
+  --color-green-500: #2fb872;
+  --color-green-600: #24985d;
+  --color-green-700: #1d7a4b;
+  --color-green-800: #175f3b;
 
-  /* Destructive remains red */
-  --destructive: oklch(0.577 0.245 27.325);
+  --color-yellow-50: #fff8dc;
+  --color-yellow-100: #fff1bf;
+  --color-yellow-200: #ffe58a;
+  --color-yellow-400: #ffd23f;
+  --color-yellow-500: #ffd23f;
+  --color-yellow-600: #b88c00;
+  --color-yellow-700: #8a6900;
+  --color-yellow-800: #6b5200;
 
-  --border: oklch(0.88 0.03 230);
-  --input: oklch(0.92 0.02 230);
-  --ring: oklch(0.6 0.08 220);
+  --color-red-50: #fef0ee;
+  --color-red-100: #fde3e0;
+  --color-red-200: #f9c3bc;
+  --color-red-500: #e04a3c;
+  --color-red-600: #d6392b;
+  --color-red-700: #b02c20;
+  --color-red-800: #8c2319;
 
-  /* Chart colors using the palette */
-  --chart-1: oklch(0.6 0.08 220);    /* Teal */
-  --chart-2: oklch(0.78 0.15 85);    /* Gold */
-  --chart-3: oklch(0.82 0.05 230);   /* Sky Blue */
-  --chart-4: oklch(0.68 0.18 45);    /* Orange */
-  --chart-5: oklch(0.25 0.02 240);   /* Navy */
+  /* Old brand names now point into the world */
+  --color-brand-navy: #17191c;
+  --color-brand-navy-deep: #1f2125;
+  --color-brand-teal: #2f64e6;
+  --color-brand-teal-light: #3d72ef;
+  --color-brand-sky: #bccdfa;
+  --color-brand-gold: #ffd23f;
+  --color-brand-orange: #ff5fa2;
+  --color-brand-surface: #e3e5e4;
 
-  /* Sidebar using navy theme */
-  --sidebar: oklch(0.25 0.02 240);
-  --sidebar-foreground: oklch(1 0 0);
-  --sidebar-primary: oklch(0.6 0.08 220);
-  --sidebar-primary-foreground: oklch(1 0 0);
-  --sidebar-accent: oklch(0.35 0.02 240);
-  --sidebar-accent-foreground: oklch(1 0 0);
-  --sidebar-border: oklch(0.35 0.02 240);
-  --sidebar-ring: oklch(0.6 0.08 220);
-}
-
-.dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  /* shadcn semantic tokens */
+  --color-background: #e3e5e4;
+  --color-foreground: #17191c;
+  --color-popover: #fbfbfa;
+  --color-popover-foreground: #17191c;
+  --color-card-foreground: #17191c;
+  --color-primary: #17191c;
+  --color-primary-foreground: #fbfbfa;
+  --color-secondary: #e9ebea;
+  --color-secondary-foreground: #17191c;
+  --color-muted: #e9ebea;
+  --color-muted-foreground: #4b5058;
+  --color-accent: #dfe7fd;
+  --color-accent-foreground: #17191c;
+  --color-destructive: #d6392b;
+  --color-border: #d0d4d3;
+  --color-input: #c4c8c9;
+  --color-ring: #2f64e6;
 }
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    border-color: var(--color-border);
+  }
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-rendering: optimizeLegibility;
   }
   body {
-    @apply bg-background text-foreground;
+    background-color: var(--color-panel);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-feature-settings: "ss01";
   }
+  ::selection {
+    background: var(--color-tape-yellow);
+    color: var(--color-ink);
+  }
+  :focus-visible {
+    outline: 3px solid var(--color-tape-blue);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+  input,
+  textarea {
+    caret-color: var(--color-tape-blue);
+  }
+  a {
+    text-underline-offset: 0.2em;
+    text-decoration-thickness: 0.08em;
+  }
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+  .tabular,
+  table td,
+  time {
+    font-variant-numeric: tabular-nums;
+  }
+  * {
+    scrollbar-color: var(--color-gray-400) transparent;
+    scrollbar-width: thin;
+  }
+}
+
+@layer components {
+  /* The climbing wall: plywood panel with a T-nut bolt-hole grid. */
+  .wall {
+    background-color: var(--color-wall);
+    background-image: radial-gradient(circle at center, #16181b 0 2.2px, #3e434a 2.6px 3.4px, transparent 3.8px);
+    background-size: 52px 52px;
+    background-position: 26px 26px;
+    color: var(--color-chalk);
+  }
+  /*
+   * Landing only: the full climbing wall. Plywood panels with a fine grain,
+   * each panel a slightly different value, joined at their seams.
+   */
+  .wall-panels {
+    background-color: var(--color-wall);
+    background-image:
+      radial-gradient(circle at center, #16181b 0 2.2px, #3e434a 2.6px 3.4px, transparent 3.8px),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.06 0'/%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23n)'/%3E%3C/svg%3E"),
+      conic-gradient(from 90deg at 50% 50%, rgb(255 255 255 / 0.008) 0 25%, rgb(0 0 0 / 0.022) 0 50%, rgb(255 255 255 / 0.014) 0 75%, rgb(0 0 0 / 0.01) 0);
+    background-size: 52px 52px, 240px 240px, 832px 832px;
+    background-position: 26px 26px, 0 0, 0 0;
+  }
+  .wall * {
+    scrollbar-color: var(--color-wall-edge) transparent;
+  }
+  .wall ::selection {
+    background: var(--color-tape-yellow);
+    color: var(--color-ink);
+  }
+  /* The light panel used behind app screens. */
+  .panel {
+    background-color: var(--color-panel);
+    background-image: radial-gradient(circle at center, #c3c7c6 0 1.6px, transparent 2.1px);
+    background-size: 52px 52px;
+    background-position: 26px 26px;
+  }
+  /* A laminated route card. */
+  .route-card {
+    background: var(--color-card);
+    border: 1px solid rgb(23 25 28 / 0.08);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card);
+  }
+  /* A strip of grade tape with torn ends. */
+  .tape {
+    --tape: var(--color-tape-yellow);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4em;
+    background: var(--tape);
+    color: var(--color-ink);
+    padding: 0.28em 0.75em 0.32em;
+    font-family: var(--font-marker);
+    line-height: 1.15;
+    clip-path: polygon(0 6%, 3% 0, 97% 4%, 100% 0, 99% 94%, 96% 100%, 4% 96%, 0 100%, 1% 50%);
+    box-shadow: inset 0 -2px 0 rgb(0 0 0 / 0.08);
+  }
+  .tape[data-tape="blue"] { --tape: var(--color-tape-blue); color: #fff; }
+  .tape[data-tape="pink"] { --tape: var(--color-tape-pink); }
+  .tape[data-tape="green"] { --tape: var(--color-tape-green); }
+  .tape[data-tape="chalk"] { --tape: var(--color-chalk); }
 }
 
 @layer utilities {
   @keyframes shimmer {
-    0% {
-      background-position: -200% 0;
-    }
-    100% {
-      background-position: 200% 0;
-    }
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
   }
-
   .animate-shimmer {
     animation: shimmer 2s infinite linear;
+  }
+  .text-display {
+    font-family: var(--font-display);
+    font-stretch: 112%;
+    font-weight: 850;
+    letter-spacing: -0.035em;
+    line-height: 0.92;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Every app screen title speaks in the display voice. */
+@layer base {
+  #main h1 {
+    font-family: var(--font-display);
+    font-stretch: 112%;
+    font-weight: 850;
+    letter-spacing: -0.03em;
+    line-height: 1;
+    color: var(--color-ink);
   }
 }

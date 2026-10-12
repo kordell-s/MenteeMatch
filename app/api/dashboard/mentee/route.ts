@@ -47,9 +47,18 @@ export async function GET(req: NextRequest) {
         company: mentorship.mentor.company,
         bio: mentorship.mentor.bio,
         profilePicture: mentorship.mentor.profilePicture,
-        rating: 4.5, // can calculate this from reviews
+        rating: mentorship.mentor.rating ?? null,
+        skills: mentorship.mentor.skills,
       };
     }
+
+    // Open tasks assigned to this mentee, soonest first
+    const openTasks = await prisma.task.findMany({
+      where: { menteeId: user.id, status: { not: "COMPLETED" } },
+      include: { milestone: { select: { id: true, title: true, roadmapId: true } } },
+      orderBy: [{ dueDate: "asc" }, { createdAt: "asc" }],
+      take: 8,
+    });
 
     // Get upcoming sessions
     const upcomingSessions = await prisma.session.findMany({
@@ -88,7 +97,13 @@ export async function GET(req: NextRequest) {
 
     const dashboardData = {
       mentorInfo,
-      tasks: [], // Placeholder for tasks
+      tasks: openTasks.map((t) => ({
+        id: t.id,
+        title: t.title,
+        status: t.status,
+        dueDate: t.dueDate?.toISOString() ?? null,
+        milestone: t.milestone,
+      })),
       upcomingSessions: upcomingSessions.map((session) => ({
         id: session.id,
         title: session.title,
