@@ -1,21 +1,41 @@
-import Navbar from "@/components/Navbar";
-import HeroSection from "@/components/HeroSection";
-import PartnerLogos from "@/components/PartnerLogos";
-import Testimonials from "@/components/Testimonials";
-import MentorCategories from "@/components/MentorCategories";
+import { prisma } from "@/lib/prisma";
+import Landing, { type PublicMentor } from "@/components/landing/Landing";
 import Footer from "@/components/Footer";
 
-export default function Home() {
+export const dynamic = "force-dynamic";
+
+async function getPublicMentors(): Promise<PublicMentor[]> {
+  try {
+    const users = await prisma.user.findMany({
+      // Same population as Browse: mentors with a mentor profile
+      where: { role: "MENTOR", profileComplete: true, mentor: { isNot: null } },
+      select: {
+        id: true,
+        name: true,
+        title: true,
+        company: true,
+        skills: true,
+        profilePicture: true,
+        bio: true,
+        mentor: { select: { category: true } },
+      },
+      orderBy: { createdAt: "asc" },
+    });
+    return users.map(({ mentor, ...u }) => ({ ...u, skills: u.skills as string[], category: mentor?.category ?? "OTHER" }));
+  } catch (err) {
+    console.error("Landing: could not load mentors", err);
+    return [];
+  }
+}
+
+export default async function Home() {
+  const mentors = await getPublicMentors();
   return (
-    <div className="min-h-screen">
-      <Navbar />
+    <>
       <main>
-        <HeroSection />
-        <PartnerLogos />
-        <Testimonials />
-        <MentorCategories />
+        <Landing mentors={mentors} />
       </main>
       <Footer />
-    </div>
+    </>
   );
 }

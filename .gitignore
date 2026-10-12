@@ -88,3 +88,15 @@ DETAILED_GOALS_UPDATE.md
 IMPLEMENTATION_SUMMARY.md
 RECOMMENDATION_ALGORITHM_ANALYSIS.md
 TESTING.md
+# Playwright
+/test-results
+/playwright-report
+
+# Local tooling state and generated artifacts
+.omc/
+/.impeccable/review/
+/.impeccable/archive/
+/.impeccable/mocks/
+/launch-video/*.webm
+/launch-video/shots/
+/.impeccable/questions/
