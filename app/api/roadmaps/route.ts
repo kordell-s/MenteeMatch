@@ -1,3 +1,4 @@
+import { parseDateOnly } from "@/lib/utils";
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth-helpers";
 import { prisma } from "@/lib/prisma";
@@ -89,7 +90,7 @@ export async function POST(request: NextRequest) {
               title: milestone.title,
               description: milestone.description || null,
               order: i + 1,
-              dueDate: new Date(milestone.dueDate),
+              dueDate: parseDateOnly(milestone.dueDate),
               status: "NOT_STARTED",
             },
           });

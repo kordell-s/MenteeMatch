@@ -428,7 +428,7 @@ export default function MyMenteesPage() {
       </div>
 
       <p className="tabular -mt-2 mb-8 text-[15px] text-ink-soft">
-        {enhancedMentees.length} mentees · {dashboardStats.totalActiveRoadmaps} active routes · {dashboardStats.totalTasksCompleted} of {dashboardStats.totalTasksCreated} tasks done · {dashboardStats.totalSessionsCompleted} sessions completed
+        {enhancedMentees.length} {enhancedMentees.length === 1 ? "mentee" : "mentees"} · {dashboardStats.totalActiveRoadmaps} active {dashboardStats.totalActiveRoadmaps === 1 ? "route" : "routes"} · {dashboardStats.totalTasksCompleted} of {dashboardStats.totalTasksCreated} tasks done · {dashboardStats.totalSessionsCompleted} {dashboardStats.totalSessionsCompleted === 1 ? "session" : "sessions"} completed
       </p>
 
       {/* Search and Filter Controls */}

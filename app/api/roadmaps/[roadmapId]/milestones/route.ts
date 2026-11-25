@@ -1,3 +1,4 @@
+import { parseDateOnly } from "@/lib/utils";
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth-helpers";
 import { prisma } from "@/lib/prisma";
@@ -60,7 +61,7 @@ export async function POST(
         roadmapId,
         title,
         description: description || null,
-        dueDate: new Date(dueDate),
+        dueDate: parseDateOnly(dueDate),
         order: milestoneOrder,
         status: "NOT_STARTED",
       },

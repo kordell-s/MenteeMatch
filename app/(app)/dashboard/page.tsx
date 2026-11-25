@@ -291,7 +291,7 @@ function MentorView({ data, roadmaps, onChange }: { data: MentorData; roadmaps: 
   return (
     <div className="grid gap-6">
       <p className="tabular -mt-4 text-[15px] text-ink-soft">
-        {data.confirmedMentees.length} mentees · {roadmaps.length} active routes · {data.completedSessions} {data.completedSessions === 1 ? "session" : "sessions"} completed
+        {data.confirmedMentees.length} {data.confirmedMentees.length === 1 ? "mentee" : "mentees"} · {roadmaps.length} active {roadmaps.length === 1 ? "route" : "routes"} · {data.completedSessions} {data.completedSessions === 1 ? "session" : "sessions"} completed
       </p>
 
       {pending.length > 0 && (
