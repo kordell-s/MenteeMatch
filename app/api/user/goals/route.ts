@@ -1,10 +1,10 @@
+import { getCurrentUser } from "@/lib/auth-helpers";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
 export async function GET(request: Request) {
   try {
-    // TODO: Replace this with actual session/authentication logic
-    const currentUserId = "23d6c35a-3c3f-4d7f-a6fc-95ba7da4c216"; // James Clean
+    const currentUserId = (await getCurrentUser())?.id;
     
     if (!currentUserId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -46,8 +46,7 @@ export async function GET(request: Request) {
 
 export async function PUT(request: Request) {
   try {
-    // TODO: Replace this with actual session/authentication logic
-    const currentUserId = "23d6c35a-3c3f-4d7f-a6fc-95ba7da4c216"; // James Clean (mentor)
+    const currentUserId = (await getCurrentUser())?.id;
     
     if (!currentUserId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

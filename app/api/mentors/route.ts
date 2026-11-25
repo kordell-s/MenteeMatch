@@ -10,7 +10,6 @@ export async function GET() {
             id: true,
             name: true,
             title: true, 
-            email: true,
             profilePicture: true,
             availability: true,
             timeAvailability: true,
@@ -53,7 +52,6 @@ export async function GET() {
         id: mentor.user.id,
         name: mentor.user.name || "",
         title: mentor.user.title || "",
-        email: mentor.user.email,
         profilePicture: mentor.user.profilePicture,
         availability: availability,
         timeAvailability: timeAvailability,
@@ -75,8 +73,6 @@ export async function GET() {
         },
         joinedDate: mentor.user.createdAt,
       };
-
-      console.log(`📋 Transformed mentor: ${transformed.name}, Photo: ${transformed.profilePicture}`);
       return transformed;
     });
 

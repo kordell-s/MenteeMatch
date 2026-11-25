@@ -1,4 +1,4 @@
-# MenteeMatch - Quick Start Guide
+# MentorMatch - Quick Start Guide
 
 ## 🚀 Get Started in 3 Steps
 

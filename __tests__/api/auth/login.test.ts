@@ -20,8 +20,9 @@ describe("Authentication", () => {
   });
 
   describe("CredentialsProvider authorize", () => {
-    // Access the authorize function from the credentials provider
-    const authorize = (authOptions.providers[0] as any).authorize;
+    // next-auth v4's CredentialsProvider() keeps a `() => null` stub at `.authorize`;
+    // the function we configured lives at `.options.authorize`.
+    const authorize = (authOptions.providers[0] as any).options.authorize;
 
     it("should return null if email is missing", async () => {
       const result = await authorize({
@@ -266,7 +267,7 @@ describe("Authentication", () => {
         role: "MENTOR",
       };
 
-      const result = await sessionCallback!({ session, token } as any);
+      const result = (await sessionCallback!({ session, token } as any)) as { user?: { profilePicture?: string; profileComplete?: boolean } };
 
       expect(result.user?.profilePicture).toBeUndefined();
       expect(result.user?.profileComplete).toBeUndefined();

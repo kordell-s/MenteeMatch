@@ -68,16 +68,14 @@ export async function POST(request: NextRequest) {
           select: {
             id: true,
             name: true,
-            profilePicture: true,
-            email: true
+            profilePicture: true
           }
         },
         mentee: {
           select: {
             id: true,
             name: true,
-            profilePicture: true,
-            email: true
+            profilePicture: true
           }
         }
       }
@@ -92,30 +90,13 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Create conversation if it doesn't exist
-    const newConversation = await prisma.conversation.create({
-      data: {
-        mentorId,
-        menteeId
-      },
-      include: {
-        mentor: {
-          select: {
-            id: true,
-            name: true,
-            profilePicture: true,
-            email: true
-          }
-        },
-        mentee: {
-          select: {
-            id: true,
-            name: true,
-            profilePicture: true,
-            email: true
-          }
-        }
-      }
+    // Create it if it doesn't exist. Upsert keeps concurrent first opens from colliding.
+    const userSelect = { id: true, name: true, profilePicture: true };
+    const newConversation = await prisma.conversation.upsert({
+      where: { mentorId_menteeId: { mentorId, menteeId } },
+      update: {},
+      create: { mentorId, menteeId },
+      include: { mentor: { select: userSelect }, mentee: { select: userSelect } },
     });
 
     return NextResponse.json({

@@ -211,7 +211,7 @@ describe("POST /api/auth/signup", () => {
 
     it("should hash password with correct salt rounds in production", async () => {
       const originalEnv = process.env.NODE_ENV;
-      process.env.NODE_ENV = "production";
+      (process.env as Record<string, string | undefined>).NODE_ENV = "production";
 
       const request = createMockRequest(validSignupData);
 
@@ -236,7 +236,7 @@ describe("POST /api/auth/signup", () => {
 
       expect(bcrypt.hash).toHaveBeenCalledWith(validSignupData.password, 10);
 
-      process.env.NODE_ENV = originalEnv;
+      (process.env as Record<string, string | undefined>).NODE_ENV = originalEnv;
     });
 
     it("should handle trimmed bio, title, and school fields", async () => {

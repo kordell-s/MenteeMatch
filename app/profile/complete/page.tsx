@@ -1,683 +1,319 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Check, Loader2, Upload, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, Upload, X } from "lucide-react";
+import Wordmark from "@/components/world/Wordmark";
+import Person from "@/components/world/Person";
+import { SKILL_GROUPS, GOAL_LABELS, LEVEL_LABELS, FIELD_LABELS, skillLabel } from "@/lib/skills";
 
-const SKILLS = [
-  "REACT",
-  "NODE_JS",
-  "TYPESCRIPT",
-  "JAVASCRIPT",
-  "PYTHON",
-  "JAVA",
-  "CSHARP",
-  "CPLUSPLUS",
-  "RUBY",
-  "GO",
-  "PHP",
-  "SQL",
-  "NOSQL",
-  "SYSTEM_DESIGN",
-  "MICROSERVICES",
-  "DEVOPS",
-  "AWS",
-  "AZURE",
-  "DOCKER",
-  "KUBERNETES",
-  "DATA_SCIENCE",
-  "MACHINE_LEARNING",
-  "DEEP_LEARNING",
-  "COMPUTER_VISION",
-  "NLP",
-  "MLOPS",
-  "BIG_DATA",
-  "STATISTICS",
-  "UX",
-  "UI",
-  "FIGMA",
-  "DESIGN_SYSTEMS",
-  "ACCESSIBILITY",
-  "PORTFOLIO_REVIEW",
-  "MOTION_DESIGN",
-  "PRODUCT_MANAGEMENT",
-  "AGILE",
-  "SCRUM",
-  "USER_RESEARCH",
-  "MARKET_ANALYSIS",
-  "BUSINESS_STRATEGY",
-  "STARTUPS",
-  "DIGITAL_MARKETING",
-  "CONTENT_STRATEGY",
-  "SEO",
-  "SOCIAL_MEDIA",
-  "BRANDING",
-  "GROWTH_HACKING",
-  "COPYWRITING",
-  "STORYTELLING",
-  "INTERVIEW_PREP",
-  "RESUME_REVIEW",
-  "CAREER_COACHING",
-  "PUBLIC_SPEAKING",
-  "NETWORKING",
-  "LEADERSHIP",
-  "TEAM_MANAGEMENT",
+const SPECIALIZATION_GROUPS: { label: string; items: string[] }[] = [
+  { label: "Career", items: ["CAREER_COACHING", "RESUME_OPTIMIZATION", "TECHNICAL_INTERVIEWING", "LEADERSHIP_DEVELOPMENT", "PUBLIC_SPEAKING", "NETWORKING_STRATEGY", "FREELANCING_GUIDANCE"] },
+  { label: "Aviation", items: ["FLIGHT_TRAINING_GUIDANCE", "AIRLINE_INTERVIEW_PREP", "AVIATION_MAINTENANCE_CAREERS", "AVIATION_OPERATIONS_CAREERS"] },
+  { label: "Business", items: ["BUSINESS_ANALYSIS", "PROJECT_MANAGEMENT", "PRODUCT_MANAGEMENT", "STRATEGIC_PLANNING", "STARTUP_CONSULTING", "BUSINESS_INTELLIGENCE"] },
+  { label: "Marketing", items: ["DIGITAL_MARKETING", "CONTENT_MARKETING", "GROWTH_MARKETING", "SOCIAL_MEDIA_STRATEGY", "BRAND_MANAGEMENT", "SEO_OPTIMIZATION"] },
+  { label: "Design", items: ["UI_UX_DESIGN", "PRODUCT_DESIGN", "GRAPHIC_DESIGN", "USER_RESEARCH", "DESIGN_SYSTEMS", "ACCESSIBILITY_DESIGN"] },
+  { label: "Tech", items: ["FRONTEND_DEVELOPMENT", "BACKEND_DEVELOPMENT", "FULLSTACK_DEVELOPMENT", "MOBILE_DEVELOPMENT", "DATA_ANALYSIS", "DATA_ENGINEERING", "MACHINE_LEARNING_ENGINEERING", "CLOUD_COMPUTING", "DEVOPS_ENGINEERING", "CYBERSECURITY", "QUALITY_ASSURANCE"] },
 ];
-
-// Updated SPECIALIZATIONS to match your Prisma enum
-const SPECIALIZATIONS = [
-  // Development & Engineering
-  "FRONTEND_DEVELOPMENT",
-  "BACKEND_DEVELOPMENT",
-  "FULLSTACK_DEVELOPMENT",
-  "MOBILE_DEVELOPMENT",
-  "WEB_DEVELOPMENT",
-  "SOFTWARE_ENGINEERING",
-  "SYSTEM_ARCHITECTURE",
-  "DATABASE_DESIGN",
-
-  // DevOps & Infrastructure
-  "DEVOPS_ENGINEERING",
-  "CLOUD_COMPUTING",
-  "INFRASTRUCTURE_MANAGEMENT",
-  "DEPLOYMENT_AUTOMATION",
-  "SYSTEM_ADMINISTRATION",
-
-  // Data & AI
-  "DATA_ENGINEERING",
-  "DATA_ANALYSIS",
-  "MACHINE_LEARNING_ENGINEERING",
-  "AI_DEVELOPMENT",
-  "BIG_DATA_PROCESSING",
-  "BUSINESS_INTELLIGENCE",
-
-  // Design & UX
-  "UI_UX_DESIGN",
-  "PRODUCT_DESIGN",
-  "GRAPHIC_DESIGN",
-  "USER_RESEARCH",
-  "DESIGN_SYSTEMS",
-  "ACCESSIBILITY_DESIGN",
-
-  // Business & Strategy
-  "PRODUCT_MANAGEMENT",
-  "PROJECT_MANAGEMENT",
-  "BUSINESS_ANALYSIS",
-  "STRATEGIC_PLANNING",
-  "STARTUP_CONSULTING",
-  "DIGITAL_TRANSFORMATION",
-
-  // Marketing & Growth
-  "DIGITAL_MARKETING",
-  "CONTENT_MARKETING",
-  "GROWTH_MARKETING",
-  "SOCIAL_MEDIA_STRATEGY",
-  "BRAND_MANAGEMENT",
-  "SEO_OPTIMIZATION",
-
-  // Career & Personal Development
-  "CAREER_COACHING",
-  "TECHNICAL_INTERVIEWING",
-  "RESUME_OPTIMIZATION",
-  "LEADERSHIP_DEVELOPMENT",
-  "TEAM_BUILDING",
-  "PUBLIC_SPEAKING",
-  "NETWORKING_STRATEGY",
-
-  // Industry Specific
-  "FINTECH_DEVELOPMENT",
-  "HEALTHCARE_TECH",
-  "E_COMMERCE_DEVELOPMENT",
-  "GAMING_DEVELOPMENT",
-  "BLOCKCHAIN_DEVELOPMENT",
-  "CYBERSECURITY",
-
-  // Other
-  "FREELANCING_GUIDANCE",
-  "REMOTE_WORK_CONSULTING",
-  "TECHNICAL_WRITING",
-  "API_DEVELOPMENT",
-  "QUALITY_ASSURANCE",
+const SPEC_LABEL: Record<string, string> = {
+  TECHNICAL_INTERVIEWING: "Interview coaching",
+  RESUME_OPTIMIZATION: "Résumé reviews",
+  UI_UX_DESIGN: "UI/UX design",
+  SEO_OPTIMIZATION: "SEO",
+  QUALITY_ASSURANCE: "QA and testing",
+};
+const DAYS = ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"];
+const TIMES: { v: string; l: string }[] = [
+  { v: "EARLY_MORNING", l: "Early morning" },
+  { v: "MORNING", l: "Morning" },
+  { v: "AFTERNOON", l: "Afternoon" },
+  { v: "EVENING", l: "Evening" },
+  { v: "LATE_EVENING", l: "Late evening" },
 ];
+const MENTEE_GOALS = ["LAND_FIRST_ROLE", "GET_CERTIFIED", "TRANSITION_CAREER", "INTERVIEW_PREP", "RESUME_REVIEW", "BUILD_PROJECTS", "CAREER_GUIDANCE", "NETWORKING", "PUBLIC_SPEAKING", "GET_INTO_TECH", "LEARN_CODING"];
+const FIELDS = ["TECHNOLOGY", "BUSINESS", "AVIATION", "DESIGN", "MARKETING", "HEALTH", "CREATIVE", "MUSIC", "OTHER"];
 
-const GOALS = [
-  "GET_INTO_TECH",
-  "TRANSITION_CAREER",
-  "BUILD_PROJECTS",
-  "FIND_MENTOR",
-  "INTERVIEW_PREP",
-  "RESUME_REVIEW",
-  "CAREER_GUIDANCE",
-  "LEARN_CODING",
-  "PUBLIC_SPEAKING",
-  "NETWORKING",
-];
+function Chips({
+  options,
+  value,
+  onChange,
+  label = (v: string) => v,
+  single = false,
+  max,
+}: {
+  options: string[];
+  value: string[];
+  onChange: (v: string[]) => void;
+  label?: (v: string) => string;
+  single?: boolean;
+  max?: number;
+}) {
+  return (
+    <div className="flex flex-wrap gap-2">
+      {options.map((o) => {
+        const on = value.includes(o);
+        return (
+          <button
+            key={o}
+            type="button"
+            aria-pressed={on}
+            onClick={() =>
+              onChange(single ? [o] : on ? value.filter((x) => x !== o) : max && value.length >= max ? value : [...value, o])
+            }
+            className={`inline-flex h-9 items-center gap-1.5 rounded-full border px-3.5 text-sm font-semibold transition-colors ${
+              on ? "border-ink bg-ink text-chalk" : "border-ink/15 bg-card text-ink hover:border-ink/40"
+            }`}
+          >
+            {on && <Check className="size-3.5" aria-hidden="true" />}
+            {label(o)}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
 
-const MENTOR_CATEGORIES = [
-  "TECHNOLOGY",
-  "BUSINESS",
-  "DESIGN",
-  "MARKETING",
-  "CREATIVE",
-  "HEALTH",
-  "MUSIC",
-  "OTHER",
-];
-
-const EXPERIENCE_LEVELS = ["STUDENT", "ENTRY", "MID", "SENIOR", "LEAD"];
-
-const DAYS_OF_WEEK = [
-  "MONDAY",
-  "TUESDAY",
-  "WEDNESDAY",
-  "THURSDAY",
-  "FRIDAY",
-  "SATURDAY",
-  "SUNDAY",
-];
-
-const TIME_SLOTS = [
-  "EARLY_MORNING",
-  "MORNING",
-  "AFTERNOON",
-  "EVENING",
-  "LATE_EVENING",
-];
+function Section({ n, title, hint, children }: { n: number; title: string; hint?: string; children: React.ReactNode }) {
+  return (
+    <section className="route-card grid gap-5 p-6 sm:p-8" aria-labelledby={`s${n}`}>
+      <div>
+        <h2 id={`s${n}`} className="text-xl font-extrabold tracking-tight">{title}</h2>
+        {hint && <p className="mt-1 text-[15px] text-ink-soft">{hint}</p>}
+      </div>
+      {children}
+    </section>
+  );
+}
 
 export default function CompleteProfilePage() {
+  return (
+    <Suspense>
+      <CompleteProfile />
+    </Suspense>
+  );
+}
+
+function CompleteProfile() {
   const { data: session, status } = useSession();
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(false);
-  const [formData, setFormData] = useState({
-    bio: "",
-    skills: [] as string[],
-    experienceLevel: "ENTRY",
-    company: "",
-    title: "",
-    school: "",
-    location: "",
-    languages: [] as string[],
-    availability: [] as string[],
-    timeAvailability: [] as string[],
-    // Mentor specific
-    specialization: [] as string[], // This will use SPECIALIZATIONS array
-    category: "OTHER",
-    // Mentee specific
-    goals: [] as string[],
-    detailedGoals: "",
-  });
+  const params = useSearchParams();
+  const isMentor = session?.user?.role === "MENTOR";
 
-  const [profilePicture, setProfilePicture] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string>("");
+  const [skills, setSkills] = useState<string[]>(() => (params.get("skills") ?? "").split(",").filter(Boolean));
+  const [bio, setBio] = useState("");
+  const [title, setTitle] = useState("");
+  const [company, setCompany] = useState("");
+  const [school, setSchool] = useState("");
+  const [location, setLocation] = useState("");
+  const [level, setLevel] = useState<string[]>(["STUDENT"]);
+  const [languages, setLanguages] = useState("English");
+  const [days, setDays] = useState<string[]>([]);
+  const [times, setTimes] = useState<string[]>([]);
+  const [goals, setGoals] = useState<string[]>([]);
+  const [detailedGoals, setDetailedGoals] = useState("");
+  const [specs, setSpecs] = useState<string[]>([]);
+  const [field, setField] = useState<string[]>(["OTHER"]);
+  const [photo, setPhoto] = useState<File | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const preview = useMemo(() => (photo ? URL.createObjectURL(photo) : null), [photo]);
 
   useEffect(() => {
-    if (status === "unauthenticated") {
-      router.push("/login");
-    }
+    if (status === "unauthenticated") router.replace("/login");
   }, [status, router]);
+  useEffect(() => {
+    if (isMentor) setLevel(["SENIOR"]);
+  }, [isMentor]);
 
-  if (status === "loading") {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
-    );
-  }
-
-  if (!session?.user) {
-    return null;
-  }
-
-  const isMentor = session.user.role === "MENTOR";
-
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleMultiSelect = (
-    field: keyof typeof formData,
-    value: string,
-    checked: boolean
-  ) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: checked
-        ? [...(prev[field] as string[]), value]
-        : (prev[field] as string[]).filter((item) => item !== value),
-    }));
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setProfilePicture(file);
-      const url = URL.createObjectURL(file);
-      setPreviewUrl(url);
-    }
-  };
-
-  const removeProfilePicture = () => {
-    setProfilePicture(null);
-    setPreviewUrl("");
-    const fileInput = document.getElementById(
-      "profile-picture"
-    ) as HTMLInputElement;
-    if (fileInput) fileInput.value = "";
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
+    setError(null);
+    if (skills.length === 0) return setError("Pick at least one skill.");
+    if (!bio.trim()) return setError("Add a short bio.");
+    if (!isMentor && goals.length === 0) return setError("Pick at least one goal.");
+    if (isMentor && specs.length === 0) return setError("Pick at least one area you can help with.");
 
+    setSaving(true);
     try {
-      // Handle file upload if present
-      let profilePictureUrl = "";
-      if (profilePicture) {
-        const formData = new FormData();
-        formData.append("file", profilePicture);
-
-        const uploadResponse = await fetch("/api/upload", {
-          method: "POST",
-          body: formData,
-        });
-
-        if (uploadResponse.ok) {
-          const uploadData = await uploadResponse.json();
-          profilePictureUrl = uploadData.url;
-        }
+      let profilePicture: string | undefined;
+      if (photo) {
+        const fd = new FormData();
+        fd.append("file", photo);
+        const up = await fetch("/api/upload", { method: "POST", body: fd });
+        if (up.ok) profilePicture = (await up.json()).url;
       }
-
-      // Update profile
-      const response = await fetch("/api/profile/complete", {
+      const res = await fetch("/api/profile/complete", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          ...formData,
-          profilePicture: profilePictureUrl || undefined,
+          bio: bio.trim(),
+          skills,
+          experienceLevel: level[0],
+          title: title || null,
+          company: company || null,
+          school: school || null,
+          location: location || null,
+          languages: languages.split(",").map((l) => l.trim()).filter(Boolean),
+          availability: days,
+          timeAvailability: times,
+          goals,
+          detailedGoals: detailedGoals || null,
+          specialization: specs,
+          category: field[0],
+          profilePicture,
         }),
       });
-
-      if (response.ok) {
-        router.push("/dashboard");
-      } else {
-        throw new Error("Failed to update profile");
-      }
-    } catch (error) {
-      console.error("Error updating profile:", error);
-    } finally {
-      setIsLoading(false);
+      if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || "Your profile didn't save. Try again.");
+      window.location.href = isMentor ? "/dashboard" : "/browse";
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Your profile didn't save. Try again.");
+      setSaving(false);
     }
   };
 
+  if (status !== "authenticated") return null;
+
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8 pt-20">
-      <div className="max-w-2xl mx-auto">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-2xl font-bold text-center">
-              Complete Your Profile
-            </CardTitle>
-            <p className="text-center text-gray-600">
-              Help others learn more about you and your expertise
-            </p>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Profile Picture */}
-              <div className="space-y-3">
-                <Label>Profile Picture</Label>
-                <div className="flex items-center space-x-4">
-                  {previewUrl ? (
-                    <div className="relative">
-                      <img
-                        src={previewUrl}
-                        alt="Profile preview"
-                        className="w-20 h-20 rounded-full object-cover"
-                      />
-                      <button
-                        type="button"
-                        onClick={removeProfilePicture}
-                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1"
-                      >
-                        <X size={12} />
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="w-20 h-20 bg-gray-200 rounded-full flex items-center justify-center">
-                      <Upload size={20} className="text-gray-400" />
-                    </div>
-                  )}
-                  <input
-                    id="profile-picture"
-                    type="file"
-                    accept="image/*"
-                    onChange={handleFileChange}
-                    className="hidden"
-                  />
-                  <Label
-                    htmlFor="profile-picture"
-                    className="cursor-pointer bg-blue-50 text-blue-600 px-4 py-2 rounded-md hover:bg-blue-100"
-                  >
-                    Choose Photo
-                  </Label>
-                </div>
-              </div>
+    <div className="panel min-h-[100dvh]">
+      <header className="wall">
+        <div className="mx-auto flex h-16 max-w-[880px] items-center px-4 sm:px-8">
+          <Wordmark tone="chalk" />
+        </div>
+      </header>
+      <main className="mx-auto max-w-[880px] px-4 py-10 sm:px-8">
+        <h1 className="text-display text-[clamp(2.2rem,5vw,3.2rem)]">
+          {isMentor ? "Set up your mentor profile" : "Tell us where you're headed"}
+        </h1>
+        <p className="mt-3 max-w-[56ch] text-[17px] text-ink-soft">
+          {isMentor
+            ? "Mentees are matched to you on the skills you list, so be specific."
+            : "We match you with mentors on the skills you pick here. You can change any of this later."}
+        </p>
 
-              {/* Bio */}
-              <div className="space-y-2">
-                <Label htmlFor="bio">Bio *</Label>
+        <form onSubmit={submit} className="mt-8 grid gap-6" noValidate>
+          {isMentor && (
+            <Section n={0} title="Your field">
+              <Chips options={FIELDS} value={field} onChange={setField} label={(v) => FIELD_LABELS[v]} single />
+            </Section>
+          )}
+
+          <Section
+            n={1}
+            title={isMentor ? "Skills you can teach" : "Skills you're working on"}
+            hint={`${skills.length} picked. Choose from any field.`}
+          >
+            <div className="grid gap-5">
+              {SKILL_GROUPS.map((g) => (
+                <div key={g.label}>
+                  <h3 className="mb-2 text-sm font-bold text-ink-soft">{g.label}</h3>
+                  <Chips options={g.skills} value={skills} onChange={setSkills} label={skillLabel} />
+                </div>
+              ))}
+            </div>
+          </Section>
+
+          {isMentor ? (
+            <Section n={2} title="What you can help with" hint="Pick the kinds of guidance you'll offer.">
+              <div className="grid gap-5">
+                {SPECIALIZATION_GROUPS.map((g) => (
+                  <div key={g.label}>
+                    <h3 className="mb-2 text-sm font-bold text-ink-soft">{g.label}</h3>
+                    <Chips options={g.items} value={specs} onChange={setSpecs} label={(v) => SPEC_LABEL[v] ?? skillLabel(v)} />
+                  </div>
+                ))}
+              </div>
+            </Section>
+          ) : (
+            <Section n={2} title="What do you want from a mentor?">
+              <Chips options={MENTEE_GOALS} value={goals} onChange={setGoals} label={(v) => GOAL_LABELS[v]} />
+              <div className="grid gap-2">
+                <label htmlFor="detailed" className="text-sm font-semibold">In your own words (optional)</label>
                 <Textarea
-                  id="bio"
-                  name="bio"
-                  value={formData.bio}
-                  onChange={handleInputChange}
-                  placeholder="Tell us about yourself, your background, and what you're passionate about..."
-                  rows={4}
-                  required
+                  id="detailed"
+                  rows={3}
+                  value={detailedGoals}
+                  onChange={(e) => setDetailedGoals(e.target.value)}
+                  placeholder="Where you are now, where you want to be, and by when."
                 />
               </div>
+            </Section>
+          )}
 
-              {/* Skills */}
-              <div className="space-y-3">
-                <Label>Skills *</Label>
-                <p className="text-sm text-gray-600">
-                  Select the specific technologies and tools you work with
-                </p>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-48 overflow-y-auto border rounded p-3">
-                  {SKILLS.map((skill) => (
-                    <div key={skill} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`skill-${skill}`}
-                        checked={formData.skills.includes(skill)}
-                        onCheckedChange={(checked) =>
-                          handleMultiSelect("skills", skill, checked as boolean)
-                        }
-                      />
-                      <Label htmlFor={`skill-${skill}`} className="text-sm">
-                        {skill
-                          .replace(/_/g, " ")
-                          .toLowerCase()
-                          .replace(/\b\w/g, (l) => l.toUpperCase())}
-                      </Label>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Experience Level */}
-              <div className="space-y-2">
-                <Label htmlFor="experienceLevel">Experience Level *</Label>
-                <Select
-                  value={formData.experienceLevel}
-                  onValueChange={(value) =>
-                    setFormData((prev) => ({ ...prev, experienceLevel: value }))
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {EXPERIENCE_LEVELS.map((level) => (
-                      <SelectItem key={level} value={level}>
-                        {level.charAt(0) + level.slice(1).toLowerCase()}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Role-specific fields */}
-              {isMentor ? (
-                <>
-                  <div className="space-y-2">
-                    <Label htmlFor="category">Mentor Category</Label>
-                    <Select
-                      value={formData.category}
-                      onValueChange={(value) =>
-                        setFormData((prev) => ({ ...prev, category: value }))
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {MENTOR_CATEGORIES.map((category) => (
-                          <SelectItem key={category} value={category}>
-                            {category.charAt(0) +
-                              category.slice(1).toLowerCase()}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {/* Updated Specializations Section */}
-                  <div className="space-y-3">
-                    <Label>Specializations *</Label>
-                    <p className="text-sm text-gray-600">
-                      Select the broad areas you specialize in (different from
-                      specific technical skills)
-                    </p>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-64 overflow-y-auto border rounded p-3 bg-gray-50">
-                      {SPECIALIZATIONS.map((specialization) => (
-                        <div
-                          key={specialization}
-                          className="flex items-center space-x-2 p-2 bg-white rounded border"
-                        >
-                          <Checkbox
-                            id={`spec-${specialization}`}
-                            checked={formData.specialization.includes(
-                              specialization
-                            )}
-                            onCheckedChange={(checked) =>
-                              handleMultiSelect(
-                                "specialization",
-                                specialization,
-                                checked as boolean
-                              )
-                            }
-                          />
-                          <Label
-                            htmlFor={`spec-${specialization}`}
-                            className="text-sm font-medium"
-                          >
-                            {specialization
-                              .replace(/_/g, " ")
-                              .toLowerCase()
-                              .replace(/\b\w/g, (l) => l.toUpperCase())}
-                          </Label>
-                        </div>
-                      ))}
-                    </div>
-                    {formData.specialization.length > 0 && (
-                      <p className="text-xs text-green-600">
-                        Selected {formData.specialization.length} specialization
-                        {formData.specialization.length > 1 ? "s" : ""}
-                      </p>
-                    )}
-                  </div>
-                </>
-              ) : (
-                <div className="space-y-4">
-                  <div className="space-y-3">
-                    <Label>Goal Categories *</Label>
-                    <p className="text-sm text-gray-600">
-                      Select general categories that match your goals
-                    </p>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                      {GOALS.map((goal) => (
-                        <div key={goal} className="flex items-center space-x-2">
-                          <Checkbox
-                            id={`goal-${goal}`}
-                            checked={formData.goals.includes(goal)}
-                            onCheckedChange={(checked) =>
-                              handleMultiSelect("goals", goal, checked as boolean)
-                            }
-                          />
-                          <Label htmlFor={`goal-${goal}`} className="text-sm">
-                            {goal
-                              .replace(/_/g, " ")
-                              .toLowerCase()
-                              .replace(/\b\w/g, (l) => l.toUpperCase())}
-                          </Label>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="detailedGoals">
-                      Describe Your Goals in Detail *
-                      <span className="text-xs text-gray-500 font-normal ml-2">
-                        (This helps us find your perfect mentor match!)
-                      </span>
-                    </Label>
-                    <p className="text-sm text-gray-600">
-                      Be specific about what you want to learn, challenges you're facing, and what you hope to achieve.
-                      The more detail you provide, the better we can match you with the right mentor.
-                    </p>
-                    <Textarea
-                      id="detailedGoals"
-                      name="detailedGoals"
-                      value={formData.detailedGoals}
-                      onChange={handleInputChange}
-                      rows={5}
-                      placeholder="e.g., I want to develop my UI design skills and learn industry best practices for creating accessible, user-friendly interfaces. I'm particularly interested in learning Figma and building a strong portfolio to transition from graphic design into UX/UI design. I'm also looking for guidance on breaking into the tech industry and preparing for design interviews."
-                      className="text-sm"
-                    />
-                  </div>
-                </div>
-              )}
-
-              {/* Common fields */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="company">Company/Organization</Label>
-                  <Input
-                    id="company"
-                    name="company"
-                    value={formData.company}
-                    onChange={handleInputChange}
-                    placeholder="Google, Self-employed, etc."
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="title">Job Title</Label>
-                  <Input
-                    id="title"
-                    name="title"
-                    value={formData.title}
-                    onChange={handleInputChange}
-                    placeholder="Software Engineer, Student, etc."
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="school">School/University</Label>
-                <Input
-                  id="school"
-                  name="school"
-                  value={formData.school}
-                  onChange={handleInputChange}
-                  placeholder="University of West Indies, etc."
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="location">Location</Label>
-                <Input
-                  id="location"
-                  name="location"
-                  value={formData.location}
-                  onChange={handleInputChange}
-                  placeholder="Kingston, Jamaica"
-                />
-              </div>
-
-              {/* Availability */}
-              <div className="space-y-3">
-                <Label>Days Available</Label>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                  {DAYS_OF_WEEK.map((day) => (
-                    <div key={day} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`day-${day}`}
-                        checked={formData.availability.includes(day)}
-                        onCheckedChange={(checked) =>
-                          handleMultiSelect(
-                            "availability",
-                            day,
-                            checked as boolean
-                          )
-                        }
-                      />
-                      <Label htmlFor={`day-${day}`} className="text-sm">
-                        {day.charAt(0) + day.slice(1).toLowerCase()}
-                      </Label>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                <Label>Time Preferences</Label>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                  {TIME_SLOTS.map((slot) => (
-                    <div key={slot} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`time-${slot}`}
-                        checked={formData.timeAvailability.includes(slot)}
-                        onCheckedChange={(checked) =>
-                          handleMultiSelect(
-                            "timeAvailability",
-                            slot,
-                            checked as boolean
-                          )
-                        }
-                      />
-                      <Label htmlFor={`time-${slot}`} className="text-sm">
-                        {slot
-                          .replace(/_/g, " ")
-                          .toLowerCase()
-                          .replace(/\b\w/g, (l) => l.toUpperCase())}
-                      </Label>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Saving Profile...
-                  </>
-                ) : (
-                  "Complete Profile"
+          <Section n={3} title="About you">
+            <div className="flex items-center gap-4">
+              <Person name={session?.user?.name} src={preview} size="lg" />
+              <div className="flex gap-2">
+                <label className="inline-flex h-10 cursor-pointer items-center gap-2 rounded-[10px] border border-ink/15 bg-card px-4 text-sm font-semibold hover:border-ink/30">
+                  <Upload className="size-4" aria-hidden="true" /> {photo ? "Change photo" : "Add a photo"}
+                  <input type="file" accept="image/*" className="sr-only" onChange={(e) => setPhoto(e.target.files?.[0] ?? null)} />
+                </label>
+                {photo && (
+                  <Button type="button" variant="ghost" size="icon" onClick={() => setPhoto(null)} aria-label="Remove photo">
+                    <X />
+                  </Button>
                 )}
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
-      </div>
+              </div>
+            </div>
+            <div className="grid gap-2">
+              <label htmlFor="bio" className="text-sm font-semibold">Short bio</label>
+              <Textarea
+                id="bio"
+                rows={4}
+                value={bio}
+                onChange={(e) => setBio(e.target.value)}
+                placeholder={isMentor ? "Your path, what you do now, and who you like helping." : "What you're studying or doing now, and what you're aiming for."}
+              />
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="grid gap-2">
+                <label htmlFor="title" className="text-sm font-semibold">{isMentor ? "Job title" : "Current role (optional)"}</label>
+                <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder={isMentor ? "e.g. First Officer" : "e.g. Final-year student"} />
+              </div>
+              <div className="grid gap-2">
+                <label htmlFor="company" className="text-sm font-semibold">{isMentor ? "Company" : "School (optional)"}</label>
+                {isMentor ? (
+                  <Input id="company" value={company} onChange={(e) => setCompany(e.target.value)} />
+                ) : (
+                  <Input id="company" value={school} onChange={(e) => setSchool(e.target.value)} />
+                )}
+              </div>
+              <div className="grid gap-2">
+                <label htmlFor="location" className="text-sm font-semibold">Location (optional)</label>
+                <Input id="location" value={location} onChange={(e) => setLocation(e.target.value)} />
+              </div>
+              <div className="grid gap-2">
+                <label htmlFor="languages" className="text-sm font-semibold">Languages</label>
+                <Input id="languages" value={languages} onChange={(e) => setLanguages(e.target.value)} aria-describedby="languages-hint" />
+                <p id="languages-hint" className="text-sm text-ink-soft">Separate with commas.</p>
+              </div>
+            </div>
+            <div className="grid gap-2">
+              <p className="text-sm font-semibold">Experience</p>
+              <Chips options={Object.keys(LEVEL_LABELS)} value={level} onChange={setLevel} label={(v) => LEVEL_LABELS[v]} single />
+            </div>
+          </Section>
+
+          <Section n={4} title="When are you free?" hint="Used to suggest session times. Optional.">
+            <Chips options={DAYS} value={days} onChange={setDays} label={(d) => d.charAt(0) + d.slice(1).toLowerCase()} />
+            <Chips options={TIMES.map((t) => t.v)} value={times} onChange={setTimes} label={(v) => TIMES.find((t) => t.v === v)!.l} />
+          </Section>
+
+          {error && (
+            <p role="alert" className="rounded-[10px] bg-tape-red-soft px-4 py-3 text-[15px] text-red-800">{error}</p>
+          )}
+
+          <div className="flex flex-wrap items-center gap-4">
+            <Button type="submit" variant="tape" size="lg" disabled={saving}>
+              {saving && <Loader2 className="animate-spin" aria-hidden="true" />}
+              {saving ? "Saving" : isMentor ? "Save and go to dashboard" : "Save and find mentors"}
+            </Button>
+          </div>
+        </form>
+      </main>
     </div>
   );
 }

@@ -10,7 +10,7 @@ const nextConfig = {
     ignoreDuringBuilds: false,
   },
   images: {
-    domains: ["lh3.googleusercontent.com"],
+    domains: ["lh3.googleusercontent.com", "picsum.photos"],
   },
   // Add this to help with build stability
   onDemandEntries: {

@@ -1,33 +1,29 @@
+import { Suspense } from "react";
 import Link from "next/link";
-import LoginForm from "../../components/LoginForm";
+import type { Metadata } from "next";
+import LoginForm from "@/components/LoginForm";
+import AuthShell from "@/components/auth/AuthShell";
+
+export const metadata: Metadata = { title: "Sign in" };
 
 export default function LoginPage() {
   return (
-    <div className="min-h-screen flex flex-col">
-      <div className="flex-1 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-md w-full space-y-8">
-          <div className="text-center">
-            <h1 className="text-3xl font-bold text-brand-teal mb-2">Welcome back</h1>
-            <p className="mt-2 text-gray-600">
-              Sign in to your account to continue
-            </p>
-          </div>
-
-          <LoginForm />
-
-          <div className="text-center mt-4">
-            <p className="text-sm text-gray-600">
-              Don't have an account?{" "}
-              <Link
-                href="/signup"
-                className="font-medium text-primary hover:text-primary/80"
-              >
-                Sign up
-              </Link>
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
+    <AuthShell
+      title="Welcome back"
+      lede="Sign in to pick up where you left off."
+      wallLine="Your next hold is waiting."
+      footer={
+        <>
+          New to MentorMatch?{" "}
+          <Link href="/signup" className="font-semibold text-ink underline decoration-ink/30 decoration-2 underline-offset-4 hover:decoration-ink">
+            Create an account
+          </Link>
+        </>
+      }
+    >
+      <Suspense>
+        <LoginForm />
+      </Suspense>
+    </AuthShell>
   );
 }

@@ -1,381 +1,157 @@
 "use client";
 
-import type React from "react";
-
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
-import Link from "next/link";
+import { Eye, EyeOff, Loader2, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
-import { EyeIcon, EyeOffIcon, Loader2 } from "lucide-react";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Field } from "@/components/auth/AuthShell";
+
+type Role = "mentee" | "mentor";
+
+// Mirrors the server rules in /api/auth/signup.
+const RULES = [
+  { id: "len", label: "8 or more characters", test: (p: string) => p.length >= 8 },
+  { id: "case", label: "Upper and lower case letters", test: (p: string) => /[a-z]/.test(p) && /[A-Z]/.test(p) },
+  { id: "num", label: "At least one number", test: (p: string) => /[0-9]/.test(p) },
+];
 
 export default function SignupForm() {
-  const router = useRouter();
-  const [isLoading, setIsLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const [formData, setFormData] = useState({
-    fullName: "",
-    email: "",
-    password: "",
-    accountType: "mentee",
-    agreeToTerms: false,
-  });
-  const [errors, setErrors] = useState({
-    fullName: "",
-    email: "",
-    password: "",
-    agreeToTerms: "",
-    general: "",
-  });
+  const params = useSearchParams();
+  const [role, setRole] = useState<Role>(params.get("role") === "mentor" ? "mentor" : "mentee");
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [show, setShow] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState<{ name?: string; email?: string; password?: string; general?: string }>({});
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value,
-    });
-
-    // Clear error when user types
-    if (errors[name as keyof typeof errors]) {
-      setErrors({
-        ...errors,
-        [name]: "",
-        general: "",
-      });
-    }
-  };
-
-  const handleRadioChange = (value: string) => {
-    setFormData({
-      ...formData,
-      accountType: value,
-    });
-  };
-
-  const handleCheckboxChange = (checked: boolean) => {
-    setFormData({
-      ...formData,
-      agreeToTerms: checked,
-    });
-
-    if (errors.agreeToTerms) {
-      setErrors({
-        ...errors,
-        agreeToTerms: "",
-      });
-    }
-  };
-
-  const validateForm = () => {
-    let valid = true;
-    const newErrors = { ...errors };
-
-    if (!formData.fullName.trim()) {
-      newErrors.fullName = "Full name is required";
-      valid = false;
-    }
-
-    if (!formData.email) {
-      newErrors.email = "Email is required";
-      valid = false;
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = "Email is invalid";
-      valid = false;
-    }
-
-    if (!formData.password) {
-      newErrors.password = "Password is required";
-      valid = false;
-    } else if (formData.password.length < 6) {
-      newErrors.password = "Password must be at least 6 characters";
-      valid = false;
-    }
-
-    if (!formData.agreeToTerms) {
-      newErrors.agreeToTerms = "You must agree to the terms and conditions";
-      valid = false;
-    }
-
-    setErrors(newErrors);
-    return valid;
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const next: typeof errors = {};
+    if (!name.trim()) next.name = "Enter your name.";
+    if (!email) next.email = "Enter your email address.";
+    else if (!/\S+@\S+\.\S+/.test(email)) next.email = "That doesn't look like an email address.";
+    if (!RULES.every((r) => r.test(password))) next.password = "Your password needs everything in the list below.";
+    setErrors(next);
+    if (Object.keys(next).length) return;
 
-    if (!validateForm()) return;
-
-    setIsLoading(true);
-    setErrors({ ...errors, general: "" });
-
+    setLoading(true);
     try {
-      console.log("🔄 Creating account...");
-
-      // Step 1: Create the account via API
-      const response = await fetch("/api/auth/signup", {
+      const res = await fetch("/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: formData.fullName,
-          email: formData.email,
-          password: formData.password,
-          role: formData.accountType.toUpperCase(),
-          bio: "",
-          title: null,
-          school: null,
-        }),
+        body: JSON.stringify({ name: name.trim(), email, password, role: role.toUpperCase(), bio: "", title: null, school: null }),
       });
-
-      const data = await response.json();
-      console.log("📋 Signup response:", data);
-
-      if (response.ok && data.success) {
-        console.log("✅ Account created successfully");
-
-        // Step 2: Automatically sign in the user
-        console.log("🔄 Attempting automatic sign-in...");
-        const signInResult = await signIn("credentials", {
-          email: formData.email,
-          password: formData.password,
-          redirect: false,
-        });
-
-        console.log("📋 Sign-in result:", signInResult);
-
-        if (signInResult?.ok && !signInResult?.error) {
-          console.log(
-            "✅ Auto sign-in successful! Redirecting to onboarding..."
-          );
-
-          // Add a small delay to ensure session is established
-          setTimeout(() => {
-            window.location.href = "/onboarding"; // Force full page refresh
-          }, 500);
-        } else {
-          console.error("❌ Auto sign-in failed:", signInResult?.error);
-
-          // Try alternative approach - redirect to login with credentials
-          const params = new URLSearchParams({
-            email: formData.email,
-            message: "Account created successfully. Please sign in.",
-          });
-
-          setTimeout(() => {
-            router.push(`/login?${params.toString()}`);
-          }, 1000);
-        }
-      } else {
-        console.error("❌ Signup failed:", data.error);
-        setErrors({
-          ...errors,
-          general: data.error || "Failed to create account",
-        });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.success) {
+        setErrors({ general: data.error || "We couldn't create your account. Try again." });
+        setLoading(false);
+        return;
       }
-    } catch (error) {
-      console.error("❌ Signup request failed:", error);
-      setErrors({
-        ...errors,
-        general: "Network error. Please try again.",
-      });
-    } finally {
-      setIsLoading(false);
+      const result = await signIn("credentials", { email, password, redirect: false });
+      const skills = params.get("skills");
+      if (result?.ok && !result.error) {
+        window.location.href = skills ? `/onboarding?skills=${encodeURIComponent(skills)}` : "/onboarding";
+      } else {
+        window.location.href = `/login?email=${encodeURIComponent(email)}`;
+      }
+    } catch {
+      setErrors({ general: "We couldn't reach the server. Check your connection and try again." });
+      setLoading(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="mt-8 space-y-6">
-      {/* General error message */}
+    <form onSubmit={submit} noValidate className="grid gap-5">
       {errors.general && (
-        <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded">
+        <p role="alert" className="rounded-[10px] bg-tape-red-soft px-3.5 py-3 text-[15px] text-red-800">
           {errors.general}
-        </div>
+        </p>
       )}
 
-      <div className="space-y-4">
-        <div>
-          <Label htmlFor="fullName">Full name</Label>
+      <fieldset>
+        <legend className="mb-2 text-sm font-semibold text-ink">I want to</legend>
+        <div className="grid grid-cols-2 gap-2" role="radiogroup">
+          {([
+            { v: "mentee", t: "Find a mentor", d: "Get a route to your first role" },
+            { v: "mentor", t: "Mentor someone", d: "Set routes for people starting out" },
+          ] as const).map((o) => {
+            const on = role === o.v;
+            return (
+              <label
+                key={o.v}
+                className={`relative cursor-pointer rounded-[12px] border-2 p-3.5 transition-colors ${
+                  on ? "border-ink bg-tape-yellow/25" : "border-ink/12 hover:border-ink/30"
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="role"
+                  value={o.v}
+                  checked={on}
+                  onChange={() => setRole(o.v)}
+                  className="sr-only"
+                />
+                <span className="block font-bold text-ink">{o.t}</span>
+                <span className="mt-0.5 block text-[13px] leading-snug text-ink-soft">{o.d}</span>
+                {on && <Check className="absolute right-3 top-3 size-4" aria-hidden="true" />}
+              </label>
+            );
+          })}
+        </div>
+      </fieldset>
+
+      <Field id="name" label="Full name" error={errors.name}>
+        <Input id="name" autoComplete="name" value={name} onChange={(e) => setName(e.target.value)} aria-invalid={!!errors.name} aria-describedby={errors.name ? "name-error" : undefined} />
+      </Field>
+
+      <Field id="email" label="Email" error={errors.email}>
+        <Input id="email" type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} aria-invalid={!!errors.email} aria-describedby={errors.email ? "email-error" : undefined} />
+      </Field>
+
+      <Field id="password" label="Password" error={errors.password}>
+        <div className="relative">
           <Input
-            id="fullName"
-            name="fullName"
-            type="text"
-            autoComplete="name"
-            value={formData.fullName}
-            onChange={handleChange}
-            placeholder="John Doe"
-            className={errors.fullName ? "border-red-500" : ""}
-            disabled={isLoading}
+            id="password"
+            type={show ? "text" : "password"}
+            autoComplete="new-password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            aria-invalid={!!errors.password}
+            aria-describedby="password-rules"
+            className="pr-12"
           />
-          {errors.fullName && (
-            <p className="mt-1 text-sm text-red-500">{errors.fullName}</p>
-          )}
-        </div>
-
-        <div>
-          <Label htmlFor="email">Email address</Label>
-          <Input
-            id="email"
-            name="email"
-            type="email"
-            autoComplete="email"
-            value={formData.email}
-            onChange={handleChange}
-            placeholder="you@example.com"
-            className={errors.email ? "border-red-500" : ""}
-            disabled={isLoading}
-          />
-          {errors.email && (
-            <p className="mt-1 text-sm text-red-500">{errors.email}</p>
-          )}
-        </div>
-
-        <div>
-          <Label htmlFor="password">Password</Label>
-          <div className="relative">
-            <Input
-              id="password"
-              name="password"
-              type={showPassword ? "text" : "password"}
-              autoComplete="new-password"
-              value={formData.password}
-              onChange={handleChange}
-              className={errors.password ? "border-red-500 pr-10" : "pr-10"}
-              disabled={isLoading}
-            />
-            <button
-              type="button"
-              className="absolute inset-y-0 right-0 pr-3 flex items-center"
-              onClick={() => setShowPassword(!showPassword)}
-            >
-              {showPassword ? (
-                <EyeOffIcon className="h-5 w-5 text-gray-400" />
-              ) : (
-                <EyeIcon className="h-5 w-5 text-gray-400" />
-              )}
-            </button>
-          </div>
-          {errors.password && (
-            <p className="mt-1 text-sm text-red-500">{errors.password}</p>
-          )}
-          {!errors.password && (
-            <p className="mt-1 text-xs text-gray-500">
-              Password must be at least 6 characters
-            </p>
-          )}
-        </div>
-
-        <div>
-          <Label>I want to join as a</Label>
-          <RadioGroup
-            value={formData.accountType}
-            onValueChange={handleRadioChange}
-            className="flex flex-col space-y-1 mt-2"
+          <button
+            type="button"
+            onClick={() => setShow((v) => !v)}
+            className="absolute inset-y-0 right-0 grid w-12 place-items-center text-ink-soft hover:text-ink"
+            aria-label={show ? "Hide password" : "Show password"}
           >
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="mentee" id="mentee" />
-              <Label htmlFor="mentee" className="font-normal">
-                Mentee - I'm looking for guidance
-              </Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="mentor" id="mentor" />
-              <Label htmlFor="mentor" className="font-normal">
-                Mentor - I want to offer my expertise
-              </Label>
-            </div>
-          </RadioGroup>
+            {show ? <EyeOff className="size-5" /> : <Eye className="size-5" />}
+          </button>
         </div>
+        <ul id="password-rules" className="grid gap-1 text-sm">
+          {RULES.map((r) => {
+            const ok = r.test(password);
+            return (
+              <li key={r.id} className={`flex items-center gap-2 ${ok ? "text-green-700" : "text-ink-soft"}`}>
+                <span className={`grid size-4 place-items-center rounded-full ${ok ? "bg-tape-green text-ink" : "border border-ink/25"}`}>
+                  {ok && <Check className="size-3" strokeWidth={3} aria-hidden="true" />}
+                </span>
+                {r.label}
+                <span className="sr-only">{ok ? "(done)" : "(not yet)"}</span>
+              </li>
+            );
+          })}
+        </ul>
+      </Field>
 
-        <div className="flex items-start space-x-2">
-          <Checkbox
-            id="terms"
-            checked={formData.agreeToTerms}
-            onCheckedChange={handleCheckboxChange}
-            disabled={isLoading}
-            className={errors.agreeToTerms ? "border-red-500" : ""}
-          />
-          <div className="grid gap-1.5 leading-none">
-            <Label
-              htmlFor="terms"
-              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-            >
-              I agree to the{" "}
-              <Link
-                href="/terms"
-                className="text-primary hover:text-primary/80 underline"
-              >
-                Terms of Service
-              </Link>{" "}
-              and{" "}
-              <Link
-                href="/privacy"
-                className="text-primary hover:text-primary/80 underline"
-              >
-                Privacy Policy
-              </Link>
-            </Label>
-            {errors.agreeToTerms && (
-              <p className="text-sm text-red-500">{errors.agreeToTerms}</p>
-            )}
-          </div>
-        </div>
-      </div>
-
-      <Button type="submit" className="w-full" disabled={isLoading}>
-        {isLoading ? (
-          <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Creating account...
-          </>
-        ) : (
-          "Create account"
-        )}
+      <Button type="submit" size="lg" variant="tape" disabled={loading} className="mt-1 w-full">
+        {loading && <Loader2 className="animate-spin" aria-hidden="true" />}
+        {loading ? "Creating your account" : "Create account"}
       </Button>
-
-      <div className="relative">
-        <div className="absolute inset-0 flex items-center">
-          <span className="w-full border-t" />
-        </div>
-        <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-background px-2 text-muted-foreground">
-            Or continue with
-          </span>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        <Button variant="outline" type="button" disabled={isLoading}>
-          <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
-            <path
-              d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-              fill="#4285F4"
-            />
-            <path
-              d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-              fill="#34A853"
-            />
-            <path
-              d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-              fill="#FBBC05"
-            />
-            <path
-              d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-              fill="#EA4335"
-            />
-            <path d="M1 1h22v22H1z" fill="none" />
-          </svg>
-          Google
-        </Button>
-        <Button variant="outline" type="button" disabled={isLoading}>
-          <svg className="mr-2 h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z" />
-          </svg>
-          Facebook
-        </Button>
-      </div>
     </form>
   );
 }

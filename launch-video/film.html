@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>MentorMatch launch film</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Permanent+Marker&display=block" rel="stylesheet">
+<style>
+  :root {
+    --wall: #2b2e33; --ink: #17191c; --chalk: #f4f5f2; --yellow: #ffd23f; --blue: #2f64e6;
+    --pink: #ff5fa2; --green: #2fb872;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html, body { width: 1920px; height: 1080px; overflow: hidden; background: #000; }
+  #stage {
+    position: relative; width: 1920px; height: 1080px; overflow: hidden; color: var(--chalk);
+    font-family: Archivo, sans-serif;
+    background-color: var(--wall);
+    background-image:
+      radial-gradient(circle at center, #16181b 0 3px, #3e434a 3.6px 4.6px, transparent 5.2px),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.07 0'/%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23n)'/%3E%3C/svg%3E"),
+      conic-gradient(from 90deg at 50% 50%, rgb(255 255 255 / 0.012) 0 25%, rgb(0 0 0 / 0.03) 0 50%, rgb(255 255 255 / 0.02) 0 75%, rgb(0 0 0 / 0.015) 0);
+    background-size: 72px 72px, 240px 240px, 1152px 1152px;
+    background-position: 36px 36px, 0 0, 0 0;
+  }
+  .abs { position: absolute; will-change: transform, opacity; }
+  .display { font-stretch: 115%; font-weight: 860; letter-spacing: -0.038em; line-height: 0.9; }
+  .tape {
+    display: inline-flex; align-items: center; gap: 12px; padding: 10px 22px 12px;
+    background: var(--chalk); color: var(--ink); font-family: "Permanent Marker", cursive; white-space: nowrap;
+    clip-path: polygon(0 6%, 3% 0, 97% 4%, 100% 0, 99% 94%, 96% 100%, 4% 96%, 0 100%, 1% 50%);
+  }
+  .tape.y { background: var(--yellow); }
+  .grade { font-family: Archivo, sans-serif; font-weight: 800; font-size: 0.62em; background: var(--ink); color: var(--yellow); padding: 4px 8px; border-radius: 4px; }
+  .shot {
+    border-radius: 22px; overflow: hidden; background: #e3e5e4;
+    box-shadow: 0 2px 0 rgb(0 0 0 / .2), 0 50px 90px -30px rgb(0 0 0 / .7);
+  }
+  .shot img { display: block; width: 100%; }
+  .caption { font-size: 64px; }
+  .mark { display: inline-flex; align-items: center; gap: 22px; font-stretch: 115%; font-weight: 800; letter-spacing: -0.03em; }
+</style>
+</head>
+<body>
+<div id="stage">
+  <!-- Wall route used in scenes 1 and 7 -->
+  <svg id="routeLine" class="abs" style="left:0;top:0" width="1920" height="1080" viewBox="0 0 1920 1080">
+    <polyline id="rl" fill="none" stroke="rgb(244 245 242 / .35)" stroke-width="3" stroke-dasharray="12 14" points=""/>
+  </svg>
+  <div id="holds"></div>
+
+  <!-- S1 -->
+  <h1 id="s1" class="abs display" style="left:130px;top:380px;font-size:150px;max-width:900px">Every career<br>is a climb.</h1>
+
+  <!-- S2 -->
+  <div id="s2" class="abs" style="left:130px;top:250px">
+    <div style="overflow:hidden;padding-bottom:16px"><div id="s2a" class="display" style="font-size:180px">Your mentor</div></div>
+    <div style="overflow:hidden;padding-bottom:16px"><div id="s2b" class="display" style="font-size:180px">sets the route.</div></div>
+  </div>
+
+  <!-- persistent wordmark -->
+  <div id="wm" class="abs mark" style="left:90px;top:70px;font-size:44px">
+    <svg width="54" height="54" viewBox="0 0 100 100"><path d="M14 46c2-18 20-30 40-30 22 0 36 14 34 32-1 12-10 16-14 26-6 12-22 14-36 10-16-4-26-20-24-38z" fill="#ffd23f"/><circle cx="50" cy="50" r="7" fill="#c99a00"/><circle cx="50" cy="50" r="4" fill="#15171a"/></svg>
+    MentorMatch
+  </div>
+
+  <!-- S3 -->
+  <h2 id="s3h" class="abs display" style="left:130px;top:190px;font-size:150px">Mentors in your field.</h2>
+  <div id="fields"></div>
+
+  <!-- S4 -->
+  <div id="s4t1" class="abs display caption" style="left:130px;top:330px;width:560px">Pick what you're working on.</div>
+  <div id="s4t2" class="abs display caption" style="left:130px;top:330px;width:560px">Get mentors ranked by the skills you share.</div>
+  <div id="s4f" class="abs shot" style="left:760px;top:150px;width:1060px">
+    <img id="s4i1" src="frames-src/02-picked.jpg" alt="">
+    <img id="s4i2" src="frames-src/03-matches.jpg" alt="" style="position:absolute;inset:0">
+  </div>
+
+  <!-- S5 -->
+  <div id="s5t" class="abs display caption" style="left:130px;top:330px;width:560px">Your mentor sets a graded route, hold by hold.</div>
+  <div id="s5f" class="abs shot" style="left:760px;top:120px;width:1060px;height:840px">
+    <img id="s5i" src="frames-src/06-route.jpg" alt="">
+  </div>
+
+  <!-- S6 -->
+  <div id="s6t" class="abs display caption" style="left:130px;top:880px;width:1660px">Tasks, sessions and chat on one route.</div>
+  <div id="s6a" class="abs shot" style="left:130px;top:170px;width:900px"><img src="frames-src/05-dashboard.jpg" alt=""></div>
+  <div id="s6b" class="abs shot" style="left:900px;top:230px;width:880px"><img src="frames-src/07-messages.jpg" alt=""></div>
+
+  <!-- S7 -->
+  <div id="s7" class="abs" style="left:130px;top:300px">
+    <div class="mark" style="font-size:100px">
+      <svg width="116" height="116" viewBox="0 0 100 100"><path d="M14 46c2-18 20-30 40-30 22 0 36 14 34 32-1 12-10 16-14 26-6 12-22 14-36 10-16-4-26-20-24-38z" fill="#ffd23f"/><circle cx="50" cy="50" r="7" fill="#c99a00"/><circle cx="50" cy="50" r="4" fill="#15171a"/></svg>
+      MentorMatch
+    </div>
+    <p class="display" style="font-size:84px;margin-top:40px;color:var(--chalk)">Find your mentor.<br><span style="color:var(--yellow)">Get your route.</span></p>
+    <div id="s7cta" class="tape y" style="margin-top:56px;font-size:40px">Sign up and pick your skills</div>
+  </div>
+</div>
+
+<script>
+// ---------- helpers ----------
+const clamp = (v) => Math.max(0, Math.min(1, v));
+const win = (t, a, b) => clamp((t - a) / (b - a));
+const out = (x) => 1 - Math.pow(1 - x, 4);           // ease-out quart
+const inOut = (x) => (x < .5 ? 8 * x ** 4 : 1 - Math.pow(-2 * x + 2, 4) / 2);
+const $ = (id) => document.getElementById(id);
+const set = (el, o, tf = "") => { el.style.opacity = o; el.style.transform = tf; el.style.visibility = o <= 0.001 ? "hidden" : "visible"; };
+// Scene visibility envelope: fade in over `fi`, out over `fo`.
+const env = (t, a, b, fi = .5, fo = .5) => Math.min(out(win(t, a, a + fi)), 1 - win(t, b - fo, b));
+
+// ---------- holds ----------
+const SHAPES = [
+  "M18 52c-6-14 4-30 22-34 12-3 22 2 32 0 14-3 24 8 22 22-1 10-8 14-9 24-2 14-14 22-30 20-12-2-18-8-28-10-10-2-6-12-9-22z",
+  "M14 46c2-18 20-30 40-30 22 0 36 14 34 32-1 12-10 16-14 26-6 12-22 14-36 10-16-4-26-20-24-38z",
+  "M10 60c0-20 18-40 42-42 20-2 38 12 38 30 0 16-12 22-24 28-14 6-32 10-44 2-8-5-12-10-12-18z",
+  "M22 30c10-12 34-16 48-6 12 8 18 22 12 36-4 10-2 20-12 26-12 8-28 4-38-6-10-10-20-14-18-28 1-10 2-16 8-22z",
+  "M16 50c-2-16 12-32 30-34 10-1 16 4 26 4 12 0 18 10 16 22-2 14-4 22-16 30-14 9-34 8-46-2-6-6-9-12-10-20z",
+];
+const holdSvg = (shape, size, rot, tick) => `
+  <svg width="${size}" height="${size}" viewBox="0 0 100 100" style="transform:rotate(${rot}deg);filter:drop-shadow(0 8px 8px rgb(0 0 0 / .45))">
+    <defs><radialGradient id="g${shape}${rot}" cx="35%" cy="30%" r="75%"><stop offset="0" stop-color="#ffe78a"/><stop offset=".55" stop-color="#ffd23f"/><stop offset="1" stop-color="#c99a00"/></radialGradient></defs>
+    <path d="${SHAPES[shape]}" fill="url(#g${shape}${rot})"/>
+    <circle cx="50" cy="50" r="7" fill="#c99a00"/><circle cx="50" cy="50" r="4" fill="#15171a"/>
+  </svg>`;
+
+const ROUTE = [
+  { x: 1380, y: 940, label: "Map your goal", g: "Start", s: 1, r: -12, side: 1 },
+  { x: 1560, y: 790, label: "Learn the fundamentals", g: "V1", s: 0, r: 18, side: -1 },
+  { x: 1330, y: 640, label: "First real project", g: "V2", s: 3, r: -24, side: 1 },
+  { x: 1600, y: 490, label: "Résumé & portfolio", g: "V3", s: 2, r: 8, side: -1 },
+  { x: 1390, y: 340, label: "Mock interviews", g: "V4", s: 4, r: -6, side: 1 },
+];
+const TOP = { x: 1560, y: 170 };
+$("rl").setAttribute("points", ROUTE.map((h) => `${h.x},${h.y}`).join(" ") + ` ${TOP.x},${TOP.y + 40}`);
+const holdEls = ROUTE.map((h, i) => {
+  const el = document.createElement("div");
+  el.className = "abs";
+  el.style.left = h.x - 55 + "px"; el.style.top = h.y - 55 + "px";
+  el.innerHTML = holdSvg(h.s, 110, h.r);
+  const tape = document.createElement("div");
+  tape.className = "abs tape";
+  tape.style.fontSize = "30px"; tape.style.top = h.y - 30 + "px";
+  if (h.side > 0) tape.style.left = h.x + 70 + "px"; else tape.style.right = 1920 - h.x + 70 + "px";
+  tape.innerHTML = `<span class="grade">${h.g}</span>${h.label}`;
+  $("holds").append(el, tape);
+  return { el, tape, i };
+});
+const topTag = document.createElement("div");
+topTag.className = "abs tape y"; topTag.style.cssText += `left:${TOP.x - 230}px;top:${TOP.y - 30}px;font-size:40px;flex-direction:column;align-items:flex-start;gap:0`;
+topTag.innerHTML = `Top · First offer<span style="font-size:22px">set by your mentor</span>`;
+$("holds").append(topTag);
+
+// ---------- fields ----------
+const FIELDS = [
+  ["Tech", 180, 480, -3], ["Business", 560, 560, 2], ["Aviation", 1010, 470, -2], ["Design", 1430, 560, 3],
+  ["Health", 260, 720, 2], ["Marketing", 690, 790, -3], ["Creative", 1180, 720, 1], ["Music", 1560, 800, -2],
+];
+const fieldEls = FIELDS.map(([name, x, y, r], i) => {
+  const el = document.createElement("div");
+  el.className = "abs tape" + (name === "Aviation" || name === "Business" ? " y" : "");
+  el.style.cssText += `left:${x}px;top:${y}px;font-size:64px`;
+  el.textContent = name;
+  $("fields").append(el);
+  return { el, r, i };
+});
+
+// ---------- timeline ----------
+const DURATION = 46;
+function seek(t) {
+  // Wall route: set bottom-up in scene 1, gone for the product scenes, back for the close.
+  const routeOn = Math.max(env(t, 0, 5.2, .2, .6), env(t, 37.6, 99, .6, .1));
+  const setStart = t < 30 ? 0.3 : 38.0;
+  holdEls.forEach(({ el, tape, i }) => {
+    const k = out(win(t, setStart + i * .38, setStart + i * .38 + .7));
+    set(el, k * routeOn, `translateY(${(1 - k) * 40}px) scale(${.85 + .15 * k})`);
+    const kt = out(win(t, setStart + .18 + i * .38, setStart + .18 + i * .38 + .6));
+    set(tape, kt * routeOn, `translateX(${(1 - kt) * 30 * (ROUTE[i].side)}px) rotate(${i % 2 ? 2 : -2}deg)`);
+  });
+  const kTop = out(win(t, setStart + 2.1, setStart + 2.8));
+  set(topTag, kTop * routeOn, `rotate(-3deg) scale(${.9 + .1 * kTop})`);
+  const rl = $("routeLine"); set(rl, routeOn * out(win(t, setStart, setStart + 1.6)));
+
+  // S1
+  const s1 = env(t, 1.6, 5.0, .7, .5);
+  set($("s1"), s1, `translateY(${(1 - out(win(t, 1.6, 2.4))) * 30}px)`);
+
+  // S2: line reveal
+  const s2 = env(t, 5.0, 9.6, .1, .5);
+  set($("s2"), s2);
+  $("s2a").style.transform = `translateY(${(1 - out(win(t, 5.1, 5.8))) * 110}%)`;
+  $("s2b").style.transform = `translateY(${(1 - out(win(t, 5.45, 6.15))) * 110}%)`;
+
+  // Wordmark rides along from scene 2 to scene 6.
+  set($("wm"), env(t, 5.6, 37.8, .6, .5));
+
+  // S3: tape slaps on
+  set($("s3h"), env(t, 9.7, 15.2, .6, .5), `translateY(${(1 - out(win(t, 9.7, 10.4))) * 30}px)`);
+  const s3 = 1 - win(t, 14.7, 15.2);
+  fieldEls.forEach(({ el, r, i }) => {
+    const k = out(win(t, 10.5 + i * .28, 10.5 + i * .28 + .45));
+    set(el, k * s3 * (t > 10 ? 1 : 0), `rotate(${r}deg) scale(${1.25 - .25 * k})`);
+  });
+
+  // S4: picker then ranked matches
+  const s4 = env(t, 15.2, 23.2, .6, .6);
+  set($("s4f"), s4, `translateX(${(1 - out(win(t, 15.2, 16.2))) * 120}px) scale(${1 + .05 * win(t, 15.2, 23.2)})`);
+  $("s4i2").style.opacity = inOut(win(t, 18.6, 19.4));
+  set($("s4t1"), env(t, 15.5, 18.8, .6, .4));
+  set($("s4t2"), env(t, 19.0, 23.0, .6, .5), `translateY(${(1 - out(win(t, 19.0, 19.7))) * 24}px)`);
+
+  // S5: route detail, slow pan down the milestones
+  const s5 = env(t, 23.2, 30.8, .6, .6);
+  set($("s5t"), s5, `translateY(${(1 - out(win(t, 23.4, 24.2))) * 24}px)`);
+  set($("s5f"), s5, `translateX(${(1 - out(win(t, 23.2, 24.2))) * 120}px)`);
+  $("s5i").style.transform = `translateY(${-inOut(win(t, 25.0, 30.4)) * Math.max(0, $("s5i").offsetHeight - 840)}px)`;
+
+  // S6: dashboard + messages
+  const s6 = env(t, 30.8, 38.0, .6, .6);
+  set($("s6a"), s6, `translateY(${(1 - out(win(t, 30.8, 31.8))) * 60}px) rotate(-1.2deg)`);
+  set($("s6b"), s6 * out(win(t, 31.6, 32.4)), `translateY(${(1 - out(win(t, 31.6, 32.6))) * 80}px) rotate(1.4deg)`);
+  set($("s6t"), env(t, 32.6, 38.0, .6, .6));
+
+  // S7: close
+  const s7 = out(win(t, 38.4, 39.4));
+  set($("s7"), s7, `translateY(${(1 - s7) * 30}px)`);
+  const c = out(win(t, 40.2, 40.8));
+  set($("s7cta"), c, `rotate(-2deg) scale(${1.15 - .15 * c})`);
+}
+window.seek = seek;
+window.DURATION = DURATION;
+seek(0);
+</script>
+</body>
+</html>

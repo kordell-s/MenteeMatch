@@ -225,16 +225,19 @@ describe("POST /api/match", () => {
 
       await POST(request);
 
+      // Skills are mapped to descriptive text for the embedding matcher (mapSkillToEmbeddingText)
       expect(getMentorRecommendations).toHaveBeenCalledWith(
-        expect.stringContaining("REACT"),
+        expect.stringContaining("react javascript frontend framework"),
         expect.any(Array)
       );
 
       const menteeText = (getMentorRecommendations as jest.Mock).mock.calls[0][0];
-      expect(menteeText).toContain("REACT");
-      expect(menteeText).toContain("NODE_JS");
+      expect(menteeText).toContain("nodejs backend javascript server");
       expect(menteeText).toContain("LEARN_CODING");
       expect(menteeText).toContain("I want to learn full-stack development");
+      // Sections are weighted by repetition; each copy must stay a separate word
+      expect(menteeText).not.toContain("typesreact");
+      expect(menteeText).not.toContain("CAREER_GUIDANCELEARN_CODING");
     });
 
     it("should format mentors correctly for algorithm", async () => {

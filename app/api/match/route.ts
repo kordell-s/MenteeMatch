@@ -90,6 +90,9 @@ function mapSkillToEmbeddingText(skill: string): string {
   return skillMapping[skill] || skill.toLowerCase().replace(/_/g, ' ');
 }
 
+/** Repeat text n times to weight it in TF-IDF, keeping each copy a separate word. */
+const weight = (text: string, n: number) => Array(n).fill(text).join(' ');
+
 export async function POST(req: NextRequest) {
   try {
     const { menteeId } = await req.json();
@@ -173,17 +176,17 @@ export async function POST(req: NextRequest) {
     // Create mentee input text for smart algorithm
     // Map skills to embedding-friendly text for better semantic matching
     const mappedSkills = (mentee.skills || []).map(mapSkillToEmbeddingText);
-    const skillsText = mappedSkills.join(' ').repeat(3); // 3x weight
+    const skillsText = weight(mappedSkills.join(' '), 3); // 3x weight
 
     // Use detailedGoals if available (much better for matching), fallback to enum goals
     let goalsText = '';
     if (mentee.mentee?.detailedGoals) {
       // Detailed goals get 5x weight for better semantic matching
-      goalsText = mentee.mentee.detailedGoals.repeat(5);
+      goalsText = weight(mentee.mentee.detailedGoals, 5);
       console.log('✨ Using detailed goals for enhanced matching');
     } else {
       // Fallback to enum goals with 2x weight
-      goalsText = (mentee.mentee?.goals?.map((g: any) => g.toString()) || []).join(' ').repeat(2);
+      goalsText = weight((mentee.mentee?.goals?.map((g: any) => g.toString()) || []).join(' '), 2);
     }
 
     const bioText = mentee.bio || '';
@@ -245,7 +248,7 @@ export async function POST(req: NextRequest) {
         specialization: mentor.specialization,
         profilePicture: mentor.profilePicture,
         skills: (mentor as any).originalSkills || mentor.skills, // Use original enum skills for display
-        bio: mentor.bio
+        bio: mentor.bio ?? "" // same default as the formatted mentors sent to the matcher
       }
     }));
 

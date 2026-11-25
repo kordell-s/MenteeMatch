@@ -3,12 +3,19 @@ import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
 
+// Seed dates were written around 1 Dec 2025. Shift them so demo data always sits around today.
+const SEED_ANCHOR = new Date("2025-12-01T00:00:00").getTime();
+const SHIFT = Date.now() - SEED_ANCHOR;
+const at = (iso: string) => new Date(new Date(iso).getTime() + SHIFT);
+
 async function main() {
   console.log("🌱 Starting database seeding...");
 
   // Clear existing data
   console.log("🧹 Cleaning existing data...");
   await prisma.message.deleteMany();
+  await prisma.conversation.deleteMany();
+  await prisma.mentorshipRequest.deleteMany();
   await prisma.roadmapResource.deleteMany();
   await prisma.checkIn.deleteMany();
   await prisma.task.deleteMany();
@@ -38,7 +45,7 @@ async function main() {
       bio: "Senior Full-Stack Developer with 8 years of experience. Passionate about teaching React and Node.js.",
       title: "Senior Software Engineer",
       company: "Tech Corp",
-      school: "MIT",
+      school: "Bayside Institute of Technology",
       location: "San Francisco, CA",
       experienceLevel: "SENIOR",
       skills: ["REACT", "NODE_JS", "TYPESCRIPT", "SYSTEM_DESIGN", "AWS"],
@@ -47,7 +54,6 @@ async function main() {
       timeAvailability: ["EVENING", "LATE_EVENING"],
       verified: true,
       profileComplete: true,
-      rating: 4.8,
       gender: "FEMALE",
     },
   });
@@ -61,7 +67,7 @@ async function main() {
       bio: "Data Science expert specializing in Machine Learning and AI. Love helping beginners start their ML journey.",
       title: "Lead Data Scientist",
       company: "DataCorp",
-      school: "Stanford University",
+      school: "Westbridge University",
       location: "Seattle, WA",
       experienceLevel: "LEAD",
       skills: ["PYTHON", "MACHINE_LEARNING", "DATA_SCIENCE", "STATISTICS", "MLOPS"],
@@ -70,7 +76,6 @@ async function main() {
       timeAvailability: ["MORNING", "AFTERNOON"],
       verified: true,
       profileComplete: true,
-      rating: 4.9,
       gender: "MALE",
     },
   });
@@ -93,7 +98,6 @@ async function main() {
       timeAvailability: ["AFTERNOON", "EVENING"],
       verified: true,
       profileComplete: true,
-      rating: 4.7,
       gender: "FEMALE",
     },
   });
@@ -104,7 +108,7 @@ async function main() {
       email: "michael.mentor@test.com",
       password: hashedPassword,
       role: "MENTOR",
-      bio: "Mobile development expert specializing in React Native and Flutter. Built apps with millions of downloads.",
+      bio: "Mobile development expert specializing in React Native and Flutter. Has shipped several consumer apps to the stores.",
       title: "Senior Mobile Engineer",
       company: "AppTech",
       school: "Carnegie Mellon",
@@ -116,7 +120,6 @@ async function main() {
       timeAvailability: ["MORNING", "AFTERNOON"],
       verified: true,
       profileComplete: true,
-      rating: 4.9,
       gender: "MALE",
     },
   });
@@ -139,7 +142,6 @@ async function main() {
       timeAvailability: ["EVENING", "LATE_EVENING"],
       verified: true,
       profileComplete: true,
-      rating: 4.8,
       gender: "FEMALE",
     },
   });
@@ -162,7 +164,6 @@ async function main() {
       timeAvailability: ["AFTERNOON", "EVENING"],
       verified: true,
       profileComplete: true,
-      rating: 4.6,
       gender: "MALE",
     },
   });
@@ -185,7 +186,6 @@ async function main() {
       timeAvailability: ["MORNING", "AFTERNOON"],
       verified: true,
       profileComplete: true,
-      rating: 4.7,
       gender: "FEMALE",
     },
   });
@@ -208,7 +208,6 @@ async function main() {
       timeAvailability: ["EVENING", "LATE_EVENING"],
       verified: true,
       profileComplete: true,
-      rating: 4.9,
       gender: "MALE",
     },
   });
@@ -223,7 +222,7 @@ async function main() {
       bio: "MBA graduate turned entrepreneur. Founded 2 successful startups. Help aspiring entrepreneurs launch their ventures.",
       title: "Founder & CEO",
       company: "StartupLab",
-      school: "Harvard Business School",
+      school: "Eastbrook Business School",
       location: "Boston, MA",
       experienceLevel: "LEAD",
       skills: ["BUSINESS_STRATEGY", "STARTUPS", "LEADERSHIP", "PUBLIC_SPEAKING"],
@@ -232,7 +231,6 @@ async function main() {
       timeAvailability: ["AFTERNOON", "EVENING"],
       verified: true,
       profileComplete: true,
-      rating: 4.9,
       gender: "FEMALE",
     },
   });
@@ -245,7 +243,7 @@ async function main() {
       role: "MENTOR",
       bio: "Financial analyst with 12 years in investment banking. Specialize in corporate finance and financial modeling.",
       title: "Senior Investment Banker",
-      company: "Goldman Sachs",
+      company: "Northgate Capital",
       school: "Wharton School",
       location: "New York, NY",
       experienceLevel: "SENIOR",
@@ -255,7 +253,6 @@ async function main() {
       timeAvailability: ["MORNING", "AFTERNOON"],
       verified: true,
       profileComplete: true,
-      rating: 4.7,
       gender: "MALE",
     },
   });
@@ -269,7 +266,7 @@ async function main() {
       bio: "Human Resources Director passionate about talent development and organizational culture. 10+ years experience.",
       title: "HR Director",
       company: "Fortune 500 Tech",
-      school: "Cornell University",
+      school: "Lakeview University",
       location: "San Francisco, CA",
       experienceLevel: "SENIOR",
       skills: ["LEADERSHIP", "TEAM_MANAGEMENT", "CAREER_COACHING", "PUBLIC_SPEAKING"],
@@ -278,7 +275,6 @@ async function main() {
       timeAvailability: ["AFTERNOON", "EVENING"],
       verified: true,
       profileComplete: true,
-      rating: 4.8,
       gender: "FEMALE",
     },
   });
@@ -291,8 +287,8 @@ async function main() {
       role: "MENTOR",
       bio: "Operations consultant helping businesses scale efficiently. Former McKinsey consultant with expertise in process optimization.",
       title: "Operations Consultant",
-      company: "McKinsey & Company",
-      school: "Stanford GSB",
+      company: "Calder & Rowe Consulting",
+      school: "Westbridge GSB",
       location: "Los Angeles, CA",
       experienceLevel: "LEAD",
       skills: ["BUSINESS_STRATEGY", "AGILE", "LEADERSHIP", "TEAM_MANAGEMENT"],
@@ -301,7 +297,6 @@ async function main() {
       timeAvailability: ["MORNING", "AFTERNOON"],
       verified: true,
       profileComplete: true,
-      rating: 4.9,
       gender: "MALE",
     },
   });
@@ -315,7 +310,7 @@ async function main() {
       bio: "Sales executive with track record of building high-performing teams. Expert in B2B sales and account management.",
       title: "VP of Sales",
       company: "SaaS Unicorn",
-      school: "UC Berkeley Haas",
+      school: "Bayview University Haas",
       location: "San Francisco, CA",
       experienceLevel: "LEAD",
       skills: ["BUSINESS_STRATEGY", "DIGITAL_MARKETING", "LEADERSHIP", "TEAM_MANAGEMENT"],
@@ -324,7 +319,6 @@ async function main() {
       timeAvailability: ["AFTERNOON", "EVENING"],
       verified: true,
       profileComplete: true,
-      rating: 4.8,
       gender: "FEMALE",
     },
   });
@@ -338,7 +332,7 @@ async function main() {
       role: "MENTOR",
       bio: "Creative director with 15 years in branding and visual identity. Worked with Fortune 500 brands.",
       title: "Creative Director",
-      company: "Ogilvy",
+      company: "Fairwind Agency",
       school: "Parsons School of Design",
       location: "New York, NY",
       experienceLevel: "LEAD",
@@ -348,7 +342,6 @@ async function main() {
       timeAvailability: ["AFTERNOON", "EVENING"],
       verified: true,
       profileComplete: true,
-      rating: 4.9,
       gender: "MALE",
     },
   });
@@ -371,7 +364,6 @@ async function main() {
       timeAvailability: ["MORNING", "AFTERNOON"],
       verified: true,
       profileComplete: true,
-      rating: 4.8,
       gender: "FEMALE",
     },
   });
@@ -394,7 +386,6 @@ async function main() {
       timeAvailability: ["AFTERNOON", "EVENING"],
       verified: true,
       profileComplete: true,
-      rating: 4.7,
       gender: "MALE",
     },
   });
@@ -407,7 +398,7 @@ async function main() {
       role: "MENTOR",
       bio: "UX researcher specializing in user testing and qualitative research. Help teams build user-centered products.",
       title: "Lead UX Researcher",
-      company: "Meta",
+      company: "Brightline Social",
       school: "Carnegie Mellon HCI",
       location: "Seattle, WA",
       experienceLevel: "LEAD",
@@ -417,7 +408,6 @@ async function main() {
       timeAvailability: ["MORNING", "AFTERNOON"],
       verified: true,
       profileComplete: true,
-      rating: 4.9,
       gender: "FEMALE",
     },
   });
@@ -440,7 +430,6 @@ async function main() {
       timeAvailability: ["AFTERNOON", "EVENING"],
       verified: true,
       profileComplete: true,
-      rating: 4.8,
       gender: "MALE",
     },
   });
@@ -464,7 +453,6 @@ async function main() {
       timeAvailability: ["AFTERNOON", "EVENING"],
       verified: true,
       profileComplete: true,
-      rating: 4.9,
       gender: "FEMALE",
     },
   });
@@ -475,7 +463,7 @@ async function main() {
       email: "kevin.mentor@test.com",
       password: hashedPassword,
       role: "MENTOR",
-      bio: "Social media marketing expert. Built brands with millions of followers across Instagram, TikTok, and YouTube.",
+      bio: "Social media marketing expert. Has grown brand accounts across Instagram, TikTok, and YouTube.",
       title: "Social Media Director",
       company: "Influencer Marketing Co",
       school: "USC Annenberg",
@@ -487,7 +475,6 @@ async function main() {
       timeAvailability: ["MORNING", "AFTERNOON"],
       verified: true,
       profileComplete: true,
-      rating: 4.8,
       gender: "MALE",
     },
   });
@@ -501,7 +488,7 @@ async function main() {
       bio: "Brand strategist helping companies define their unique voice and positioning. Former VP Marketing at Nike.",
       title: "Brand Strategist",
       company: "Independent",
-      school: "Columbia Business School",
+      school: "Riverside Business School",
       location: "Portland, OR",
       experienceLevel: "LEAD",
       skills: ["BRANDING", "DIGITAL_MARKETING", "CONTENT_STRATEGY", "BUSINESS_STRATEGY"],
@@ -510,7 +497,6 @@ async function main() {
       timeAvailability: ["AFTERNOON", "EVENING"],
       verified: true,
       profileComplete: true,
-      rating: 4.9,
       gender: "FEMALE",
     },
   });
@@ -524,7 +510,7 @@ async function main() {
       bio: "Email marketing specialist. Expert in automation, segmentation, and conversion optimization for e-commerce.",
       title: "Email Marketing Manager",
       company: "Shopify",
-      school: "University of Texas",
+      school: "Southplains University",
       location: "Austin, TX",
       experienceLevel: "SENIOR",
       skills: ["DIGITAL_MARKETING", "CONTENT_STRATEGY", "COPYWRITING", "SEO"],
@@ -533,7 +519,6 @@ async function main() {
       timeAvailability: ["MORNING", "AFTERNOON"],
       verified: true,
       profileComplete: true,
-      rating: 4.7,
       gender: "MALE",
     },
   });
@@ -556,7 +541,6 @@ async function main() {
       timeAvailability: ["AFTERNOON", "EVENING"],
       verified: true,
       profileComplete: true,
-      rating: 4.9,
       gender: "FEMALE",
     },
   });
@@ -568,7 +552,7 @@ async function main() {
       email: "christopher.mentor@test.com",
       password: hashedPassword,
       role: "MENTOR",
-      bio: "Award-winning photographer specializing in portrait and commercial photography. Published in major magazines.",
+      bio: "Working photographer specializing in portrait and commercial photography. Shoots editorial and commercial work.",
       title: "Commercial Photographer",
       company: "Independent",
       school: "School of Visual Arts",
@@ -580,7 +564,6 @@ async function main() {
       timeAvailability: ["MORNING", "AFTERNOON"],
       verified: true,
       profileComplete: true,
-      rating: 4.8,
       gender: "MALE",
     },
   });
@@ -603,7 +586,6 @@ async function main() {
       timeAvailability: ["AFTERNOON", "EVENING"],
       verified: true,
       profileComplete: true,
-      rating: 4.9,
       gender: "FEMALE",
     },
   });
@@ -626,7 +608,6 @@ async function main() {
       timeAvailability: ["MORNING", "AFTERNOON"],
       verified: true,
       profileComplete: true,
-      rating: 4.8,
       gender: "MALE",
     },
   });
@@ -649,7 +630,6 @@ async function main() {
       timeAvailability: ["AFTERNOON", "EVENING"],
       verified: true,
       profileComplete: true,
-      rating: 4.9,
       gender: "FEMALE",
     },
   });
@@ -672,7 +652,6 @@ async function main() {
       timeAvailability: ["MORNING", "AFTERNOON"],
       verified: true,
       profileComplete: true,
-      rating: 4.7,
       gender: "MALE",
     },
   });
@@ -687,7 +666,7 @@ async function main() {
       bio: "Registered dietitian helping people achieve sustainable health goals. Specialize in sports nutrition and meal planning.",
       title: "Registered Dietitian",
       company: "Nutrition Clinic",
-      school: "Tufts University",
+      school: "Hillcrest University",
       location: "Boston, MA",
       experienceLevel: "SENIOR",
       skills: ["CAREER_COACHING", "PUBLIC_SPEAKING", "NETWORKING", "LEADERSHIP"],
@@ -696,7 +675,6 @@ async function main() {
       timeAvailability: ["MORNING", "AFTERNOON"],
       verified: true,
       profileComplete: true,
-      rating: 4.9,
       gender: "FEMALE",
     },
   });
@@ -719,7 +697,6 @@ async function main() {
       timeAvailability: ["MORNING", "AFTERNOON"],
       verified: true,
       profileComplete: true,
-      rating: 4.8,
       gender: "MALE",
     },
   });
@@ -733,7 +710,7 @@ async function main() {
       bio: "Clinical psychologist specializing in cognitive behavioral therapy. Help professionals manage stress and anxiety.",
       title: "Clinical Psychologist",
       company: "Private Practice",
-      school: "Stanford University",
+      school: "Westbridge University",
       location: "Palo Alto, CA",
       experienceLevel: "LEAD",
       skills: ["CAREER_COACHING", "PUBLIC_SPEAKING", "NETWORKING", "LEADERSHIP"],
@@ -742,7 +719,6 @@ async function main() {
       timeAvailability: ["AFTERNOON", "EVENING"],
       verified: true,
       profileComplete: true,
-      rating: 4.9,
       gender: "FEMALE",
     },
   });
@@ -765,7 +741,6 @@ async function main() {
       timeAvailability: ["MORNING", "EVENING"],
       verified: true,
       profileComplete: true,
-      rating: 4.8,
       gender: "MALE",
     },
   });
@@ -788,7 +763,6 @@ async function main() {
       timeAvailability: ["MORNING", "AFTERNOON"],
       verified: true,
       profileComplete: true,
-      rating: 4.9,
       gender: "FEMALE",
     },
   });
@@ -803,7 +777,7 @@ async function main() {
       bio: "Digital marketing strategist with 10 years of experience in SEO, content marketing, and social media. Helped brands grow their online presence 10x.",
       title: "Digital Marketing Director",
       company: "Growth Marketing Co",
-      school: "Northwestern University",
+      school: "Lakeshore University",
       location: "Chicago, IL",
       experienceLevel: "SENIOR",
       skills: ["DIGITAL_MARKETING", "BUSINESS_STRATEGY", "PUBLIC_SPEAKING", "LEADERSHIP"],
@@ -812,7 +786,6 @@ async function main() {
       timeAvailability: ["AFTERNOON", "EVENING"],
       verified: true,
       profileComplete: true,
-      rating: 4.8,
       gender: "FEMALE",
     },
   });
@@ -835,7 +808,6 @@ async function main() {
       timeAvailability: ["MORNING", "AFTERNOON"],
       verified: true,
       profileComplete: true,
-      rating: 4.7,
       gender: "MALE",
     },
   });
@@ -847,9 +819,9 @@ async function main() {
       email: "maya.creative@test.com",
       password: hashedPassword,
       role: "MENTOR",
-      bio: "Award-winning creative director with experience in advertising, branding, and content creation. Passionate about mentoring emerging creatives.",
+      bio: "Creative director with experience in advertising, branding, and content creation. Passionate about mentoring emerging creatives.",
       title: "Creative Director",
-      company: "Ogilvy",
+      company: "Fairwind Agency",
       school: "Parsons School of Design",
       location: "New York, NY",
       experienceLevel: "LEAD",
@@ -859,7 +831,6 @@ async function main() {
       timeAvailability: ["AFTERNOON", "EVENING"],
       verified: true,
       profileComplete: true,
-      rating: 4.9,
       gender: "FEMALE",
     },
   });
@@ -882,7 +853,6 @@ async function main() {
       timeAvailability: ["EVENING", "LATE_EVENING"],
       verified: true,
       profileComplete: true,
-      rating: 4.8,
       gender: "MALE",
     },
   });
@@ -897,7 +867,7 @@ async function main() {
       bio: "Licensed clinical psychologist specializing in career counseling and work-life balance. Help professionals navigate career transitions and burnout.",
       title: "Clinical Psychologist",
       company: "Mindful Health Clinic",
-      school: "Stanford University",
+      school: "Westbridge University",
       location: "San Francisco, CA",
       experienceLevel: "LEAD",
       skills: ["CAREER_COACHING", "LEADERSHIP", "PUBLIC_SPEAKING", "TEAM_MANAGEMENT"],
@@ -906,7 +876,6 @@ async function main() {
       timeAvailability: ["AFTERNOON", "EVENING"],
       verified: true,
       profileComplete: true,
-      rating: 4.9,
       gender: "FEMALE",
     },
   });
@@ -920,7 +889,7 @@ async function main() {
       bio: "Registered dietitian and fitness coach with 8 years of experience. Help busy professionals build sustainable health and fitness habits.",
       title: "Registered Dietitian",
       company: "Performance Nutrition",
-      school: "University of Texas",
+      school: "Southplains University",
       location: "Dallas, TX",
       experienceLevel: "SENIOR",
       skills: ["CAREER_COACHING", "TEAM_MANAGEMENT", "PUBLIC_SPEAKING", "LEADERSHIP"],
@@ -929,7 +898,6 @@ async function main() {
       timeAvailability: ["MORNING", "AFTERNOON"],
       verified: true,
       profileComplete: true,
-      rating: 4.7,
       gender: "MALE",
     },
   });
@@ -944,7 +912,7 @@ async function main() {
       bio: "Professional music producer and audio engineer with credits on Grammy-nominated albums. Teach music production, mixing, and mastering.",
       title: "Music Producer & Audio Engineer",
       company: "Soundwave Studios",
-      school: "Berklee College of Music",
+      school: "Harbor College of Music",
       location: "Nashville, TN",
       experienceLevel: "SENIOR",
       skills: ["STORYTELLING", "COPYWRITING", "CAREER_COACHING", "NETWORKING"],
@@ -953,7 +921,6 @@ async function main() {
       timeAvailability: ["EVENING", "LATE_EVENING"],
       verified: true,
       profileComplete: true,
-      rating: 4.8,
       gender: "FEMALE",
     },
   });
@@ -966,8 +933,8 @@ async function main() {
       role: "MENTOR",
       bio: "Classical pianist and music teacher with 15 years of performance experience. Passionate about helping students develop their musical talent and career.",
       title: "Concert Pianist & Music Educator",
-      company: "Juilliard School",
-      school: "Juilliard School",
+      company: "Westmere Conservatory",
+      school: "Westmere Conservatory",
       location: "New York, NY",
       experienceLevel: "LEAD",
       skills: ["STORYTELLING", "PUBLIC_SPEAKING", "CAREER_COACHING", "NETWORKING"],
@@ -976,10 +943,54 @@ async function main() {
       timeAvailability: ["AFTERNOON", "EVENING"],
       verified: true,
       profileComplete: true,
-      rating: 4.9,
       gender: "MALE",
     },
   });
+
+  // Aviation mentors (MentorMatch is not tech-only)
+  for (const a of [
+    {
+      name: "Renee Okafor",
+      email: "renee.mentor@test.com",
+      title: "Airline First Officer",
+      company: "Regional carrier",
+      bio: "Airline pilot with 9 years flying regional jets. I help student pilots plan licences, hour building and airline interviews.",
+      skills: ["PILOT_TRAINING", "FLIGHT_OPERATIONS", "AVIATION_SAFETY", "INTERVIEW_PREP"],
+      gender: "FEMALE",
+    },
+    {
+      name: "Daniel Brooks",
+      email: "daniel.brooks.mentor@test.com",
+      title: "Maintenance Planning Lead",
+      company: "Charter operator",
+      bio: "Licensed aircraft maintenance engineer turned planning lead. Happy to map routes into maintenance, operations and aviation management.",
+      skills: ["AIRCRAFT_MAINTENANCE", "AIRLINE_OPERATIONS", "AVIATION_MANAGEMENT", "OPERATIONS", "PROJECT_MANAGEMENT"],
+      gender: "MALE",
+    },
+  ] as const) {
+    const u = await prisma.user.create({
+      data: {
+        name: a.name,
+        email: a.email,
+        password: hashedPassword,
+        role: "MENTOR",
+        bio: a.bio,
+        title: a.title,
+        company: a.company,
+        experienceLevel: "SENIOR",
+        skills: [...a.skills],
+        languages: ["English"],
+        availability: ["TUESDAY", "THURSDAY", "SATURDAY"],
+        timeAvailability: ["MORNING", "EVENING"],
+        verified: true,
+        profileComplete: true,
+        gender: a.gender,
+      },
+    });
+    await prisma.mentor.create({
+      data: { userId: u.id, specialization: ["CAREER_COACHING"], category: "AVIATION" },
+    });
+  }
 
   // Create Mentees
   const mentee1 = await prisma.user.create({
@@ -990,7 +1001,7 @@ async function main() {
       role: "MENTEE",
       bio: "Computer Science student eager to learn web development and land my first internship.",
       title: "CS Student",
-      school: "UC Berkeley",
+      school: "Bayview University",
       location: "Berkeley, CA",
       experienceLevel: "STUDENT",
       skills: ["JAVASCRIPT", "REACT", "NODE_JS"],
@@ -1012,7 +1023,7 @@ async function main() {
       bio: "Career changer from marketing to data science. Looking for guidance on ML fundamentals.",
       title: "Junior Data Analyst",
       company: "Analytics Inc",
-      school: "NYU",
+      school: "Metro City University",
       location: "New York, NY",
       experienceLevel: "ENTRY",
       skills: ["PYTHON", "SQL", "STATISTICS"],
@@ -1055,7 +1066,7 @@ async function main() {
       bio: "Junior developer looking to level up from frontend to full-stack with cloud architecture expertise. Passionate about building scalable applications.",
       title: "Junior Full-Stack Developer",
       company: "CloudTech Solutions",
-      school: "UC Berkeley",
+      school: "Bayview University",
       location: "San Francisco, CA",
       experienceLevel: "ENTRY",
       skills: ["REACT", "TYPESCRIPT", "NODE_JS", "AWS"],
@@ -1300,7 +1311,7 @@ async function main() {
     data: {
       userId: mentee1.id,
       goals: ["LEARN_CODING", "BUILD_PROJECTS", "INTERVIEW_PREP"],
-      detailedGoals: "I'm a computer science student at UC Berkeley looking to master web development with JavaScript and React. I want to build impressive full-stack projects for my portfolio and prepare for technical interviews at top tech companies. I'm particularly interested in learning modern frontend frameworks, backend API development with Node.js, and database design. My goal is to land a software engineering internship at a FAANG company or promising startup.",
+      detailedGoals: "I'm a computer science student at Bayview University looking to master web development with JavaScript and React. I want to build impressive full-stack projects for my portfolio and prepare for technical interviews at top tech companies. I'm particularly interested in learning modern frontend frameworks, backend API development with Node.js, and database design. My goal is to land a software engineering internship at a FAANG company or promising startup.",
     },
   });
 
@@ -1362,7 +1373,7 @@ async function main() {
     data: {
       mentorId: mentor1.id,
       menteeId: mentee1.id,
-      date: new Date("2025-12-20T18:00:00"),
+      date: at("2025-12-20T18:00:00"),
       time: "18:00",
       duration: 60,
       status: "CONFIRMED",
@@ -1376,7 +1387,7 @@ async function main() {
     data: {
       mentorId: mentor2.id,
       menteeId: mentee2.id,
-      date: new Date("2025-12-10T14:00:00"),
+      date: at("2025-12-10T14:00:00"),
       time: "14:00",
       duration: 90,
       status: "COMPLETED",
@@ -1384,7 +1395,6 @@ async function main() {
       description: "Overview of ML algorithms and when to use them",
       offeringType: "Technical Session",
       feedback: "Great session! Maria asked excellent questions.",
-      rating: 5.0,
     },
   });
 
@@ -1392,7 +1402,7 @@ async function main() {
     data: {
       mentorId: mentor1.id,
       menteeId: mentee4.id,
-      date: new Date("2025-12-12T19:00:00"),
+      date: at("2025-12-12T19:00:00"),
       time: "19:00",
       duration: 60,
       status: "COMPLETED",
@@ -1400,7 +1410,6 @@ async function main() {
       description: "Introduction to AWS services and cloud architecture patterns",
       offeringType: "Technical Session",
       feedback: "Jordan showed great enthusiasm for cloud architecture. Covered EC2, S3, and Lambda basics.",
-      rating: 5.0,
     },
   });
 
@@ -1408,7 +1417,7 @@ async function main() {
     data: {
       mentorId: mentor1.id,
       menteeId: mentee4.id,
-      date: new Date("2025-12-22T19:00:00"),
+      date: at("2025-12-22T19:00:00"),
       time: "19:00",
       duration: 60,
       status: "CONFIRMED",
@@ -1427,7 +1436,7 @@ async function main() {
       menteeId: mentee1.id,
       title: "Build a Todo App with React",
       description: "Create a full-featured todo application using React hooks and local storage",
-      dueDate: new Date("2025-12-25"),
+      dueDate: at("2025-12-25"),
       status: "IN_PROGRESS",
       goalTag: "BUILD_PROJECTS",
     },
@@ -1439,7 +1448,7 @@ async function main() {
       menteeId: mentee1.id,
       title: "Complete FreeCodeCamp JavaScript Course",
       description: "Finish the basic JavaScript certification",
-      dueDate: new Date("2025-12-30"),
+      dueDate: at("2025-12-30"),
       status: "PENDING",
       goalTag: "LEARN_CODING",
     },
@@ -1451,7 +1460,7 @@ async function main() {
       menteeId: mentee2.id,
       title: "Study Linear Regression",
       description: "Complete the linear regression module on Coursera",
-      dueDate: new Date("2025-12-18"),
+      dueDate: at("2025-12-18"),
       status: "COMPLETED",
       completed: true,
       goalTag: "LEARN_CODING",
@@ -1465,7 +1474,7 @@ async function main() {
       menteeId: mentee4.id,
       title: "Complete AWS Cloud Practitioner Course",
       description: "Finish the AWS Cloud Practitioner Essentials course to understand core AWS services",
-      dueDate: new Date("2026-01-10"),
+      dueDate: at("2026-01-10"),
       status: "COMPLETED",
       completed: true,
       goalTag: "LEARN_CODING",
@@ -1478,7 +1487,7 @@ async function main() {
       menteeId: mentee4.id,
       title: "Build REST API with Express & PostgreSQL",
       description: "Create a production-ready REST API with proper error handling, validation, and database relationships",
-      dueDate: new Date("2026-01-25"),
+      dueDate: at("2026-01-25"),
       status: "IN_PROGRESS",
       goalTag: "BUILD_PROJECTS",
     },
@@ -1490,7 +1499,7 @@ async function main() {
       menteeId: mentee4.id,
       title: "Study Microservices Architecture Patterns",
       description: "Read 'Building Microservices' by Sam Newman - chapters 1-4. Take notes on key patterns",
-      dueDate: new Date("2026-02-01"),
+      dueDate: at("2026-02-01"),
       status: "IN_PROGRESS",
       goalTag: "LEARN_CODING",
     },
@@ -1502,7 +1511,7 @@ async function main() {
       menteeId: mentee4.id,
       title: "Deploy Application to AWS EC2",
       description: "Deploy your REST API to an EC2 instance with proper security groups and load balancing",
-      dueDate: new Date("2026-02-10"),
+      dueDate: at("2026-02-10"),
       status: "PENDING",
       goalTag: "BUILD_PROJECTS",
     },
@@ -1514,7 +1523,7 @@ async function main() {
       menteeId: mentee4.id,
       title: "System Design Practice Problems",
       description: "Complete 3 system design problems from 'Designing Data-Intensive Applications'. Focus on scalability and reliability.",
-      dueDate: new Date("2026-02-15"),
+      dueDate: at("2026-02-15"),
       status: "PENDING",
       goalTag: "CAREER_GUIDANCE",
     },
@@ -1526,7 +1535,7 @@ async function main() {
       menteeId: mentee4.id,
       title: "Implement CI/CD Pipeline",
       description: "Set up GitHub Actions for automated testing and deployment to AWS",
-      dueDate: new Date("2026-02-20"),
+      dueDate: at("2026-02-20"),
       status: "PENDING",
       goalTag: "BUILD_PROJECTS",
     },
@@ -1569,8 +1578,8 @@ async function main() {
       description: "A comprehensive 12-week program to master modern full-stack development with React and Node.js",
       duration: 12,
       focusArea: "Full-Stack Web Development",
-      startDate: new Date("2025-12-01"),
-      endDate: new Date("2026-02-28"),
+      startDate: at("2025-12-01"),
+      endDate: at("2026-02-28"),
       status: "ACTIVE",
     },
   });
@@ -1582,9 +1591,9 @@ async function main() {
       title: "JavaScript Fundamentals Mastery",
       description: "Deep dive into ES6+, async/await, closures, and functional programming",
       order: 1,
-      dueDate: new Date("2025-12-20"),
+      dueDate: at("2025-12-20"),
       status: "COMPLETED",
-      completedAt: new Date("2025-12-18"),
+      completedAt: at("2025-12-18"),
     },
   });
 
@@ -1615,7 +1624,7 @@ async function main() {
       title: "React Fundamentals & Hooks",
       description: "Learn React components, hooks, state management, and component lifecycle",
       order: 2,
-      dueDate: new Date("2026-01-10"),
+      dueDate: at("2026-01-10"),
       status: "IN_PROGRESS",
     },
   });
@@ -1644,7 +1653,7 @@ async function main() {
     data: {
       milestoneId: milestone1_2.id,
       mentorNotes: "Review progress on React hooks project. Discuss useEffect and custom hooks.",
-      scheduledDate: new Date("2026-01-05T18:00:00"),
+      scheduledDate: at("2026-01-05T18:00:00"),
       status: "SCHEDULED",
     },
   });
@@ -1656,7 +1665,7 @@ async function main() {
       title: "Backend with Node.js & Express",
       description: "Build RESTful APIs with Node.js, Express, and MongoDB",
       order: 3,
-      dueDate: new Date("2026-01-30"),
+      dueDate: at("2026-01-30"),
       status: "NOT_STARTED",
     },
   });
@@ -1678,7 +1687,7 @@ async function main() {
       title: "Full-Stack Project: Build a Social Media App",
       description: "Combine all skills to build a complete full-stack application with authentication",
       order: 4,
-      dueDate: new Date("2026-02-28"),
+      dueDate: at("2026-02-28"),
       status: "NOT_STARTED",
     },
   });
@@ -1687,7 +1696,7 @@ async function main() {
     data: {
       milestoneId: milestone1_4.id,
       mentorNotes: "Final project review and deployment guidance",
-      scheduledDate: new Date("2026-02-25T18:00:00"),
+      scheduledDate: at("2026-02-25T18:00:00"),
       status: "SCHEDULED",
     },
   });
@@ -1700,8 +1709,8 @@ async function main() {
       description: "Structured 8-week path from data analyst to machine learning engineer",
       duration: 8,
       focusArea: "Machine Learning & Data Science",
-      startDate: new Date("2025-12-01"),
-      endDate: new Date("2026-02-20"),
+      startDate: at("2025-12-01"),
+      endDate: at("2026-02-20"),
       status: "ACTIVE",
     },
   });
@@ -1713,9 +1722,9 @@ async function main() {
       title: "Python for Data Science",
       description: "Master NumPy, Pandas, and data manipulation techniques",
       order: 1,
-      dueDate: new Date("2026-01-03"),
+      dueDate: at("2026-01-03"),
       status: "COMPLETED",
-      completedAt: new Date("2026-01-01"),
+      completedAt: at("2026-01-01"),
     },
   });
 
@@ -1736,7 +1745,7 @@ async function main() {
       title: "Statistics & Probability Foundations",
       description: "Learn statistical concepts essential for machine learning",
       order: 2,
-      dueDate: new Date("2026-01-15"),
+      dueDate: at("2026-01-15"),
       status: "IN_PROGRESS",
     },
   });
@@ -1755,7 +1764,7 @@ async function main() {
     data: {
       milestoneId: milestone2_2.id,
       mentorNotes: "Review hypothesis testing and confidence intervals. Work through practice problems.",
-      scheduledDate: new Date("2026-01-12T14:00:00"),
+      scheduledDate: at("2026-01-12T14:00:00"),
       status: "SCHEDULED",
     },
   });
@@ -1767,7 +1776,7 @@ async function main() {
       title: "Machine Learning Algorithms",
       description: "Understand and implement supervised and unsupervised learning algorithms",
       order: 3,
-      dueDate: new Date("2026-01-25"),
+      dueDate: at("2026-01-25"),
       status: "NOT_STARTED",
     },
   });
@@ -1799,7 +1808,7 @@ async function main() {
       title: "Capstone ML Project",
       description: "Build an end-to-end ML project with data collection, model training, and deployment",
       order: 4,
-      dueDate: new Date("2026-02-20"),
+      dueDate: at("2026-02-20"),
       status: "NOT_STARTED",
     },
   });
@@ -1808,7 +1817,7 @@ async function main() {
     data: {
       milestoneId: milestone2_4.id,
       mentorNotes: "Project review and career transition discussion",
-      scheduledDate: new Date("2026-02-18T14:00:00"),
+      scheduledDate: at("2026-02-18T14:00:00"),
       status: "SCHEDULED",
     },
   });
@@ -1821,8 +1830,8 @@ async function main() {
       description: "Transform from frontend developer to full-stack cloud architect with comprehensive AWS and system design expertise",
       duration: 12,
       focusArea: "Cloud Architecture & System Design",
-      startDate: new Date("2025-12-01"),
-      endDate: new Date("2026-03-01"),
+      startDate: at("2025-12-01"),
+      endDate: at("2026-03-01"),
       status: "ACTIVE",
     },
   });
@@ -1834,9 +1843,9 @@ async function main() {
       title: "AWS Fundamentals & Core Services",
       description: "Master EC2, S3, RDS, Lambda, and core AWS networking concepts",
       order: 1,
-      dueDate: new Date("2026-01-10"),
+      dueDate: at("2026-01-10"),
       status: "COMPLETED",
-      completedAt: new Date("2026-01-08"),
+      completedAt: at("2026-01-08"),
     },
   });
 
@@ -1867,7 +1876,7 @@ async function main() {
       title: "Backend Development with Node.js",
       description: "Build scalable REST APIs with Express, implement authentication, and integrate with PostgreSQL",
       order: 2,
-      dueDate: new Date("2026-01-25"),
+      dueDate: at("2026-01-25"),
       status: "IN_PROGRESS",
     },
   });
@@ -1906,7 +1915,7 @@ async function main() {
     data: {
       milestoneId: milestone3_2.id,
       mentorNotes: "Review API implementation, discuss authentication strategies and database schema design",
-      scheduledDate: new Date("2026-01-20T19:00:00"),
+      scheduledDate: at("2026-01-20T19:00:00"),
       status: "SCHEDULED",
     },
   });
@@ -1918,7 +1927,7 @@ async function main() {
       title: "System Design & Microservices Architecture",
       description: "Learn to design scalable distributed systems, microservices patterns, and event-driven architecture",
       order: 3,
-      dueDate: new Date("2026-02-10"),
+      dueDate: at("2026-02-10"),
       status: "NOT_STARTED",
     },
   });
@@ -1957,7 +1966,7 @@ async function main() {
     data: {
       milestoneId: milestone3_3.id,
       mentorNotes: "Practice system design problems together. Discuss load balancing, caching, and database sharding.",
-      scheduledDate: new Date("2026-02-05T19:00:00"),
+      scheduledDate: at("2026-02-05T19:00:00"),
       status: "SCHEDULED",
     },
   });
@@ -1969,7 +1978,7 @@ async function main() {
       title: "Cloud Deployment & DevOps",
       description: "Deploy applications to AWS with CI/CD, implement infrastructure as code with Terraform, and set up monitoring",
       order: 4,
-      dueDate: new Date("2026-03-01"),
+      dueDate: at("2026-03-01"),
       status: "NOT_STARTED",
     },
   });
@@ -2008,7 +2017,7 @@ async function main() {
     data: {
       milestoneId: milestone3_4.id,
       mentorNotes: "Final project review: Evaluate deployed application, discuss production best practices and next career steps",
-      scheduledDate: new Date("2026-02-25T19:00:00"),
+      scheduledDate: at("2026-02-25T19:00:00"),
       status: "SCHEDULED",
     },
   });
@@ -2066,6 +2075,14 @@ async function main() {
       where: { id: jordanTasks[5].id },
       data: { milestoneId: milestone3_4.id },
     });
+  }
+
+  // Mentor ratings come only from submitted ratings, like in the app
+  const averages = await prisma.rating.groupBy({ by: ["userId"], _avg: { ratingValue: true } });
+  for (const a of averages) {
+    if (a._avg.ratingValue != null) {
+      await prisma.user.update({ where: { id: a.userId }, data: { rating: Math.round(a._avg.ratingValue * 10) / 10 } });
+    }
   }
 
   console.log("\n✅ Database seeded successfully!");

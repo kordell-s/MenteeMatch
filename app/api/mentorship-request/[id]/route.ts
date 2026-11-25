@@ -1,14 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getCurrentUser } from "@/lib/auth-helpers";
 
 export async function PATCH(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
+    const user = await getCurrentUser();
+    if (!user) {
+      return NextResponse.json({ error: "Sign in to respond to requests." }, { status: 401 });
+    }
     const { id } = params;
-    const body = await request.json();
-    const { action, mentorId } = body; // action: 'accept' or 'reject'
+    const { action } = await request.json(); // 'accept' or 'reject'
 
     if (!action || !["accept", "reject"].includes(action)) {
       return NextResponse.json(
@@ -33,8 +37,8 @@ export async function PATCH(
       );
     }
 
-    // Verify the mentor is the one responding
-    if (mentorshipRequest.mentorId !== mentorId) {
+    // Only the mentor the request was sent to may respond
+    if (mentorshipRequest.mentorId !== user.id) {
       return NextResponse.json(
         { error: "Unauthorized to respond to this request" },
         { status: 403 }
@@ -58,9 +62,25 @@ export async function PATCH(
           data: { status: "ACCEPTED" },
         });
 
-        // Create mentorship
+        // Create the mentorship as accepted (the model defaults to PENDING)
         const mentorship = await tx.mentorship.create({
           data: {
+            mentorId: mentorshipRequest.mentorId,
+            menteeId: mentorshipRequest.menteeId,
+            status: "ACCEPTED",
+          },
+        });
+
+        // Open their private conversation straight away
+        await tx.conversation.upsert({
+          where: {
+            mentorId_menteeId: {
+              mentorId: mentorshipRequest.mentorId,
+              menteeId: mentorshipRequest.menteeId,
+            },
+          },
+          update: {},
+          create: {
             mentorId: mentorshipRequest.mentorId,
             menteeId: mentorshipRequest.menteeId,
           },

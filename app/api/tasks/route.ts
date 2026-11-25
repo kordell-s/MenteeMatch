@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { title, description, dueDate, goalTag, menteeId } = body;
+    const { title, description, dueDate, goalTag, menteeId, milestoneId } = body;
 
     if (!title || !menteeId) {
       return NextResponse.json(
@@ -43,6 +43,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // A task may hang off a milestone, but only one on a route inside this mentorship
+    if (milestoneId) {
+      const milestone = await prisma.milestone.findFirst({
+        where: { id: milestoneId, roadmap: { mentorshipId: mentorship.id } },
+        select: { id: true },
+      });
+      if (!milestone) {
+        return NextResponse.json({ error: "That milestone isn't on this mentee's route" }, { status: 400 });
+      }
+    }
+
     const task = await prisma.task.create({
       data: {
         title,
@@ -50,6 +61,7 @@ export async function POST(request: NextRequest) {
         dueDate: dueDate ? new Date(dueDate) : null,
         goalTag: goalTag || null,
         status: "PENDING",
+        milestoneId: milestoneId || null,
         menteeId,
         mentorId: user.id,
       },

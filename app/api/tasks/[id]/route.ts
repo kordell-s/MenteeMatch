@@ -39,35 +39,17 @@ export async function PATCH(
       );
     }
 
-    // Handle different update scenarios
-    let updateData: any = {};
-
-    if (status) {
-      // Direct status update
-      updateData.status = status;
-    } else if (action) {
-      // Action-based updates
-      switch (action) {
-        case "COMPLETE":
-          updateData.status = "COMPLETED";
-          updateData.completedAt = new Date();
-          break;
-        case "START":
-          updateData.status = "IN_PROGRESS";
-          updateData.startedAt = new Date();
-          break;
-        case "RESET":
-          updateData.status = "PENDING";
-          updateData.startedAt = null;
-          updateData.completedAt = null;
-          break;
-        default:
-          return NextResponse.json(
-            { error: "Invalid action" },
-            { status: 400 }
-          );
-      }
+    // Task has no started/completed timestamps; status plus the `completed` flag carry state.
+    const ACTIONS: Record<string, "PENDING" | "IN_PROGRESS" | "COMPLETED"> = {
+      COMPLETE: "COMPLETED",
+      START: "IN_PROGRESS",
+      RESET: "PENDING",
+    };
+    const next = status ?? (action ? ACTIONS[action] : undefined);
+    if (!next || !["PENDING", "IN_PROGRESS", "COMPLETED"].includes(next)) {
+      return NextResponse.json({ error: "Invalid status or action" }, { status: 400 });
     }
+    const updateData = { status: next, completed: next === "COMPLETED" };
 
     // Update the task
     const updatedTask = await prisma.task.update({

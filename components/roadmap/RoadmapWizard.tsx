@@ -1,5 +1,6 @@
 "use client";
 
+import { parseDateOnly } from "@/lib/utils";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -286,7 +287,7 @@ export default function RoadmapWizard({
                       )}
                       <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
                         <Calendar className="h-3 w-3" />
-                        Due: {new Date(milestone.dueDate).toLocaleDateString()}
+                        Due: {parseDateOnly(milestone.dueDate).toLocaleDateString()}
                       </p>
                     </div>
                     <Button
@@ -414,7 +415,7 @@ export default function RoadmapWizard({
                         </p>
                       )}
                       <p className="text-xs text-gray-500 mt-1">
-                        Due: {new Date(milestone.dueDate).toLocaleDateString()}
+                        Due: {parseDateOnly(milestone.dueDate).toLocaleDateString()}
                       </p>
                     </div>
                   </div>

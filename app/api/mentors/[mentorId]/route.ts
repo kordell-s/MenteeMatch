@@ -36,7 +36,6 @@ export async function GET(
     const formattedMentor = {
       id: mentor.id,
       name: mentor.name,
-      email: mentor.email,
       title: mentor.title || "",
       profilePicture: mentor.profilePicture,
       bio: mentor.bio,

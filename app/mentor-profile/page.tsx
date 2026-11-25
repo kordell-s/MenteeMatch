@@ -1,563 +1,262 @@
 "use client";
-import { useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+
+import { Suspense, useCallback, useEffect, useState } from "react";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { Mentor } from "@/app/types/mentor";
+import { ArrowLeft, MapPin, Star, Languages, CalendarDays, MessageSquare, CalendarPlus, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import {
-  ArrowLeft,
-  MapPin,
-  Star,
-  Calendar,
-  MessageCircle,
-  Clock,
-  Award,
-  Building,
-  GraduationCap,
-  Globe,
-  CheckCircle,
-  Mail,
-} from "lucide-react";
+import { Dialog, DialogContent, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import MentorshipRequestForm from "@/components/MentorshipRequestForm";
 import SessionSchedulingModal from "@/components/SessionSchedulingModal";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import MentorProfileSkeleton from "@/components/MentorProfileSkeleton";
-import { getDefaultAvatar } from "@/lib/avatars";
+import Person, { firstName } from "@/components/world/Person";
+import Footer from "@/components/Footer";
+import { Skeleton, EmptyState } from "@/components/app/Ui";
+import { skillLabel, skillOverlap } from "@/lib/skills";
 
-// Helper function to abbreviate day names
-const abbreviateDay = (day: string): string => {
-  const dayMap: { [key: string]: string } = {
-    'MONDAY': 'Mon',
-    'TUESDAY': 'Tue',
-    'WEDNESDAY': 'Wed',
-    'THURSDAY': 'Thu',
-    'FRIDAY': 'Fri',
-    'SATURDAY': 'Sat',
-    'SUNDAY': 'Sun',
-  };
-
-  const upperDay = day.toUpperCase().trim();
-  return dayMap[upperDay] || day.charAt(0).toUpperCase() + day.slice(1, 3).toLowerCase();
+type Mentor = {
+  id: string;
+  name: string;
+  title: string;
+  company?: string | null;
+  school?: string | null;
+  location?: string | null;
+  bio: string;
+  profilePicture?: string | null;
+  skills: string[];
+  languages: string[];
+  rating?: number | null;
+  availability: string[];
+  experienceLevel?: string;
+  category: string;
 };
 
-function MentorProfilePage() {
+const FIELD: Record<string, string> = {
+  TECHNOLOGY: "Tech", BUSINESS: "Business", AVIATION: "Aviation", DESIGN: "Design",
+  MARKETING: "Marketing", HEALTH: "Health", CREATIVE: "Creative", MUSIC: "Music",
+};
+const DAY = (d: string) => d.slice(0, 1) + d.slice(1, 3).toLowerCase();
+
+export default function MentorProfilePage() {
+  return (
+    <Suspense fallback={<Shell><Skeleton className="h-96" /></Shell>}>
+      <Profile />
+    </Suspense>
+  );
+}
+
+function Shell({ children }: { children: React.ReactNode }) {
+  return (
+    <>
+      <main className="panel min-h-[100dvh]">
+        <div className="mx-auto max-w-[1100px] px-4 py-8 sm:px-8 sm:py-12">{children}</div>
+      </main>
+      <Footer />
+    </>
+  );
+}
+
+function Profile() {
+  const id = useSearchParams().get("id");
   const { data: session, status } = useSession();
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const [mentor, setMentor] = useState<Mentor | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [hasMentorship, setHasMentorship] = useState(false);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [mentor, setMentor] = useState<Mentor | null | undefined>(undefined);
+  const [state, setState] = useState<"signed-out" | "none" | "pending" | "active" | "loading">("loading");
+  const [mySkills, setMySkills] = useState<string[]>([]);
+  const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    // Redirect to signin if not authenticated
-    if (status === "unauthenticated") {
-      router.push("/auth/signin");
-      return;
-    }
+    if (!id) return setMentor(null);
+    fetch(`/api/mentors/${id}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then(setMentor)
+      .catch(() => setMentor(null));
+  }, [id]);
 
-    // Wait for session to load
-    if (status === "loading") {
-      return;
-    }
+  const refreshState = useCallback(() => {
+    if (!id) return;
+    if (status === "unauthenticated") return setState("signed-out");
+    if (status !== "authenticated") return;
+    fetch(`/api/mentorship-request/status?mentorId=${id}`)
+      .then((r) => r.json())
+      .then((d) => setState(d.state ?? "none"))
+      .catch(() => setState("none"));
+    fetch("/api/user/current")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((u) => setMySkills(u?.skills ?? []))
+      .catch(() => {});
+  }, [id, status]);
 
-    // Try to get mentor data from URL parameter or sessionStorage
-    const mentorId = searchParams.get("id");
+  useEffect(refreshState, [refreshState]);
 
-    if (mentorId) {
-      // Fetch mentor data from API using the ID
-      fetchMentorData(mentorId);
-    } else {
-      // Fallback to sessionStorage for backwards compatibility
-      const mentorData = sessionStorage.getItem("selectedMentor");
-      if (mentorData) {
-        try {
-          const parsedMentor = JSON.parse(mentorData);
-          setMentor(parsedMentor);
-          checkMentorshipStatus(parsedMentor.id);
-          setLoading(false);
-        } catch (error) {
-          console.error("Error parsing mentor data:", error);
-          router.push("/");
-          return;
-        }
-      } else {
-        router.push("/");
-        return;
-      }
-    }
-  }, [router, status, session, searchParams]);
-
-  const fetchMentorData = async (mentorId: string) => {
-    try {
-      const response = await fetch(`/api/mentors/${mentorId}`);
-      if (response.ok) {
-        const data = await response.json();
-        setMentor(data);
-        checkMentorshipStatus(data.id);
-      } else {
-        console.error("Mentor not found");
-        router.push("/");
-      }
-    } catch (error) {
-      console.error("Error fetching mentor:", error);
-      router.push("/");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const checkMentorshipStatus = async (mentorId: string) => {
-    try {
-      // Use session user ID instead of hardcoded or localStorage
-      if (!session?.user?.id) {
-        console.error("No user ID in session");
-        return;
-      }
-
-      const response = await fetch(
-        `/api/mentorships?userId=${session.user.id}&role=MENTEE`
-      );
-      if (response.ok) {
-        const mentorships = await response.json();
-        const exists = mentorships.some((m: any) => m.mentorId === mentorId);
-        setHasMentorship(exists);
-      }
-    } catch (error) {
-      console.error("Error checking mentorship status:", error);
-    }
-  };
-
-  // Clear sessionStorage after component has mounted and data is loaded
-  useEffect(() => {
-    if (mentor && !loading) {
-      // Clear the data after successful load for security
-      sessionStorage.removeItem("selectedMentor");
-    }
-  }, [mentor, loading]);
-
-  if (status === "loading" || loading) {
-    return <MentorProfileSkeleton />;
+  if (mentor === undefined) {
+    return (
+      <Shell>
+        <div className="grid gap-6 lg:grid-cols-[1fr_340px]">
+          <Skeleton className="h-[420px]" />
+          <Skeleton className="h-64" />
+        </div>
+      </Shell>
+    );
   }
 
   if (!mentor) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="text-center">
-          <p className="text-red-500">Mentor not found</p>
-          <Button onClick={() => router.push("/")}>Back to Home</Button>
-        </div>
-      </div>
+      <Shell>
+        <EmptyState
+          title="We couldn't find that mentor."
+          body="They may have left MentorMatch, or the link is incomplete."
+          action={<Button asChild variant="outline"><Link href="/browse">Browse mentors</Link></Button>}
+        />
+      </Shell>
     );
   }
 
+  const isSelf = session?.user?.id === mentor.id;
+  const isMentorViewer = session?.user?.role === "MENTOR";
+  const { shared } = skillOverlap(mySkills, mentor.skills);
+  const first = firstName(mentor.name);
+
   return (
-    <div className="min-h-screen bg-gray-50 pt-20">
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-6xl mx-auto">
-        <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-          {/* Header Section */}
-          <div className="bg-brand-navy px-8 py-6">
-            <div className="flex flex-col md:flex-row gap-6 items-start">
-              <div className="flex-shrink-0">
-                <img
-                  src={getDefaultAvatar({
-                    name: mentor.name,
-                    gender: (mentor as any).gender,
-                    profilePicture: mentor.profilePicture
-                  })}
-                  alt={mentor.name}
-                  className="w-32 h-32 rounded-full object-cover border-4 border-white shadow-lg"
-                />
-              </div>
+    <Shell>
+      <Link href="/browse" className="inline-flex items-center gap-1.5 text-sm font-semibold text-ink-soft hover:text-ink">
+        <ArrowLeft className="size-4" aria-hidden="true" /> All mentors
+      </Link>
 
-              <div className="flex-grow text-white">
-                <h1 className="text-4xl font-bold mb-2 flex items-center gap-2">
-                  {mentor.name}
-                  {mentor.verified && (
-                    <CheckCircle className="text-green-400" size={24} />
-                  )}
-                </h1>
-
-                <p className="text-xl mb-2">{mentor.title}</p>
-
-                <div className="flex flex-wrap items-center gap-4 mb-4">
-                  {mentor.company && (
-                    <div className="flex items-center gap-1">
-                      <Building size={16} />
-                      <span>{mentor.company}</span>
-                    </div>
-                  )}
-
-                  {mentor.location && (
-                    <div className="flex items-center gap-1">
-                      <MapPin size={16} />
-                      <span>{mentor.location}</span>
-                    </div>
-                  )}
-
-                  {mentor.rating && (
-                    <div className="flex items-center gap-1">
-                      <Star
-                        size={16}
-                        className="fill-yellow-400 text-yellow-400"
-                      />
-                      <span className="font-medium">{mentor.rating}/5</span>
-                    </div>
-                  )}
-                </div>
-
-                <div className="flex gap-4">
-                  {hasMentorship ? (
-                    <SessionSchedulingModal
-                      mentorId={mentor.id}
-                      mentorName={mentor.name}
-                      onSuccess={() => {
-                        alert("Session scheduled successfully!");
-                      }}
-                    >
-                      <Button
-                        variant="secondary"
-                        className="flex items-center gap-2"
-                      >
-                        <Calendar size={16} />
-                        Schedule Session
-                      </Button>
-                    </SessionSchedulingModal>
-                  ) : (
-                    <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                      <DialogTrigger asChild>
-                        <Button
-                          variant="secondary"
-                          className="flex items-center gap-2"
-                        >
-                          <Calendar size={16} />
-                          Request Mentorship
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-                        <div className="p-2">
-                          <MentorshipRequestForm
-                            mentorId={mentor.id}
-                            mentorName={mentor.name}
-                            onSuccess={() => {
-                              checkMentorshipStatus(mentor.id);
-                              setIsDialogOpen(false);
-                            }}
-                          />
-                        </div>
-                      </DialogContent>
-                    </Dialog>
-                  )}
-                  <Button
-                    variant="outline"
-                    className="flex items-center gap-2 text-white border-white bg-transparent hover:bg-transparent hover:border-brand-teal hover:text-brand-teal"
-                  >
-                    <MessageCircle size={16} />
-                    Message
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="flex items-center gap-2 text-white border-white bg-transparent hover:bg-transparent hover:border-brand-teal hover:text-brand-teal"
-                  >
-                    <Mail size={16} />
-                    Contact
-                  </Button>
-                </div>
-              </div>
+      <div className="mt-6 grid items-start gap-6 lg:grid-cols-[1fr_340px]">
+        <article className="route-card overflow-hidden">
+          <header className="wall flex flex-wrap items-end gap-6 px-6 pb-7 pt-10 sm:px-8">
+            <Person name={mentor.name} src={mentor.profilePicture} size="xl" className="ring-4 ring-chalk/15" />
+            <div className="min-w-0 flex-1">
+              {FIELD[mentor.category] && (
+                <span className="tape mb-3 text-sm" data-tape="chalk">{FIELD[mentor.category]}</span>
+              )}
+              <h1 className="text-display text-[clamp(2rem,4.5vw,3rem)] text-chalk">{mentor.name}</h1>
+              <p className="mt-2 text-lg text-chalk/80">
+                {[mentor.title, mentor.company].filter(Boolean).join(" at ")}
+              </p>
             </div>
+          </header>
+
+          <div className="grid gap-8 px-6 py-7 sm:px-8">
+            <ul className="flex flex-wrap gap-x-6 gap-y-2 text-[15px] text-ink-soft">
+              {mentor.rating ? (
+                <li className="inline-flex items-center gap-1.5 font-semibold text-ink">
+                  <Star className="size-4 fill-tape-yellow text-yellow-600" aria-hidden="true" /> {mentor.rating.toFixed(1)}
+                </li>
+              ) : null}
+              {mentor.location && (
+                <li className="inline-flex items-center gap-1.5"><MapPin className="size-4" aria-hidden="true" /> {mentor.location}</li>
+              )}
+              {mentor.languages?.length > 0 && (
+                <li className="inline-flex items-center gap-1.5"><Languages className="size-4" aria-hidden="true" /> {mentor.languages.join(", ")}</li>
+              )}
+              {mentor.availability?.length > 0 && (
+                <li className="inline-flex items-center gap-1.5"><CalendarDays className="size-4" aria-hidden="true" /> {mentor.availability.map(DAY).join(", ")}</li>
+              )}
+            </ul>
+
+            {mentor.bio && (
+              <section aria-labelledby="about">
+                <h2 id="about" className="text-lg font-bold">About {first}</h2>
+                <p className="mt-2 max-w-[65ch] whitespace-pre-line text-[17px] leading-relaxed text-ink-soft">{mentor.bio}</p>
+              </section>
+            )}
+
+            <section aria-labelledby="skills">
+              <h2 id="skills" className="text-lg font-bold">Skills</h2>
+              {shared.length > 0 && (
+                <p className="mt-1 text-[15px] text-ink-soft">
+                  You share {shared.length} of these with {first}. They&apos;re taped in yellow.
+                </p>
+              )}
+              <ul className="mt-3 flex flex-wrap gap-2">
+                {mentor.skills.map((s) => {
+                  const hit = shared.includes(s);
+                  return (
+                    <li key={s} className={`rounded-full px-3 py-1.5 text-sm font-semibold ${hit ? "bg-tape-yellow text-ink" : "bg-gray-100 text-ink-soft"}`}>
+                      {skillLabel(s)}
+                    </li>
+                  );
+                })}
+              </ul>
+            </section>
           </div>
+        </article>
 
-          {/* Content Section */}
-          <div className="p-8">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              {/* Main Content */}
-              <div className="lg:col-span-2 space-y-8">
-                {/* About Section */}
-                {mentor.bio && (
-                  <div>
-                    <h2 className="text-2xl font-semibold mb-4 flex items-center gap-2">
-                      <Award className="text-gray-600" size={24} />
-                      About
-                    </h2>
-                    <p className="text-gray-700 leading-relaxed">
-                      {mentor.bio}
-                    </p>
-                  </div>
-                )}
-
-                {/* Skills & Expertise */}
-                {mentor.skills && mentor.skills.length > 0 && (
-                  <div>
-                    <h2 className="text-2xl font-semibold mb-4">
-                      Skills & Expertise
-                    </h2>
-                    <div className="flex flex-wrap gap-2">
-                      {mentor.skills.map((skill, index) => (
-                        <Badge
-                          key={index}
-                          variant="secondary"
-                          className="px-3 py-1 bg-gray-100 text-gray-700 hover:bg-gray-200"
-                        >
-                          {typeof skill === "string"
-                            ? skill.replace(/_/g, " ")
-                            : skill}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Specialization */}
-                {mentor.mentor?.specialization &&
-                  mentor.mentor.specialization.length > 0 && (
-                    <div>
-                      <h2 className="text-2xl font-semibold mb-4">
-                        Specialization Areas
-                      </h2>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        {mentor.mentor.specialization.map((area, index) => (
-                          <div
-                            key={index}
-                            className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg"
-                          >
-                            <CheckCircle className="text-gray-600" size={16} />
-                            <span className="text-gray-800 font-medium">
-                              {area}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                {/* Experience */}
-                {mentor.experience &&
-                  Array.isArray(mentor.experience) &&
-                  mentor.experience.length > 0 && (
-                    <div>
-                      <h2 className="text-2xl font-semibold mb-4">
-                        Professional Experience
-                      </h2>
-                      <div className="space-y-4">
-                        {mentor.experience.map((exp, index) => (
-                          <div
-                            key={index}
-                            className="p-4 bg-gray-50 rounded-lg border-l-4 border-gray-500"
-                          >
-                            <p className="text-gray-700">{exp}</p>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                {/* Education */}
-                {mentor.school && (
-                  <div>
-                    <h2 className="text-2xl font-semibold mb-4 flex items-center gap-2">
-                      <GraduationCap className="text-gray-600" size={24} />
-                      Education History
-                    </h2>
-                    <div className="p-4 bg-gray-50 rounded-lg">
-                      <p className="text-gray-800 font-medium">
-                        {mentor.school}
-                      </p>
-                    </div>
-                  </div>
-                )}
-
-                {/* Mentorship Offerings */}
-                <div>
-                  <h2 className="text-2xl font-semibold mb-4">
-                    Mentorship Offerings
-                  </h2>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="p-4 bg-gray-50 rounded-lg">
-                      <h3 className="font-semibold text-gray-800 mb-2">
-                        1-on-1 Sessions
-                      </h3>
-                      <p className="text-sm text-gray-600">
-                        Personalized mentoring tailored to your goals
-                      </p>
-                    </div>
-                    <div className="p-4 bg-gray-50 rounded-lg">
-                      <h3 className="font-semibold text-gray-800 mb-2">
-                        Career Guidance
-                      </h3>
-                      <p className="text-sm text-gray-600">
-                        Strategic advice for career advancement
-                      </p>
-                    </div>
-                    <div className="p-4 bg-gray-50 rounded-lg">
-                      <h3 className="font-semibold text-gray-800 mb-2">
-                        Skill Development
-                      </h3>
-                      <p className="text-sm text-gray-600">
-                        Technical and soft skills improvement
-                      </p>
-                    </div>
-                    <div className="p-4 bg-gray-50 rounded-lg">
-                      <h3 className="font-semibold text-gray-800 mb-2">
-                        Portfolio Review
-                      </h3>
-                      <p className="text-sm text-gray-600">
-                        Feedback on projects and professional portfolio
-                      </p>
-                    </div>
-                  </div>
-                </div>
+        <aside className="route-card sticky top-24 p-6">
+          {isSelf ? (
+            <>
+              <p className="font-bold">This is your public profile.</p>
+              <p className="mt-1 text-[15px] text-ink-soft">This is what mentees see when they find you.</p>
+              <Button asChild variant="outline" className="mt-5 w-full"><Link href="/profile">Edit profile</Link></Button>
+            </>
+          ) : state === "active" ? (
+            <>
+              <p className="font-bold">{first} is your mentor.</p>
+              <p className="mt-1 text-[15px] text-ink-soft">Message them or book your next session.</p>
+              <div className="mt-5 grid gap-2">
+                <SessionSchedulingModal mentorId={mentor.id} mentorName={mentor.name}>
+                  <Button variant="tape" size="lg" className="w-full"><CalendarPlus aria-hidden="true" /> Book a session</Button>
+                </SessionSchedulingModal>
+                <Button asChild variant="outline" size="lg">
+                  <Link href={`/messages?partnerId=${mentor.id}`}><MessageSquare aria-hidden="true" /> Message {first}</Link>
+                </Button>
               </div>
-
-              {/* Sidebar */}
-              <div className="space-y-6">
-                {/* Quick Info Card */}
-                <div className="bg-gray-50 rounded-lg p-6">
-                  <h3 className="text-lg font-semibold mb-4">Quick Info</h3>
-
-                  {/* Category */}
-                  <div className="mb-4">
-                    <p className="text-sm text-gray-600 mb-1">Category</p>
-                    <Badge
-                      variant="outline"
-                      className="bg-gray-100 text-gray-700"
-                    >
-                      {mentor.category?.replace(/_/g, " ")}
-                    </Badge>
-                  </div>
-
-                  {/* Experience Level */}
-                  {mentor.experienceLevel && (
-                    <div className="mb-4">
-                      <p className="text-sm text-gray-600 mb-1">
-                        Experience Level
-                      </p>
-                      <p className="font-medium">{mentor.experienceLevel}</p>
-                    </div>
-                  )}
-
-                  {/* Availability */}
-                  {mentor.availability && (
-                    <div className="mb-4">
-                      <p className="text-sm text-gray-600 mb-1">Availability</p>
-                      <div className="flex items-center gap-2">
-                        <Clock size={16} className="text-gray-600" />
-                        <p className="text-gray-700 font-medium">
-                          {Array.isArray(mentor.availability)
-                            ? mentor.availability.map((day) => abbreviateDay(day)).join(" • ")
-                            : typeof mentor.availability === "string"
-                            ? mentor.availability
-                                .split(",")
-                                .map((day) => abbreviateDay(day.trim()))
-                                .join(" • ")
-                            : "Availability not specified"}
-                        </p>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Languages */}
-                  {mentor.languages &&
-                    Array.isArray(mentor.languages) &&
-                    mentor.languages.length > 0 && (
-                      <div className="mb-4">
-                        <p className="text-sm text-gray-600 mb-2">Languages</p>
-                        <div className="flex flex-wrap gap-1">
-                          {mentor.languages.map((language, index) => (
-                            <Badge
-                              key={index}
-                              variant="outline"
-                              className="text-xs bg-gray-50 text-gray-700"
-                            >
-                              <Globe size={12} className="mr-1" />
-                              {language}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                  {/* Member Since */}
-                  {mentor.createdAt && (
-                    <div className="mb-4">
-                      <p className="text-sm text-gray-600 mb-1">Member Since</p>
-                      <p className="font-medium">
-                        {new Date(mentor.createdAt).toLocaleDateString(
-                          "en-US",
-                          {
-                            year: "numeric",
-                            month: "long",
-                          }
-                        )}
-                      </p>
-                    </div>
-                  )}
-                </div>
-
-                {/* Contact Card */}
-                <div className="bg-gray-50 rounded-lg p-6">
-                  <h3 className="text-lg font-semibold mb-4 text-gray-800">
-                    Ready to Connect?
-                  </h3>
-                  <p className="text-sm text-gray-700 mb-4">
-                    Start your mentorship journey with {mentor.name}
-                  </p>
-                  <div className="space-y-2">
-                    {hasMentorship ? (
-                      <>
-                        <SessionSchedulingModal
-                          mentorId={mentor.id}
-                          mentorName={mentor.name}
-                          onSuccess={() => {
-                            alert("Session scheduled successfully!");
-                          }}
-                        >
-                          <Button className="w-full bg-brand-teal hover:bg-brand-navy">
-                            <Calendar className="mr-2" size={16} />
-                            Schedule Session
-                          </Button>
-                        </SessionSchedulingModal>
-                        <Button variant="outline" className="w-full border-brand-teal text-brand-teal hover:bg-brand-teal hover:text-white">
-                          <MessageCircle className="mr-2" size={16} />
-                          Send Message
-                        </Button>
-                      </>
-                    ) : (
-                      <Dialog
-                        open={isDialogOpen}
-                        onOpenChange={setIsDialogOpen}
-                      >
-                        <DialogTrigger asChild>
-                          <Button className="w-full bg-brand-teal hover:bg-brand-navy">
-                            <Calendar className="mr-2" size={16} />
-                            Request Mentorship
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-                          <div className="p-2">
-                            <MentorshipRequestForm
-                              mentorId={mentor.id}
-                              mentorName={mentor.name}
-                              onSuccess={() => {
-                                checkMentorshipStatus(mentor.id);
-                                setIsDialogOpen(false);
-                              }}
-                            />
-                          </div>
-                        </DialogContent>
-                      </Dialog>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+            </>
+          ) : state === "pending" ? (
+            <>
+              <p className="inline-flex items-center gap-2 font-bold"><Clock className="size-4" aria-hidden="true" /> Request sent</p>
+              <p className="mt-1 text-[15px] text-ink-soft">
+                {first} hasn&apos;t replied yet. You&apos;ll be able to message them as soon as they accept.
+              </p>
+            </>
+          ) : state === "signed-out" ? (
+            <>
+              <p className="font-bold">Want {first} to set your route?</p>
+              <p className="mt-1 text-[15px] text-ink-soft">Create a free account to send a mentorship request.</p>
+              <Button asChild variant="tape" size="lg" className="mt-5 w-full">
+                <Link href={`/signup?skills=${encodeURIComponent(mentor.skills.join(","))}`}>Get started</Link>
+              </Button>
+              <p className="mt-3 text-center text-sm text-ink-soft">
+                Have an account? <Link href={`/login?callbackUrl=${encodeURIComponent(`/mentor-profile?id=${mentor.id}`)}`} className="font-semibold text-ink underline decoration-ink/30 decoration-2 underline-offset-4 hover:decoration-ink">Sign in</Link>
+              </p>
+            </>
+          ) : isMentorViewer ? (
+            <>
+              <p className="font-bold">You&apos;re signed in as a mentor.</p>
+              <p className="mt-1 text-[15px] text-ink-soft">Mentorship requests are sent from mentee accounts.</p>
+            </>
+          ) : (
+            <>
+              <p className="font-bold">Want {first} to set your route?</p>
+              <p className="mt-1 text-[15px] text-ink-soft">
+                Tell them what you&apos;re working toward. If they accept, you&apos;ll get a private chat and a roadmap.
+              </p>
+              <Dialog open={open} onOpenChange={setOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="tape" size="lg" className="mt-5 w-full" disabled={state === "loading"}>
+                    Request mentorship
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-h-[90dvh] max-w-xl overflow-y-auto">
+                  <DialogTitle className="text-display text-2xl">Ask {first} to mentor you</DialogTitle>
+                  <DialogDescription className="text-ink-soft">
+                    A short, specific note gets the best response: what you want help with and why {first}.
+                  </DialogDescription>
+                  <MentorshipRequestForm
+                    mentorId={mentor.id}
+                    mentorName={mentor.name}
+                    onSuccess={() => {
+                      setOpen(false);
+                      refreshState();
+                    }}
+                  />
+                </DialogContent>
+              </Dialog>
+            </>
+          )}
+        </aside>
       </div>
-    </div>
-    </div>
+    </Shell>
   );
 }
-
-export default MentorProfilePage;

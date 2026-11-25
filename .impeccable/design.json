@@ -1,0 +1,641 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-12T00:54:27.246029+00:00",
+  "title": "Design System: MentorMatch",
+  "extensions": {
+    "colorMeta": {
+      "wall": {
+        "role": "neutral",
+        "displayName": "Graphite Wall",
+        "canonical": "#2b2e33",
+        "tonalRamp": [
+          "#16181b",
+          "#1f2125",
+          "#2b2e33",
+          "#3a3e45",
+          "#3e434a",
+          "#6b7079",
+          "#c4c8c9",
+          "#f4f5f2"
+        ]
+      },
+      "wall-deep": {
+        "role": "neutral",
+        "displayName": "Deep Wall",
+        "canonical": "#1f2125",
+        "tonalRamp": [
+          "#16181b",
+          "#1f2125",
+          "#2b2e33",
+          "#3a3e45",
+          "#3e434a",
+          "#6b7079",
+          "#c4c8c9",
+          "#f4f5f2"
+        ]
+      },
+      "wall-edge": {
+        "role": "neutral",
+        "displayName": "Wall Edge",
+        "canonical": "#3a3e45",
+        "tonalRamp": [
+          "#16181b",
+          "#1f2125",
+          "#2b2e33",
+          "#3a3e45",
+          "#3e434a",
+          "#6b7079",
+          "#c4c8c9",
+          "#f4f5f2"
+        ]
+      },
+      "panel": {
+        "role": "neutral",
+        "displayName": "Light Panel",
+        "canonical": "#e3e5e4",
+        "tonalRamp": [
+          "#17191c",
+          "#26292e",
+          "#393d44",
+          "#4b5058",
+          "#c4c8c9",
+          "#d5d8d7",
+          "#e3e5e4",
+          "#f1f2f1"
+        ]
+      },
+      "panel-deep": {
+        "role": "neutral",
+        "displayName": "Panel Seam",
+        "canonical": "#d5d8d7",
+        "tonalRamp": [
+          "#17191c",
+          "#26292e",
+          "#393d44",
+          "#4b5058",
+          "#c4c8c9",
+          "#d5d8d7",
+          "#e3e5e4",
+          "#f1f2f1"
+        ]
+      },
+      "card": {
+        "role": "neutral",
+        "displayName": "Laminate",
+        "canonical": "#fbfbfa",
+        "tonalRamp": [
+          "#393d44",
+          "#4b5058",
+          "#6b7079",
+          "#8d9299",
+          "#c4c8c9",
+          "#dcdfde",
+          "#e9ebea",
+          "#f1f2f1"
+        ]
+      },
+      "chalk": {
+        "role": "neutral",
+        "displayName": "Chalk",
+        "canonical": "#f4f5f2",
+        "tonalRamp": [
+          "#393d44",
+          "#4b5058",
+          "#6b7079",
+          "#8d9299",
+          "#c4c8c9",
+          "#dcdfde",
+          "#e9ebea",
+          "#f1f2f1"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "#17191c",
+        "tonalRamp": [
+          "#17191c",
+          "#26292e",
+          "#393d44",
+          "#4b5058",
+          "#6b7079",
+          "#8d9299",
+          "#c4c8c9",
+          "#dcdfde"
+        ]
+      },
+      "ink-soft": {
+        "role": "neutral",
+        "displayName": "Ink Soft",
+        "canonical": "#4b5058",
+        "tonalRamp": [
+          "#17191c",
+          "#26292e",
+          "#393d44",
+          "#4b5058",
+          "#6b7079",
+          "#8d9299",
+          "#c4c8c9",
+          "#dcdfde"
+        ]
+      },
+      "ink-faint": {
+        "role": "neutral",
+        "displayName": "Ink Faint",
+        "canonical": "#6b7079",
+        "tonalRamp": [
+          "#17191c",
+          "#26292e",
+          "#393d44",
+          "#4b5058",
+          "#6b7079",
+          "#8d9299",
+          "#c4c8c9",
+          "#dcdfde"
+        ]
+      },
+      "border": {
+        "role": "neutral",
+        "displayName": "Hairline",
+        "canonical": "#d0d4d3",
+        "tonalRamp": [
+          "#17191c",
+          "#26292e",
+          "#393d44",
+          "#4b5058",
+          "#6b7079",
+          "#8d9299",
+          "#c4c8c9",
+          "#dcdfde"
+        ]
+      },
+      "input-stroke": {
+        "role": "neutral",
+        "displayName": "Field Stroke",
+        "canonical": "#c4c8c9",
+        "tonalRamp": [
+          "#17191c",
+          "#26292e",
+          "#393d44",
+          "#4b5058",
+          "#6b7079",
+          "#8d9299",
+          "#c4c8c9",
+          "#dcdfde"
+        ]
+      },
+      "tape-yellow": {
+        "role": "primary",
+        "displayName": "Grade Tape Yellow",
+        "canonical": "#ffd23f",
+        "tonalRamp": [
+          "#6b5200",
+          "#8a6900",
+          "#b88c00",
+          "#e6b60f",
+          "#ffd23f",
+          "#ffe58a",
+          "#fff1bf",
+          "#fff8dc"
+        ]
+      },
+      "tape-yellow-hover": {
+        "role": "primary",
+        "displayName": "Tape Yellow Hover",
+        "canonical": "#ffdb63",
+        "tonalRamp": [
+          "#6b5200",
+          "#8a6900",
+          "#b88c00",
+          "#e6b60f",
+          "#ffd23f",
+          "#ffe58a",
+          "#fff1bf",
+          "#fff8dc"
+        ]
+      },
+      "tape-yellow-deep": {
+        "role": "primary",
+        "displayName": "Tape Yellow Deep",
+        "canonical": "#e6b60f",
+        "tonalRamp": [
+          "#6b5200",
+          "#8a6900",
+          "#b88c00",
+          "#e6b60f",
+          "#ffd23f",
+          "#ffe58a",
+          "#fff1bf",
+          "#fff8dc"
+        ]
+      },
+      "tape-blue": {
+        "role": "secondary",
+        "displayName": "Grade Tape Blue (current)",
+        "canonical": "#2f64e6",
+        "tonalRamp": [
+          "#1e409b",
+          "#2550c2",
+          "#2f64e6",
+          "#3d72ef",
+          "#bccdfa",
+          "#dfe7fd",
+          "#eef3fe",
+          "#f6f9ff"
+        ]
+      },
+      "tape-blue-soft": {
+        "role": "secondary",
+        "displayName": "Current Tint",
+        "canonical": "#dfe7fd",
+        "tonalRamp": [
+          "#1e409b",
+          "#2550c2",
+          "#2f64e6",
+          "#3d72ef",
+          "#bccdfa",
+          "#dfe7fd",
+          "#eef3fe",
+          "#f6f9ff"
+        ]
+      },
+      "tape-green": {
+        "role": "tertiary",
+        "displayName": "Grade Tape Green (reached)",
+        "canonical": "#2fb872",
+        "tonalRamp": [
+          "#175f3b",
+          "#1d7a4b",
+          "#24985d",
+          "#2fb872",
+          "#7fe0ad",
+          "#b3e8cc",
+          "#daf4e6",
+          "#ecf9f2"
+        ]
+      },
+      "tape-green-soft": {
+        "role": "tertiary",
+        "displayName": "Reached Tint",
+        "canonical": "#daf4e6",
+        "tonalRamp": [
+          "#175f3b",
+          "#1d7a4b",
+          "#24985d",
+          "#2fb872",
+          "#7fe0ad",
+          "#b3e8cc",
+          "#daf4e6",
+          "#ecf9f2"
+        ]
+      },
+      "tape-red": {
+        "role": "tertiary",
+        "displayName": "Grade Tape Red (error)",
+        "canonical": "#d6392b",
+        "tonalRamp": [
+          "#8c2319",
+          "#b02c20",
+          "#d6392b",
+          "#e04a3c",
+          "#f9c3bc",
+          "#fde3e0",
+          "#fef0ee",
+          "#fff7f6"
+        ]
+      },
+      "tape-red-soft": {
+        "role": "tertiary",
+        "displayName": "Error Tint",
+        "canonical": "#fde3e0",
+        "tonalRamp": [
+          "#8c2319",
+          "#b02c20",
+          "#d6392b",
+          "#e04a3c",
+          "#f9c3bc",
+          "#fde3e0",
+          "#fef0ee",
+          "#fff7f6"
+        ]
+      },
+      "tape-red-text": {
+        "role": "tertiary",
+        "displayName": "Error Ink",
+        "canonical": "#8c2319",
+        "tonalRamp": [
+          "#8c2319",
+          "#b02c20",
+          "#d6392b",
+          "#e04a3c",
+          "#f9c3bc",
+          "#fde3e0",
+          "#fef0ee",
+          "#fff7f6"
+        ]
+      },
+      "tape-pink": {
+        "role": "tertiary",
+        "displayName": "Resin Pink (identity only)",
+        "canonical": "#ff5fa2",
+        "tonalRamp": [
+          "#7a1a44",
+          "#c22d6c",
+          "#e8478a",
+          "#ff5fa2",
+          "#ffa3c9",
+          "#ffc6dd",
+          "#ffe1ee",
+          "#fff3f8"
+        ]
+      },
+      "tape-pink-soft": {
+        "role": "tertiary",
+        "displayName": "Pink Tint",
+        "canonical": "#ffe1ee",
+        "tonalRamp": [
+          "#7a1a44",
+          "#c22d6c",
+          "#e8478a",
+          "#ff5fa2",
+          "#ffa3c9",
+          "#ffc6dd",
+          "#ffe1ee",
+          "#fff3f8"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Landing hero headline only, chalk on the wall."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Landing section headings and the auth wall line."
+      },
+      "page-title": {
+        "displayName": "Page Title",
+        "purpose": "Every app screen h1 (#main h1) and auth form titles."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Panel headings, mentor names, card titles."
+      },
+      "lede": {
+        "displayName": "Lede",
+        "purpose": "Sentence under a page title, max 60ch, ink-soft."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Running text in cards and on the wall."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Buttons, field labels, chips, pills."
+      },
+      "tape": {
+        "displayName": "Tape Marker",
+        "purpose": "Permanent Marker, only inside grade-tape strips."
+      }
+    },
+    "shadows": [
+      {
+        "name": "card",
+        "value": "0 1px 0 rgb(23 25 28 / 0.04), 0 8px 24px -12px rgb(23 25 28 / 0.22)",
+        "purpose": "Every route card and Card."
+      },
+      {
+        "name": "lift",
+        "value": "0 2px 0 rgb(23 25 28 / 0.05), 0 18px 40px -18px rgb(23 25 28 / 0.38)",
+        "purpose": "Dialogs and the mobile nav drawer."
+      },
+      {
+        "name": "tape-inset",
+        "value": "inset 0 -2px 0 rgb(0 0 0 / 0.08)",
+        "purpose": "Bottom edge of tape strips; tape-yellow buttons use 0.12 (hero CTA -3px at 0.14)."
+      },
+      {
+        "name": "focus-ring",
+        "value": "outline: 3px solid #2f64e6; outline-offset: 2px",
+        "purpose": "Global :focus-visible; inputs use a 3px 25% tape-blue ring plus tape-blue border."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-out-expo",
+        "value": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "The only easing: state transitions and the route-set moment."
+      },
+      {
+        "name": "state",
+        "value": "200ms-300ms",
+        "purpose": "Hover, press, chip toggle, card lift."
+      },
+      {
+        "name": "set-hold",
+        "value": "700ms, stagger 140ms, from opacity 0 / translateY 18px / scale 0.9",
+        "purpose": "Landing only: the route is set bottom-up."
+      },
+      {
+        "name": "draw-route",
+        "value": "1600ms, 200ms delay, opacity fade",
+        "purpose": "Landing only: the route line appears behind the holds."
+      },
+      {
+        "name": "reduced-motion",
+        "value": "animation and transition durations 0.01ms",
+        "purpose": "Applied globally under prefers-reduced-motion: reduce."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "sm",
+        "value": "640px"
+      },
+      {
+        "name": "md",
+        "value": "768px"
+      },
+      {
+        "name": "lg",
+        "value": "1024px"
+      },
+      {
+        "name": "xl",
+        "value": "1280px"
+      }
+    ],
+    "surfaces": [
+      {
+        "name": "wall",
+        "value": "#2b2e33 + radial bolt-hole dot (dark 2.2px core, #3e434a ring) on a 52px grid offset 26px",
+        "purpose": "Persuade ground: landing, auth aside, route heroes, app sidebar and mobile header."
+      },
+      {
+        "name": "wall-panels",
+        "value": "wall dots + 240px fractal-noise grain at 6% + 832px conic quadrant value shift",
+        "purpose": "Landing only: the full plywood wall with per-panel value shift."
+      },
+      {
+        "name": "panel",
+        "value": "#e3e5e4 + #c3c7c6 1.6px dots on a 52px grid",
+        "purpose": "Operate ground behind every app screen and the auth form."
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Tape Button",
+      "kind": "button",
+      "refersTo": "button-tape",
+      "description": "The one primary action per view, and the main CTA on the wall.",
+      "html": "<button class=\"ds-btn-tape\">Find my mentors</button>",
+      "css": ":host{--color-wall:#2b2e33;--color-panel:#e3e5e4;--color-card:#fbfbfa;--color-chalk:#f4f5f2;--color-ink:#17191c;--color-ink-soft:#4b5058;--color-ink-faint:#6b7079;--color-tape-yellow:#ffd23f;--color-tape-blue:#2f64e6;--color-tape-red:#d6392b;--ease-out-expo:cubic-bezier(0.16,1,0.3,1);} .ds-btn-tape{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:40px;padding:0 16px;border:none;border-radius:10px;font-size:14px;font-weight:600;letter-spacing:-0.005em;cursor:pointer;transition:background-color .2s var(--ease-out-expo,cubic-bezier(0.16,1,0.3,1)),transform .2s;font-family:var(--font-archivo,Archivo),ui-sans-serif,system-ui,sans-serif;background:var(--color-tape-yellow,#ffd23f);color:var(--color-ink,#17191c);box-shadow:inset 0 -2px 0 rgb(0 0 0/0.12);} .ds-btn-tape:hover{background:#ffdb63;} .ds-btn-tape:active{transform:translateY(1px);} .ds-btn-tape:focus-visible{outline:3px solid #2f64e6;outline-offset:2px;}"
+    },
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Ink workhorse button on light panels.",
+      "html": "<button class=\"ds-btn-primary\">Save milestone</button>",
+      "css": ":host{--color-wall:#2b2e33;--color-panel:#e3e5e4;--color-card:#fbfbfa;--color-chalk:#f4f5f2;--color-ink:#17191c;--color-ink-soft:#4b5058;--color-ink-faint:#6b7079;--color-tape-yellow:#ffd23f;--color-tape-blue:#2f64e6;--color-tape-red:#d6392b;--ease-out-expo:cubic-bezier(0.16,1,0.3,1);} .ds-btn-primary{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:40px;padding:0 16px;border:none;border-radius:10px;font-size:14px;font-weight:600;letter-spacing:-0.005em;cursor:pointer;transition:background-color .2s var(--ease-out-expo,cubic-bezier(0.16,1,0.3,1)),transform .2s;font-family:var(--font-archivo,Archivo),ui-sans-serif,system-ui,sans-serif;background:var(--color-ink,#17191c);color:var(--color-chalk,#f4f5f2);box-shadow:0 1px 0 rgb(0 0 0/0.2);} .ds-btn-primary:hover{background:#393d44;} .ds-btn-primary:active{transform:translateY(1px);} .ds-btn-primary:focus-visible{outline:3px solid #2f64e6;outline-offset:2px;}"
+    },
+    {
+      "name": "Outline Button",
+      "kind": "button",
+      "refersTo": "button-outline",
+      "description": "Secondary action on laminate or panel.",
+      "html": "<button class=\"ds-btn-outline\">Cancel</button>",
+      "css": ":host{--color-wall:#2b2e33;--color-panel:#e3e5e4;--color-card:#fbfbfa;--color-chalk:#f4f5f2;--color-ink:#17191c;--color-ink-soft:#4b5058;--color-ink-faint:#6b7079;--color-tape-yellow:#ffd23f;--color-tape-blue:#2f64e6;--color-tape-red:#d6392b;--ease-out-expo:cubic-bezier(0.16,1,0.3,1);} .ds-btn-outline{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:40px;padding:0 16px;border:none;border-radius:10px;font-size:14px;font-weight:600;letter-spacing:-0.005em;cursor:pointer;transition:background-color .2s var(--ease-out-expo,cubic-bezier(0.16,1,0.3,1)),transform .2s;font-family:var(--font-archivo,Archivo),ui-sans-serif,system-ui,sans-serif;background:var(--color-card,#fbfbfa);color:var(--color-ink,#17191c);border:1px solid rgb(23 25 28/0.15);} .ds-btn-outline:hover{border-color:rgb(23 25 28/0.3);background:#f4f5f2;} .ds-btn-outline:focus-visible{outline:3px solid #2f64e6;outline-offset:2px;}"
+    },
+    {
+      "name": "Destructive Button",
+      "kind": "button",
+      "refersTo": "button-destructive",
+      "description": "Errors and destructive actions only.",
+      "html": "<button class=\"ds-btn-destructive\">Remove task</button>",
+      "css": ":host{--color-wall:#2b2e33;--color-panel:#e3e5e4;--color-card:#fbfbfa;--color-chalk:#f4f5f2;--color-ink:#17191c;--color-ink-soft:#4b5058;--color-ink-faint:#6b7079;--color-tape-yellow:#ffd23f;--color-tape-blue:#2f64e6;--color-tape-red:#d6392b;--ease-out-expo:cubic-bezier(0.16,1,0.3,1);} .ds-btn-destructive{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:40px;padding:0 16px;border:none;border-radius:10px;font-size:14px;font-weight:600;letter-spacing:-0.005em;cursor:pointer;transition:background-color .2s var(--ease-out-expo,cubic-bezier(0.16,1,0.3,1)),transform .2s;font-family:var(--font-archivo,Archivo),ui-sans-serif,system-ui,sans-serif;background:var(--color-tape-red,#d6392b);color:#fff;} .ds-btn-destructive:hover{background:#b02c20;} .ds-btn-destructive:focus-visible{outline:3px solid #2f64e6;outline-offset:2px;}"
+    },
+    {
+      "name": "Text Input",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Laminate field with tape-blue focus.",
+      "html": "<label class=\"ds-field\"><span>Email</span><input class=\"ds-input\" placeholder=\"you@example.com\"></label>",
+      "css": ":host{--color-wall:#2b2e33;--color-panel:#e3e5e4;--color-card:#fbfbfa;--color-chalk:#f4f5f2;--color-ink:#17191c;--color-ink-soft:#4b5058;--color-ink-faint:#6b7079;--color-tape-yellow:#ffd23f;--color-tape-blue:#2f64e6;--color-tape-red:#d6392b;--ease-out-expo:cubic-bezier(0.16,1,0.3,1);} .ds-field{display:grid;gap:8px;font-family:var(--font-archivo,Archivo),ui-sans-serif,system-ui,sans-serif;font-size:14px;font-weight:600;color:#17191c;} .ds-input{height:44px;padding:4px 14px;border:1px solid #c4c8c9;border-radius:10px;background:#fbfbfa;color:#17191c;font-size:15px;font-weight:400;caret-color:#2f64e6;outline:none;transition:border-color .2s,box-shadow .2s;font-family:var(--font-archivo,Archivo),ui-sans-serif,system-ui,sans-serif;} .ds-input::placeholder{color:#6b7079;} .ds-input:focus-visible{border-color:#2f64e6;box-shadow:0 0 0 3px rgb(47 100 230/0.25);}"
+    },
+    {
+      "name": "Route Card",
+      "kind": "card",
+      "refersTo": "route-card",
+      "description": "Laminated card that carries all operate-mode content.",
+      "html": "<section class=\"ds-route-card\"><h2>This week</h2><p>Finish the case study outline before Thursday's check-in.</p><a href=\"#\">Open route</a></section>",
+      "css": ":host{--color-wall:#2b2e33;--color-panel:#e3e5e4;--color-card:#fbfbfa;--color-chalk:#f4f5f2;--color-ink:#17191c;--color-ink-soft:#4b5058;--color-ink-faint:#6b7079;--color-tape-yellow:#ffd23f;--color-tape-blue:#2f64e6;--color-tape-red:#d6392b;--ease-out-expo:cubic-bezier(0.16,1,0.3,1);} .ds-route-card{background:#fbfbfa;border:1px solid rgb(23 25 28/0.08);border-radius:14px;box-shadow:0 1px 0 rgb(23 25 28/0.04),0 8px 24px -12px rgb(23 25 28/0.22);padding:24px;color:#17191c;max-width:360px;font-family:var(--font-archivo,Archivo),ui-sans-serif,system-ui,sans-serif;} .ds-route-card h2{margin:0 0 8px;font-size:18px;font-weight:700;letter-spacing:-0.025em;} .ds-route-card p{margin:0 0 16px;font-size:15px;line-height:1.6;color:#4b5058;} .ds-route-card a{font-size:14px;font-weight:600;color:#17191c;text-decoration:underline;text-decoration-color:rgb(23 25 28/0.3);text-decoration-thickness:2px;text-underline-offset:4px;} .ds-route-card a:hover{text-decoration-color:#17191c;} .ds-route-card a:focus-visible{outline:3px solid #2f64e6;outline-offset:2px;}"
+    },
+    {
+      "name": "Skill Chip",
+      "kind": "chip",
+      "refersTo": "skill-chip",
+      "description": "Toggleable skill pill on the wall; selected turns tape-yellow.",
+      "html": "<div class=\"ds-chip-row\"><button class=\"ds-chip\" aria-pressed=\"true\">Excel</button><button class=\"ds-chip\" aria-pressed=\"false\">Public speaking</button></div>",
+      "css": ":host{--color-wall:#2b2e33;--color-panel:#e3e5e4;--color-card:#fbfbfa;--color-chalk:#f4f5f2;--color-ink:#17191c;--color-ink-soft:#4b5058;--color-ink-faint:#6b7079;--color-tape-yellow:#ffd23f;--color-tape-blue:#2f64e6;--color-tape-red:#d6392b;--ease-out-expo:cubic-bezier(0.16,1,0.3,1);} .ds-chip-row{display:flex;gap:8px;padding:16px;background:#2b2e33;} .ds-chip{height:40px;padding:0 16px;border-radius:9999px;border:1px solid rgb(244 245 242/0.25);background:transparent;color:#f4f5f2;font-size:15px;font-weight:600;cursor:pointer;transition:background-color .2s,border-color .2s,color .2s;font-family:var(--font-archivo,Archivo),ui-sans-serif,system-ui,sans-serif;} .ds-chip:hover{border-color:rgb(244 245 242/0.6);} .ds-chip[aria-pressed=true]{background:#ffd23f;border-color:#ffd23f;color:#17191c;} .ds-chip:focus-visible{outline:3px solid #2f64e6;outline-offset:2px;}"
+    },
+    {
+      "name": "Wall Sidebar Nav",
+      "kind": "nav",
+      "refersTo": "nav-item",
+      "description": "App navigation on the graphite wall; active item is tape-yellow.",
+      "html": "<nav class=\"ds-nav\"><a href=\"#\" aria-current=\"page\">Dashboard</a><a href=\"#\">My route</a><a href=\"#\">Messages</a></nav>",
+      "css": ":host{--color-wall:#2b2e33;--color-panel:#e3e5e4;--color-card:#fbfbfa;--color-chalk:#f4f5f2;--color-ink:#17191c;--color-ink-soft:#4b5058;--color-ink-faint:#6b7079;--color-tape-yellow:#ffd23f;--color-tape-blue:#2f64e6;--color-tape-red:#d6392b;--ease-out-expo:cubic-bezier(0.16,1,0.3,1);} .ds-nav{display:grid;gap:2px;width:232px;padding:12px;background-color:#2b2e33;background-image:radial-gradient(circle at center,#16181b 0 2.2px,#3e434a 2.6px 3.4px,transparent 3.8px);background-size:52px 52px;background-position:26px 26px;font-family:var(--font-archivo,Archivo),ui-sans-serif,system-ui,sans-serif;} .ds-nav a{display:flex;align-items:center;padding:10px 12px;border-radius:10px;font-size:15px;font-weight:500;color:rgb(244 245 242/0.7);text-decoration:none;transition:background-color .2s,color .2s;} .ds-nav a:hover{background:rgb(255 255 255/0.06);color:#f4f5f2;} .ds-nav a[aria-current=page]{background:#ffd23f;color:#17191c;} .ds-nav a:focus-visible{outline:3px solid #2f64e6;outline-offset:2px;}"
+    },
+    {
+      "name": "Grade Tape",
+      "kind": "custom",
+      "refersTo": "tape-label",
+      "description": "Torn-edge tape strip in Permanent Marker; route labels, Top tag, setter attribution.",
+      "html": "<div class=\"ds-tape-wrap\"><span class=\"ds-tape ds-tape-chalk\"><b>V2</b>First real project</span><span class=\"ds-tape\">Top · First offer</span></div>",
+      "css": ":host{--color-wall:#2b2e33;--color-panel:#e3e5e4;--color-card:#fbfbfa;--color-chalk:#f4f5f2;--color-ink:#17191c;--color-ink-soft:#4b5058;--color-ink-faint:#6b7079;--color-tape-yellow:#ffd23f;--color-tape-blue:#2f64e6;--color-tape-red:#d6392b;--ease-out-expo:cubic-bezier(0.16,1,0.3,1);} .ds-tape-wrap{display:flex;gap:16px;align-items:center;padding:24px;background:#2b2e33;} .ds-tape{--tape:#ffd23f;display:inline-flex;align-items:center;gap:0.4em;background:var(--tape);color:#17191c;padding:0.28em 0.75em 0.32em;font-family:var(--font-permanent-marker,'Permanent Marker'),'Marker Felt',cursive;font-size:16px;line-height:1.15;clip-path:polygon(0 6%,3% 0,97% 4%,100% 0,99% 94%,96% 100%,4% 96%,0 100%,1% 50%);box-shadow:inset 0 -2px 0 rgb(0 0 0/0.08);transform:rotate(-2deg);} .ds-tape-chalk{--tape:#f4f5f2;transform:rotate(2deg);} .ds-tape b{font-family:Archivo,ui-sans-serif,system-ui,sans-serif;font-size:12px;font-weight:700;background:#17191c;color:#ffd23f;border-radius:3px;padding:2px 6px;}"
+    },
+    {
+      "name": "Route Strip",
+      "kind": "custom",
+      "refersTo": "route-card",
+      "description": "A route side-on: reached holds ticked, current hold full colour and larger, holds ahead ghosted.",
+      "html": "<ol class=\"ds-route\" aria-label=\"2 of 4 milestones reached\"><li class=\"ds-hold ds-reached\"></li><li class=\"ds-link\"></li><li class=\"ds-hold ds-reached\"></li><li class=\"ds-link\"></li><li class=\"ds-hold ds-current\"></li><li class=\"ds-link ds-ahead\"></li><li class=\"ds-hold ds-ghost\"></li></ol>",
+      "css": ":host{--color-wall:#2b2e33;--color-panel:#e3e5e4;--color-card:#fbfbfa;--color-chalk:#f4f5f2;--color-ink:#17191c;--color-ink-soft:#4b5058;--color-ink-faint:#6b7079;--color-tape-yellow:#ffd23f;--color-tape-blue:#2f64e6;--color-tape-red:#d6392b;--ease-out-expo:cubic-bezier(0.16,1,0.3,1);} .ds-route{display:flex;align-items:center;list-style:none;margin:0;padding:20px;background:#fbfbfa;border-radius:14px;max-width:360px;} .ds-hold{width:30px;height:28px;border-radius:46% 54% 40% 60%/55% 45% 55% 45%;background:radial-gradient(circle at 35% 30%,#ffe78a,#ffd23f 55%,#c99a00);box-shadow:0 5px 8px rgb(0 0 0/0.3);position:relative;flex:none;} .ds-hold::after{content:'';position:absolute;inset:50% auto auto 50%;width:6px;height:6px;margin:-3px;border-radius:50%;background:#15171a;} .ds-reached::before{content:'';position:absolute;left:8px;top:6px;width:12px;height:7px;border-left:3px solid #eef0ec;border-bottom:3px solid #eef0ec;transform:rotate(-45deg);z-index:1;} .ds-current{width:38px;height:35px;} .ds-ghost{opacity:.3;filter:grayscale(1);} .ds-link{flex:1;height:0;margin:0 4px;border-top:2px solid rgb(23 25 28/0.4);} .ds-ahead{border-top-style:dashed;border-top-color:rgb(23 25 28/0.15);}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Route Setter",
+    "overview": "The mentor sets the route and the mentee climbs it. The system is a bouldering gym: a graphite plywood wall drilled with a T-nut bolt grid, resin holds bolted to it, laminated route cards hung beside it, and strips of grade tape that name every route and every state. A roadmap is a graded, taped route; a milestone is a hold; progress is a chalk tick.\n\nThe world has two grounds, chosen by what the surface is for. Persuade surfaces (the landing, the auth aside, the route heroes at the top of dashboard and roadmap screens, the app sidebar) stand on the graphite wall. Operate surfaces (dashboard body, browse, routes, messages, profile, every form) sit on the light panel with laminated route cards on top. This split comes from product truth rather than the metaphor: mentees and mentors use MentorMatch for dense, repeated working sessions (tasks, roadmaps, messages, long forms) and the product targets WCAG 2.1 AA. Long reading and form entry on a light ground keep body ink at high contrast (13.9:1 on the panel), while the wall is reserved for the moments that carry identity.\n\nAccent is scarce and semantic. The grade-tape colours are the only accents and each one means something. Type is one variable family, Archivo, pushed wide and black for display and held at normal width for UI, with Permanent Marker appearing only where a setter would write by hand: on tape.",
+    "keyCharacteristics": [
+      "Graphite wall (bolt-hole dot grid, 52px pitch) for identity moments; light dotted panel for working screens.",
+      "Laminated route cards (#fbfbfa, 14px corners, soft card shadow) carry all operate-mode content.",
+      "Grade-tape colours as the only accents, each bound to one meaning.",
+      "Archivo wide-black display (wdth 112, weight 850) against plain Archivo UI; marker face only on tape.",
+      "Holds as the unit of progress: reached holds ticked in chalk, holds ahead drawn as ghosts.",
+      "One authored motion moment: the route is set bottom-up on the landing."
+    ],
+    "rules": [
+      {
+        "name": "The Tape Means Something Rule",
+        "section": "colors",
+        "body": "Every accent is a grade-tape colour with one job: yellow = primary action, active nav, brand holds; blue = current (current hold, focus ring); green = reached / done; red = error / destructive. Pink is resin, never state. If a colour is not doing one of those jobs, it is ink, chalk or a neutral."
+      },
+      {
+        "name": "The Ground By Mode Rule",
+        "section": "colors",
+        "body": "Persuade surfaces stand on the graphite wall; Operate surfaces sit on the light panel with laminated route cards. A working screen gets at most one wall band (a route hero) above its panel body."
+      },
+      {
+        "name": "The Ink Link Rule",
+        "section": "colors",
+        "body": "Hyperlinks are ink with a 2px underline at 30% ink, darkening to full ink on hover. Links are never tape blue; blue already means \"current\"."
+      },
+      {
+        "name": "The Inherited Palette Rule",
+        "section": "colors",
+        "body": "The legacy names (gray, blue, green, yellow, red, brand-*) and the shadcn semantic tokens are remapped onto this world in the theme so older screens inherit it. New code uses the world names (wall, panel, card, chalk, ink, tape-*)."
+      },
+      {
+        "name": "The Marker Only On Tape Rule",
+        "section": "typography",
+        "body": "Permanent Marker appears inside a tape strip and nowhere else: not headings, not buttons, not body."
+      },
+      {
+        "name": "The No Eyebrow Rule",
+        "section": "typography",
+        "body": "Headings stand alone; there is no small label above them. Attribution (\"Set by your mentor\", setter / mentee names) rides on chalk or yellow tape tags beside the content."
+      },
+      {
+        "name": "The Tabular Numbers Rule",
+        "section": "typography",
+        "body": "Dates, times, table cells and scores use tabular numerals."
+      },
+      {
+        "name": "The Laminate Rule",
+        "section": "elevation",
+        "body": "Content never floats free on the panel; it sits on a route card with the card shadow. Lift is for things that cover other things."
+      }
+    ],
+    "dos": [
+      "**Do** put identity moments (landing, auth aside, route heroes, sidebar) on the graphite wall and working screens on the light panel with route cards.",
+      "**Do** keep tape-yellow for the primary action, active nav, selected / shared skills and brand holds; use tape-blue only for \"current\" and focus.",
+      "**Do** draw a route in one resin colour, grade it Start, V1, V2..., tick reached holds in chalk and ghost the holds ahead.",
+      "**Do** set every app h1 in the display voice (Archivo 850, wdth 112) and keep body text ink or ink-soft on laminate or panel.",
+      "**Do** style hyperlinks as ink with a 2px underline at 30% ink.",
+      "**Do** use the world token names (wall, panel, card, chalk, ink, tape-*) in new code.",
+      "**Do** give every route and hold a text equivalent, and keep the 3px tape-blue focus ring visible."
+    ],
+    "donts": [
+      "**Don't** use a grade-tape colour as decoration without its meaning, and don't give pink a state meaning.",
+      "**Don't** colour hyperlinks tape blue.",
+      "**Don't** set Permanent Marker outside a tape strip.",
+      "**Don't** put an eyebrow or kicker label above a heading; attribution goes on a tape tag.",
+      "**Don't** mix resin colours within a single route.",
+      "**Don't** put ink-faint text on the bare panel; it is for laminate only.",
+      "**Don't** add a second authored animation; state changes stay short and on the expo ease-out."
+    ]
+  }
+}

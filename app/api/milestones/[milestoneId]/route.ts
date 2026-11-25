@@ -1,3 +1,4 @@
+import { parseDateOnly } from "@/lib/utils";
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth-helpers";
 import { prisma } from "@/lib/prisma";
@@ -115,7 +116,7 @@ export async function PATCH(
       // Mentor can update everything
       if (body.title !== undefined) updateData.title = body.title;
       if (body.description !== undefined) updateData.description = body.description;
-      if (body.dueDate !== undefined) updateData.dueDate = new Date(body.dueDate);
+      if (body.dueDate !== undefined) updateData.dueDate = parseDateOnly(body.dueDate);
       if (body.order !== undefined) updateData.order = body.order;
       if (body.status !== undefined) updateData.status = body.status;
     } else if (isMentee && body.status !== undefined) {

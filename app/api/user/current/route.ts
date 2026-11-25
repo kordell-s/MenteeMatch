@@ -1,43 +1,11 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { getCurrentUser } from "@/lib/auth-helpers";
 
-export async function GET(request: Request) {
+/** The signed-in user's own profile basics. */
+export async function GET() {
   try {
-    // TODO: Replace this with actual session/authentication logic
-    // For now, using a hardcoded user ID - you'll need to implement proper session handling
-    const currentUserId = "23d6c35a-3c3f-4d7f-a6fc-95ba7da4c216"; // James Clean (mentor)
-    
-    // In a real app, you would get the user ID from the session like:
-    // const session = await getServerSession(authOptions);
-    // if (!session?.user?.id) {
-    //   return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    // }
-    // const currentUserId = session.user.id;
-
-    if (!currentUserId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    // Fetch the current user's data
-    const user = await prisma.user.findUnique({
-      where: { id: currentUserId },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        profilePicture: true,
-        role: true,
-        bio: true,
-        company: true,
-        title: true,
-        location: true,
-      },
-    });
-
-    if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
-    }
-
+    const user = await getCurrentUser();
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     return NextResponse.json({
       id: user.id,
       name: user.name,
@@ -48,13 +16,10 @@ export async function GET(request: Request) {
       company: user.company,
       title: user.title,
       location: user.location,
+      skills: user.skills,
     });
-
   } catch (error) {
     console.error("Error fetching current user:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch user data" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Could not load your profile." }, { status: 500 });
   }
 }
